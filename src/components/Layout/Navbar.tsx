@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, User as UserIcon, Menu, LogIn, LayoutDashboard } from 'lucide-react';
+import { Search, Bell, User as UserIcon, Menu, LogIn, LayoutDashboard, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { signInWithGoogle, auth } from '../../lib/firebase';
 import { motion } from 'motion/react';
@@ -44,6 +44,10 @@ export const Navbar = () => {
 
         {user ? (
           <div className="flex items-center gap-4">
+            <Link to="/messages" className="hidden lg:flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full hover:border-brand-gold/30 transition-all">
+              <MessageCircle className="w-4 h-4 text-brand-gold" />
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">Messages</span>
+            </Link>
             <div className="hidden lg:flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 px-3 py-1.5 rounded-full">
               <span className="text-[10px] font-black text-brand-gold uppercase tracking-widest">AfriCoins</span>
               <span className="text-sm font-display font-bold text-white">{profile?.afriCoins || 0}</span>

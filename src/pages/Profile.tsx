@@ -80,14 +80,38 @@ export const Profile = () => {
                  "{displayProfile?.bio || "Passionné par les récits et l'art africain. Je suis ici pour explorer les légendes du continent."}"
                </p>
             </div>
+
+            {/* External Links - Section 4.2 */}
+            {displayProfile?.role !== 'reader' && (
+              <div className="glass-card p-8 space-y-4">
+                <h3 className="font-display font-bold text-sm uppercase tracking-widest text-gray-500">Liens Externe</h3>
+                <div className="space-y-3">
+                   <a href="#" className="flex items-center gap-3 text-sm text-gray-400 hover:text-brand-gold font-bold transition-all">
+                      <span className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">📦</span>
+                      Amazon Store
+                   </a>
+                   <a href="#" className="flex items-center gap-3 text-sm text-gray-400 hover:text-brand-gold font-bold transition-all">
+                      <span className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">🌐</span>
+                      Site Personnel
+                   </a>
+                   <a href="#" className="flex items-center gap-3 text-sm text-gray-400 hover:text-brand-gold font-bold transition-all">
+                      <span className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">🎨</span>
+                      Portfolio ArtStation
+                   </a>
+                </div>
+              </div>
+            )}
          </div>
 
          {/* Main Content: Library */}
          <div className="lg:col-span-3 space-y-12">
             <div className="flex items-center justify-between border-b border-white/10 pb-6">
                <div className="flex gap-8">
-                  <button className="font-display font-black text-2xl border-b-2 border-brand-gold pb-6 -mb-6.5">Ma Bibliothèque</button>
+                  <button className="font-display font-black text-2xl border-b-2 border-brand-gold pb-6 -mb-6.5 text-white">Ma Bibliothèque</button>
                   <button className="font-display font-black text-2xl text-gray-500 hover:text-white transition-colors pb-6">Favoris</button>
+                  {displayProfile?.role !== 'reader' && (
+                    <button className="font-display font-black text-2xl text-gray-500 hover:text-white transition-colors pb-6">Portfolio Artistique</button>
+                  )}
                   <button className="font-display font-black text-2xl text-gray-500 hover:text-white transition-colors pb-6">Activités</button>
                </div>
                <div className="flex gap-2 text-gray-500">

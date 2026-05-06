@@ -48,6 +48,43 @@ export const Home = () => {
         </div>
       </section>
 
+      {/* Trending & Rankings Section */}
+      <section className="px-6 md:px-12 mt-24 grid lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-3xl font-display font-bold flex items-center gap-3">
+              <TrendingUp className="w-6 h-6 text-brand-gold" />
+              Tendances du moment
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-6">
+            {mockWorks.slice(0, 4).map((work, i) => (
+              <TrendingWorkCard key={work.id} work={work} index={i + 1} />
+            ))}
+          </div>
+        </div>
+
+        <div className="glass-card p-8 space-y-8 h-fit">
+          <h2 className="text-2xl font-display font-bold">Classement Top 5</h2>
+          <div className="space-y-6">
+            {mockWorks.map((work, i) => (
+              <div key={work.id} className="flex items-center gap-4 group cursor-pointer">
+                <span className="text-4xl font-display font-black text-white/10 group-hover:text-brand-gold transition-colors">{i + 1}</span>
+                <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-bold text-sm line-clamp-1">{work.title}</h4>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase">{work.author}</p>
+                </div>
+                <div className="text-right">
+                   <div className="text-xs font-black text-brand-gold">{work.views}</div>
+                   <div className="text-[8px] text-gray-600 font-bold uppercase">Vues</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Categories */}
       <section className="px-6 md:px-12 space-y-12">
         <div className="flex items-center justify-between">
@@ -108,6 +145,29 @@ export const Home = () => {
           </ul>
         </div>
       </section>
+    </div>
+  );
+};
+
+const TrendingWorkCard = ({ work, index }: { work: any, index: number }) => {
+  const navigate = useNavigate();
+  return (
+    <div 
+      onClick={() => navigate(`/work/${work.id}`)}
+      className="flex items-center gap-6 group cursor-pointer glass-card p-4 hover:border-brand-gold/30 transition-all"
+    >
+      <div className="w-20 h-28 bg-brand-brown rounded-xl flex-shrink-0 relative overflow-hidden">
+         <div className="absolute top-0 right-0 bg-brand-gold text-brand-black text-[10px] font-black px-2 py-0.5">#{index}</div>
+      </div>
+      <div className="space-y-2">
+        <div className="text-[8px] font-black text-brand-gold uppercase tracking-[0.2em]">{work.category}</div>
+        <h4 className="font-display font-bold text-lg leading-tight group-hover:text-brand-gold transition-colors">{work.title}</h4>
+        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold">
+           <span>{work.author}</span>
+           <span className="w-1 h-1 bg-gray-700 rounded-full" />
+           <span>{work.views} vues</span>
+        </div>
+      </div>
     </div>
   );
 };
