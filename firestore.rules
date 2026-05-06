@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    // --- Entity Validations ---
+    
+    function isValidUser(data) {
+      return data.keys().hasAll(['userId', 'email', 'role']) 
+        && data.userId == request.auth.uid
+        && data.role in ['reader', 'artist_draft', 'artist_pro']
+        && data.email is string && data.email.size() <= 200
+        && (data.afriCoins == 0 || data.afriCoins is number);
+    }
+
+    function isValidWork(data) {
+      return data.keys().hasAll(['title', 'authorId', 'type', 'isPro'])
+        && data.title is string && data.title.size() <= 200
+        && data.authorId == request.auth.uid
+        && data.type in ['webtoon', 'bd', 'novel']
+        && data.isPro is bool;
+    }
+
+    function isValidChapter(data) {
+      return data.keys().hasAll(['workId', 'chapterNumber', 'title'])
+        && data.workId is string
+        && data.chapterNumber is number
+        && data.title is string && data.title.size() <= 200;
+    }
+
+    // --- Collection Routes ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if false; // No blanket listing of users
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'bio', 'afriCoins', 'badges']);
+    }
+
+    match /works/{workId} {
+      allow read: if true; // Public works
+      allow create: if isSignedIn() 
+        && (getUserData(request.auth.uid).role in ['artist_pro', 'artist_draft'])
+        && isValidWork(incoming());
+      allow update: if isOwner(existing().authorId) 
+        && isValidWork(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'coverURL', 'status', 'category', 'tags', 'views', 'likes']);
+      allow delete: if isOwner(existing().authorId);
+    }
+
+    match /works/{workId}/chapters/{chapterId} {
+      allow get: if incoming().isPremium == false 
+        || (isSignedIn() && (isOwner(get(/databases/$(database)/documents/works/$(workId)).data.authorId) 
+           || exists(/databases/$(database)/documents/users/$(request.auth.uid)/unlocks/$(chapterId))));
+      allow list: if true;
+      allow create: if isOwner(get(/databases/$(database)/documents/works/$(workId)).data.authorId) && isValidChapter(incoming());
+      allow update: if isOwner(get(/databases/$(database)/documents/works/$(workId)).data.authorId) && isValidChapter(incoming());
+      allow delete: if isOwner(get(/databases/$(database)/documents/works/$(workId)).data.authorId);
+    }
+
+    match /forums/{forumId} {
+      allow read: if incoming().isPremium == false || (isSignedIn() && getUserData(request.auth.uid).role == 'artist_pro');
+      allow create, update, delete: if false; // Managed by admins/system for now
+    }
+
+    match /forums/{forumId}/posts/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().authorId == request.auth.uid;
+      allow update, delete: if isOwner(existing().authorId);
+    }
+  }
+}

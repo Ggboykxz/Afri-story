@@ -1,0 +1,105 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Platform user (reader or artist)",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["reader", "artist_draft", "artist_pro"] },
+        "bio": { "type": "string" },
+        "afriCoins": { "type": "number" },
+        "badges": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "role"]
+    },
+    "Work": {
+      "title": "Work",
+      "description": "Graphic or narrative work (Webtoon, BD, Novel)",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "coverURL": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "type": { "type": "string", "enum": ["webtoon", "bd", "novel"] },
+        "status": { "type": "string", "enum": ["ongoing", "completed", "draft"] },
+        "isPro": { "type": "boolean" },
+        "category": { "type": "string" },
+        "tags": { "type": "array" },
+        "views": { "type": "number" },
+        "likes": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "authorId", "type", "isPro"]
+    },
+    "Chapter": {
+      "title": "Chapter",
+      "description": "A single chapter of a work",
+      "type": "object",
+      "properties": {
+        "workId": { "type": "string" },
+        "chapterNumber": { "type": "number" },
+        "title": { "type": "string" },
+        "contentURLS": { "type": "array" },
+        "isPremium": { "type": "boolean" },
+        "price": { "type": "number" },
+        "publishedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["workId", "chapterNumber", "title"]
+    },
+    "Forum": {
+      "title": "Forum",
+      "description": "Discussion forum category",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "isPremium": { "type": "boolean" },
+        "type": { "type": "string", "enum": ["general", "spoiler"] }
+      },
+      "required": ["title", "isPremium"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "A message in a forum",
+      "type": "object",
+      "properties": {
+        "forumId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isSpoiler": { "type": "boolean" }
+      },
+      "required": ["forumId", "authorId", "content"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and account settings"
+    },
+    "/works/{workId}": {
+      "schema": "Work",
+      "description": "Published creative works"
+    },
+    "/works/{workId}/chapters/{chapterId}": {
+      "schema": "Chapter",
+      "description": "Individual chapters for a work"
+    },
+    "/forums/{forumId}": {
+      "schema": "Forum",
+      "description": "Forum topics and categories"
+    },
+    "/forums/{forumId}/posts/{postId}": {
+      "schema": "Post",
+      "description": "Posts within a forum"
+    }
+  }
+}
