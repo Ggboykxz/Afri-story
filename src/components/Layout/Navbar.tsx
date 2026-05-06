@@ -18,7 +18,7 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 h-16 z-50 bg-brand-black/80 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 flex items-center justify-between">
+    <nav className="fixed top-0 left-0 right-0 h-16 z-50 glass-navbar px-4 md:px-8 flex items-center justify-between">
       <Link to="/" className="flex items-center gap-2">
         <div className="w-8 h-8 bg-linear-to-tr from-brand-gold to-brand-red rounded-lg" />
         <span className="font-display text-xl font-bold tracking-tighter">AfriStory</span>

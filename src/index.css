@@ -1,20 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&family=Space+Grotesk:wght@300;400;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", sans-serif;
   
   --color-brand-gold: #D4AF37;
   --color-brand-brown: #5C4033;
   --color-brand-red: #A52A2A;
   --color-brand-green: #2E8B57;
-  --color-brand-black: #1A1A1A;
+  --color-brand-black: #0F0F0F;
   --color-brand-offwhite: #F5F5DC;
 }
 
 @layer base {
   body {
-    @apply bg-brand-black text-brand-offwhite font-sans;
+    @apply bg-brand-black text-brand-offwhite font-sans antialiased;
+    background-image: radial-gradient(circle at 50% -20%, #2a1a10 0%, #0f0f0f 60%);
+    background-attachment: fixed;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -23,10 +26,14 @@
 }
 
 .glass-card {
-  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  @apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl;
+}
+
+.glass-navbar {
+  @apply bg-brand-black/40 backdrop-blur-2xl border-b border-white/10;
 }
 
 .gradient-text {
-  @apply bg-clip-text text-transparent bg-linear-to-r from-brand-gold to-brand-red;
+  @apply bg-clip-text text-transparent bg-linear-to-r from-brand-gold via-white to-brand-red text-shadow-sm;
 }
 

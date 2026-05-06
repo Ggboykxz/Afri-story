@@ -9,8 +9,8 @@ export const Home = () => {
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden px-6">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-linear-to-b from-brand-black/20 via-brand-black/60 to-brand-black z-10" />
-          <div className="grid grid-cols-4 gap-4 rotate-12 scale-150 opacity-20">
+          <div className="absolute inset-0 bg-linear-to-b from-brand-gold/10 via-brand-black/70 to-brand-black z-10" />
+          <div className="grid grid-cols-4 gap-4 rotate-12 scale-150 opacity-10">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="aspect-[3/4] bg-brand-brown rounded-xl h-[400px] shadow-2xl" />
             ))}

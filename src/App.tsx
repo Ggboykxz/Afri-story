@@ -7,6 +7,7 @@ import { Reader } from './pages/Reader';
 import { ArtistDashboard } from './pages/ArtistDashboard';
 import { Forum } from './pages/Forum';
 import { Profile } from './pages/Profile';
+import { Shop } from './pages/Shop';
 import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
