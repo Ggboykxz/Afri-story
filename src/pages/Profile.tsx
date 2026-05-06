@@ -44,6 +44,12 @@ export const Profile = () => {
                        {badge.label}
                     </div>
                   ))}
+                  {displayProfile?.role !== 'reader' && (
+                    <button className="flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-wider text-white hover:bg-brand-gold hover:text-brand-black transition-all">
+                       <MessageCircle className="w-4 h-4" />
+                       Demande Professionnelle
+                    </button>
+                  )}
                </div>
             </div>
          </div>

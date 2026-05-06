@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { BookOpen, Heart, Share2, Award, User, Star } from 'lucide-react';
+import { BookOpen, Heart, Share2, Award, User, Star, DollarSign } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const WorkDetail = () => {
@@ -58,9 +58,13 @@ export const WorkDetail = () => {
             </div>
           </div>
 
-          <div className="flex gap-4 mb-4">
+          <div className="flex flex-wrap gap-4 mb-4">
             <button className="flex items-center gap-2 px-6 py-3 bg-brand-gold text-brand-black font-black rounded-xl hover:scale-105 transition-transform">
               S'ABONNER
+            </button>
+            <button className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-brand-gold/10 hover:border-brand-gold/50 transition-all font-bold text-sm">
+              <DollarSign className="w-4 h-4 text-brand-gold" />
+              DONNER
             </button>
             <button className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">
               <Heart className="w-6 h-6" />

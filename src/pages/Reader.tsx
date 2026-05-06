@@ -8,6 +8,7 @@ export const Reader = () => {
   const navigate = useNavigate();
   const [showControls, setShowControls] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [readerMode, setReaderMode] = useState<'webtoon' | 'bd'>('webtoon');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,7 +60,21 @@ export const Reader = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:flex bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
+                 <button 
+                   onClick={() => setReaderMode('webtoon')}
+                   className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${readerMode === 'webtoon' ? 'bg-brand-gold text-brand-black' : 'text-gray-400 hover:text-white'}`}
+                 >
+                    Webtoon
+                 </button>
+                 <button 
+                   onClick={() => setReaderMode('bd')}
+                   className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${readerMode === 'bd' ? 'bg-brand-gold text-brand-black' : 'text-gray-400 hover:text-white'}`}
+                 >
+                    BD
+                 </button>
+              </div>
               <button className="p-2 hover:bg-white/10 rounded-full transition-colors"><List className="w-5 h-5" /></button>
               <button className="p-2 hover:bg-white/10 rounded-full transition-colors"><Share2 className="w-5 h-5" /></button>
             </div>
@@ -76,17 +91,23 @@ export const Reader = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-3xl mx-auto pt-4 flex flex-col items-center">
+      <div className={`max-w-3xl mx-auto pt-4 flex flex-col items-center ${readerMode === 'bd' ? 'px-6' : ''}`}>
         {pages.map((page, index) => (
-          <div key={index} className="w-full relative">
+          <div key={index} className={`w-full relative ${readerMode === 'bd' ? 'mb-12 aspect-[3/4] bg-brand-brown rounded-2xl overflow-hidden shadow-2xl' : ''}`}>
             <img 
               src={page} 
               alt={`Page ${index + 1}`} 
-              className="w-full h-auto"
+              className={`w-full h-auto ${readerMode === 'bd' ? 'h-full object-cover' : ''}`}
               draggable={false}
             />
-            {/* Minimalist divider */}
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-brand-black to-transparent pointer-events-none" />
+            {readerMode === 'webtoon' && (
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-brand-black to-transparent pointer-events-none" />
+            )}
+            {readerMode === 'bd' && (
+               <div className="absolute bottom-4 right-4 bg-brand-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 uppercase tracking-widest">
+                  Page {index + 1}
+               </div>
+            )}
           </div>
         ))}
 

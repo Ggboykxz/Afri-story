@@ -75,7 +75,7 @@ export const Forum = () => {
              topics={[
                { title: "Bienvenue sur AfriStory ! Présentez-vous ici", replies: 450, views: '12K', last: 'Il y a 2m' },
                { title: "Actualités de la plateforme & Mises à jour", replies: 89, views: '5K', last: 'Hier' },
-               { title: "Vos Webtoons préférés du mois", replies: 234, views: '8K', last: 'Il y a 1h' },
+               { title: "Spoiler : La fin de l'épisode 12...", replies: 234, views: '8K', last: 'Il y a 1h', isSpoiler: true },
              ]}
            />
 
@@ -139,6 +139,22 @@ export const Forum = () => {
   );
 };
 
+const SpoilerText = ({ children }: { children: React.ReactNode }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <span 
+      onClick={(e) => {
+        e.stopPropagation();
+        setShow(true);
+      }}
+      className={`cursor-pointer transition-all ${!show ? 'bg-white/10 text-transparent blur-sm hover:bg-white/20 px-1 rounded' : ''}`}
+    >
+      {children}
+      {!show && <span className="text-[10px] font-black uppercase text-brand-gold ml-2 blur-none">SPOILER (Cliquer)</span>}
+    </span>
+  );
+};
+
 const ForumSection = ({ title, icon, topics }: { title: string, icon: any, topics: any[] }) => (
   <div className="space-y-4">
     <div className="flex items-center gap-3 px-2">
@@ -149,8 +165,13 @@ const ForumSection = ({ title, icon, topics }: { title: string, icon: any, topic
        {topics.map((topic, i) => (
          <div key={i} className="p-6 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer group">
             <div className="space-y-1">
-               <h4 className="font-bold group-hover:text-brand-gold transition-colors">{topic.title}</h4>
-               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{topic.last}</p>
+               <div className="flex items-center gap-2">
+                  <h4 className="font-bold group-hover:text-brand-gold transition-colors">{topic.title}</h4>
+                  {topic.isSpoiler && <span className="px-1.5 py-0.5 bg-brand-red/20 text-brand-red text-[8px] font-black rounded uppercase">Spoiler</span>}
+               </div>
+               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                 {topic.isSpoiler ? <SpoilerText>Preview du message spoiler ici...</SpoilerText> : topic.last}
+               </p>
             </div>
             <div className="flex gap-8 text-right">
                <div className="hidden sm:block">

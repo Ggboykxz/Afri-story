@@ -10,6 +10,7 @@ import { Profile } from './pages/Profile';
 import { Shop } from './pages/Shop';
 import { CreateWork } from './pages/CreateWork';
 import { Messaging } from './pages/Messaging';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/messages" element={<Messaging />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </Layout>
       </BrowserRouter>

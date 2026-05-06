@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign } from 'lucide-react';
+import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'motion/react';
 
@@ -115,6 +115,40 @@ export const ArtistDashboard = () => {
              </div>
              <div className="p-6 bg-white/5 text-center">
                 <button className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Gérer tout le catalogue</button>
+             </div>
+          </div>
+
+          {/* Collaborators Section - Section 4.1 */}
+          <div className="glass-card p-8 space-y-8 mt-8">
+             <div className="flex items-center justify-between">
+                <div>
+                   <h2 className="text-2xl font-display font-black flex items-center gap-3">
+                      <Users className="w-6 h-6 text-brand-green" />
+                      Collaborateurs
+                   </h2>
+                   <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Gérez votre équipe créative</p>
+                </div>
+                <button className="px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">
+                   AJOUTER UN COLLAB
+                </button>
+             </div>
+
+             <div className="grid sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                   <div className="w-12 h-12 rounded-xl bg-brand-brown flex items-center justify-center font-display font-bold">M</div>
+                   <div className="flex-1">
+                      <h4 className="font-bold text-sm">Mamadou G.</h4>
+                      <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest">Scénariste</p>
+                   </div>
+                   <button className="p-2 text-gray-500 hover:text-brand-red text-xs font-bold uppercase">Retirer</button>
+                </div>
+                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 opacity-50">
+                   <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center font-display font-bold">+</div>
+                   <div className="flex-1">
+                      <h4 className="font-bold text-sm italic text-gray-400">Ajouter Coloriste</h4>
+                      <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Poste vacant</p>
+                   </div>
+                </div>
              </div>
           </div>
         </div>
