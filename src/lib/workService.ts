@@ -98,7 +98,7 @@ export const workService = {
       const userDoc = await getDoc(userRef);
       const coins = userDoc.data()?.afriCoins || 0;
       
-      if (coins < price) throw new Error("AfriCoins insuffisants");
+      if (coins < price) throw new Error("Nexus-Coins insuffisants");
 
       // Transaction-like update (simplified for brevity)
       await updateDoc(userRef, { afriCoins: increment(-price) });
@@ -127,7 +127,7 @@ export const workService = {
     }
   },
 
-  // Purchase AfriCoins (Simulated increment)
+  // Purchase Nexus-Coins (Simulated increment)
   purchaseCoins: async (userId: string, amount: number) => {
     const path = `users/${userId}`;
     try {

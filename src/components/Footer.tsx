@@ -11,9 +11,9 @@ export const Footer = () => {
         <div className="space-y-6">
           <Link to="/" className="flex items-center gap-2 group">
              <div className="w-10 h-10 bg-brand-gold rounded-xl flex items-center justify-center text-brand-black rotate-[-5deg] group-hover:rotate-0 transition-transform">
-                <span className="font-display font-black text-2xl">A</span>
+                <span className="font-display font-black text-2xl">N</span>
              </div>
-             <span className="text-xl font-display font-black uppercase tracking-tighter">AfriStory</span>
+             <span className="text-xl font-display font-black uppercase tracking-tighter">Nexus-Hub</span>
           </Link>
           <p className="text-sm text-gray-500 font-medium leading-relaxed">
             La destination ultime pour le webtoon africain. Racontez votre histoire, bâtissez votre communauté, et vivez de votre art.
@@ -30,7 +30,7 @@ export const Footer = () => {
         <div>
           <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white mb-6">Plateforme</h4>
           <ul className="space-y-4">
-             {['Découvrir', 'Dernières Sorties', 'Classements', 'Boutique AfriCoins'].map(item => (
+             {['Découvrir', 'Dernières Sorties', 'Classements', 'Boutique Nexus-Coins'].map(item => (
                <li key={item}>
                  <Link to="#" className="text-sm font-bold text-gray-500 hover:text-brand-gold transition-colors">{item}</Link>
                </li>

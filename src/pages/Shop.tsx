@@ -10,7 +10,7 @@ export const Shop = () => {
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
   const handleBuyCoins = async (amount: number) => {
-    if (!user) return alert("Veuillez vous connecter pour acheter des AfriCoins");
+    if (!user) return alert("Veuillez vous connecter pour acheter des Nexus-Coins");
     setBuyingCoins(true);
     try {
       await workService.purchaseCoins(user.uid, amount);
@@ -34,11 +34,7 @@ export const Shop = () => {
     { id: 4, name: "Affiche 'Justice de Fer' (A2)", price: "8,000 FCFA", category: "Décoration", tag: "" },
   ];
 
-  const transactions = [
-    { id: 'tx_1', date: '04 Mai 2026', type: 'Achat', item: '+500 AfriCoins', amount: '-599 FCFA' },
-    { id: 'tx_2', date: '02 Mai 2026', type: 'Shop', item: 'T-Shirt Oyo', amount: '-12,000 FCFA' },
-    { id: 'tx_3', date: '01 Mai 2026', type: 'Récompense', item: 'Bonus Quotidien', amount: '+50 AfriCoins' },
-  ];
+  const transactions: any[] = [];
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 space-y-24">
@@ -101,7 +97,7 @@ export const Shop = () => {
 
          {/* Product Grid */}
          <div className="lg:col-span-3">
-            {/* AfriCoins Section */}
+            {/* Nexus-Coins Section */}
             <section className="mb-12 glass-card p-8 border-brand-gold/30 bg-linear-to-r from-brand-gold/5 via-transparent to-transparent">
                <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                   <div className="flex items-center gap-6">
@@ -109,7 +105,7 @@ export const Shop = () => {
                         <Coins className="w-10 h-10" />
                      </div>
                      <div>
-                        <h2 className="text-2xl font-display font-black uppercase tracking-tighter">Votre solde : <span className="text-brand-gold">{profile?.afriCoins || 0} AfriCoins</span></h2>
+                        <h2 className="text-2xl font-display font-black uppercase tracking-tighter">Votre solde : <span className="text-brand-gold">{profile?.afriCoins || 0} Nexus-Coins</span></h2>
                         <p className="text-sm text-gray-500">Utilisez vos crédits pour débloquer des chapitres premium.</p>
                      </div>
                   </div>

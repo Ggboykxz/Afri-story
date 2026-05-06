@@ -11,21 +11,8 @@ export const ArtistDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showRecruitModal, setShowRecruitModal] = useState(false);
 
-  const recruits = [
-    { name: 'Kossi B.', role: 'Coloriste', exp: '5 ans', rate: '20,000 / Chapitre' },
-    { name: 'Samba D.', role: 'Scénariste', exp: '2 ans', rate: '15,000 / Chapitre' },
-    { name: 'Awa M.', role: 'Lettreur', exp: '1 an', rate: '10,000 / Chapitre' },
-  ];
-
-  const statsData = [
-    { name: 'Lun', views: 400, revenue: 240 },
-    { name: 'Mar', views: 300, revenue: 139 },
-    { name: 'Mer', views: 200, revenue: 980 },
-    { name: 'Jeu', views: 278, revenue: 390 },
-    { name: 'Ven', views: 189, revenue: 480 },
-    { name: 'Sam', views: 239, revenue: 380 },
-    { name: 'Dim', views: 349, revenue: 430 },
-  ];
+  const recruits: any[] = [];
+  const statsData: any[] = [];
 
   if (profile?.role === 'reader') {
     return (
@@ -37,18 +24,18 @@ export const ArtistDashboard = () => {
           </div>
         </div>
         <div className="space-y-4">
-          <h2 className="text-4xl md:text-5xl font-display font-black leading-tight">Devenez Créateur <br /><span className="gradient-text">AfriStory</span></h2>
+          <h2 className="text-4xl md:text-5xl font-display font-black leading-tight">Devenez Créateur <br /><span className="gradient-text">Nexus-Hub</span></h2>
           <p className="text-gray-400 text-lg">
             Rejoignez le hub créatif africain. Publiez vos premières planches sur notre espace <strong>Draft</strong> gratuitement et commencez à bâtir votre communauté.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4 w-full">
            <div className="glass-card p-6 text-left space-y-4 border-brand-green/20">
-              <div className="text-brand-green font-display font-bold">AfriStory Draft</div>
+              <div className="text-brand-green font-display font-bold">Nexus-Hub Draft</div>
               <p className="text-xs text-gray-500">Pour les amateurs et débutants. Feedback constructif et liberté totale de publication.</p>
            </div>
            <div className="glass-card p-6 text-left space-y-4 border-brand-gold/20">
-              <div className="text-brand-gold font-display font-bold">AfriStory Pro</div>
+              <div className="text-brand-gold font-display font-bold">Nexus-Hub Pro</div>
               <p className="text-xs text-gray-500">Pour les professionnels. Monétisation, statistiques et visibilité premium.</p>
            </div>
         </div>
@@ -151,24 +138,9 @@ export const ArtistDashboard = () => {
                 <button className="text-xs font-black uppercase text-brand-gold hover:underline">Tout voir</button>
              </div>
              <div className="divide-y divide-white/5">
-                {[1, 2].map((i) => (
-                  <div key={i} className="p-6 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer group">
-                    <div className="flex items-center gap-4">
-                       <div className="w-12 h-16 bg-brand-brown rounded-lg" />
-                       <div>
-                          <h4 className="font-bold group-hover:text-brand-gold transition-colors">Légendes d'Oyo</h4>
-                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Épisodes : 24 • Statut : En cours</p>
-                       </div>
-                    </div>
-                    <div className="text-right flex items-center gap-6">
-                       <div className="hidden sm:block">
-                          <div className="text-sm font-bold">2.4K</div>
-                          <div className="text-[8px] text-gray-500 font-bold uppercase tracking-widest text-right">Vues / Semaine</div>
-                       </div>
-                       <button className="p-2 hover:bg-white/10 rounded-lg"><Settings className="w-4 h-4 text-gray-400" /></button>
-                    </div>
-                  </div>
-                ))}
+                <div className="p-12 text-center text-gray-600 font-bold uppercase tracking-widest text-xs">
+                   Aucune œuvre publiée pour le moment
+                </div>
              </div>
              <div className="p-6 bg-white/5 text-center">
                 <button className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Gérer tout le catalogue</button>

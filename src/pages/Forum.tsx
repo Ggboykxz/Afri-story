@@ -32,19 +32,19 @@ export const Forum = () => {
           <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 px-3 py-1 rounded-full text-brand-gold text-[10px] font-black uppercase tracking-widest">
              Communauté
           </div>
-          <h1 className="text-5xl font-display font-black leading-none">Forums <br /><span className="gradient-text">AfriStory</span></h1>
+          <h1 className="text-5xl font-display font-black leading-none">Forums <br /><span className="gradient-text">Nexus-Hub</span></h1>
           <p className="text-gray-400 max-w-xl">L'espace d'échange pour tous les passionnés de narration graphique africaine.</p>
         </div>
 
         <div className="flex flex-col md:items-end gap-6">
            <div className="flex gap-4">
               <div className="text-right">
-                 <div className="text-2xl font-display font-black">12.5K</div>
+                 <div className="text-2xl font-display font-black">0</div>
                  <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none">Membres Actifs</div>
               </div>
               <div className="h-10 w-[1px] bg-white/10" />
               <div className="text-right">
-                 <div className="text-2xl font-display font-black">842</div>
+                 <div className="text-2xl font-display font-black">0</div>
                  <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none">Discussions</div>
               </div>
            </div>
@@ -65,21 +65,13 @@ export const Forum = () => {
            <ForumSection 
              title="Discussions Générales" 
              icon={<MessageSquare className="w-5 h-5 text-brand-blue" />}
-             topics={[
-               { title: "Bienvenue sur AfriStory ! Présentez-vous ici", replies: 450, views: '12K', last: 'Il y a 2m' },
-               { title: "Actualités de la plateforme & Mises à jour", replies: 89, views: '5K', last: 'Hier' },
-               { title: "Spoiler : La fin de l'épisode 12...", replies: 234, views: '8K', last: 'Il y a 1h', isSpoiler: true },
-             ]}
+             topics={[]}
            />
 
            <ForumSection 
              title="Espace Créateurs" 
              icon={<Sparkles className="w-5 h-5 text-brand-gold" />}
-             topics={[
-               { title: "Conseils techniques : Dessiner les paysages de savane", replies: 56, views: '1.2K', last: 'Il y a 3h' },
-               { title: "Recherche de scénariste pour un projet Cyberpunk", replies: 12, views: '400', last: 'Hier' },
-               { title: "Comment passer d'artiste Draft à Pro ?", replies: 156, views: '3K', last: 'Il y a 12h' },
-             ]}
+             topics={[]}
            />
            
            <div className="p-12 glass-card border-brand-red/20 flex flex-col items-center text-center space-y-6">

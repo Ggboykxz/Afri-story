@@ -97,7 +97,7 @@ export const Profile = () => {
             </div>
             <div className="pb-4 space-y-1">
                <h1 className="text-4xl font-display font-black inline-flex items-center gap-3">
-                  {displayProfile?.displayName || 'Utilisateur AfriStory'}
+                  {displayProfile?.displayName || 'Utilisateur Nexus-Hub'}
                   {displayProfile?.role === 'artist_pro' && <Award className="w-6 h-6 text-brand-gold" />}
                </h1>
                <div className="flex flex-wrap gap-2">
@@ -137,7 +137,7 @@ export const Profile = () => {
                   </div>
                   <div className="space-y-1">
                      <div className="text-sm font-black text-white">1,240</div>
-                     <div className="text-[10px] text-gray-500 font-bold uppercase">AfriCoins</div>
+                     <div className="text-[10px] text-gray-500 font-bold uppercase">Nexus-Coins</div>
                   </div>
                   <div className="space-y-1">
                      <div className="text-sm font-black text-white">324</div>

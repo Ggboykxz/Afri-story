@@ -1,15 +1,15 @@
-# 🌍 AfriStory - Le Sanctuaire du Webtoon Africain
+# 🌍 Nexus-Hub - Le Sanctuaire du Webtoon Africain
 
-AfriStory est une plateforme de narration graphique dédiée aux créateurs et lecteurs africains. Elle permet de publier, lire et monétiser des œuvres originales (Webtoons et BD) tout en bâtissant une communauté forte.
+Nexus-Hub est une plateforme de narration graphique dédiée aux créateurs et lecteurs africains. Elle permet de publier, lire et monétiser des œuvres originales (Webtoons et BD) tout en bâtissant une communauté forte.
 
 ## 🚀 Fonctionnalités Clés
 
 - **🏠 Home & Discovery** : Mise en avant des œuvres tendances et des nouveautés.
 - **📖 Lecteur Immersif** : Support des modes Webtoon (défilement vertical) et BD (planches horizontales) avec gestion des chapitres et verrouillage Premium.
-- **🎨 Dashboard Artiste** : Statistiques détaillées (Recharts), gestion d'équipe (Recrutement) et publication simplifiée.
-- **🏆 Classements (Hall of Fame)** : Top 100 dynamique basé sur les vues, les notes et les tendances par période.
-- **🛒 Boutique AfriCoins** : Système de monnaie virtuelle pour soutenir les artistes et acheter du merchandising officiel.
-- **💬 Forum & Interaction** : Espaces communautaires avec gestion des spoilers et discussions par catégories.
+- **🎨 Dashboard Artiste** : Statistiques détaillées (Recharts), gestion d'équipe et publication simplifiée.
+- **🏆 Classements (Hall of Fame)** : Top dynamique basé sur les engagements réels.
+- **🛒 Boutique Nexus-Coins** : Système de monnaie virtuelle pour soutenir les artistes.
+- **💬 Forum & Interaction** : Espaces communautaires avec gestion des spoilers.
 - **👤 Profils & Paramètres** : Personnalisation complète de l'identité utilisateur et préférences de notification.
 
 ## 🛠 Stack Technique
@@ -35,4 +35,4 @@ L'application utilise désormais les variables d'environnement pour la connexion
 2. Remplissez vos clés d'API Firebase.
 
 ---
-*Fait avec ❤️ par l'équipe AfriStory.*
+*Fait avec ❤️ par l'équipe Nexus-Hub.*

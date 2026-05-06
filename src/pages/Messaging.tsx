@@ -7,11 +7,7 @@ export const Messaging = () => {
   const { user, profile } = useAuth();
   const [selectedChat, setSelectedChat] = useState<any>(null);
 
-  const chats = [
-    { id: 1, name: "Koffi Mensah", type: "Collab", lastMsg: "Qu'en penses-tu du nouveau script ?", time: "14:20", unread: 2 },
-    { id: 2, name: "AfriStory Support", type: "System", lastMsg: "Votre œuvre 'Légendes d'Oyo' a été approuvée.", time: "Hier", unread: 0 },
-    { id: 3, name: "Groupe : Fans de Fantasy", type: "Common", lastMsg: "C'est quand le prochain chapitre ?", time: "Lun", unread: 15 },
-  ];
+  const chats: any[] = [];
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 h-[calc(100vh-120px)]">

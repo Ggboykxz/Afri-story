@@ -74,7 +74,7 @@ export const Login = () => {
       >
         <div className="text-center space-y-2">
            <div className="inline-flex items-center justify-center w-12 h-12 bg-brand-gold rounded-xl text-brand-black mb-4 rotate-[-5deg]">
-              <span className="font-display font-black text-2xl">A</span>
+              <span className="font-display font-black text-2xl">N</span>
            </div>
            <h1 className="text-3xl font-display font-black uppercase tracking-tighter text-white">Ravi de vous revoir</h1>
            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Connectez-vous à votre sanctuaire créatif</p>

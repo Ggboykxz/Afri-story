@@ -48,7 +48,7 @@ export const Home = () => {
             className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 px-4 py-2 rounded-full text-brand-gold text-sm font-medium"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Nouveauté : Découvrez AfriStory Draft</span>
+            <span>Nouveauté : Découvrez Nexus-Hub Draft</span>
           </motion.div>
           
           <h1 className="text-6xl md:text-8xl font-display font-black tracking-tighter leading-[0.9]">
@@ -138,7 +138,7 @@ export const Home = () => {
           <div className="flex items-center gap-4">
             <Sparkles className="w-6 h-6 text-brand-green" />
             <div>
-               <h2 className="text-3xl font-display font-bold">AfriStory <span className="text-brand-green">Draft</span></h2>
+               <h2 className="text-3xl font-display font-bold">Nexus-Hub <span className="text-brand-green">Draft</span></h2>
                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Les pépites de demain — Espace communautaire</p>
             </div>
           </div>
@@ -156,17 +156,17 @@ export const Home = () => {
       <section className="px-6 md:px-12 mt-32 grid md:grid-cols-2 gap-8">
         <div className="glass-card p-12 space-y-6 group hover:border-brand-gold/30 transition-all cursor-pointer">
           <div className="w-16 h-16 bg-brand-gold/10 rounded-2xl flex items-center justify-center text-brand-gold font-display text-2xl font-bold">PRO</div>
-          <h3 className="text-4xl font-display font-bold">AfriStory Pro</h3>
+          <h3 className="text-4xl font-display font-bold">Nexus-Hub Pro</h3>
           <p className="text-gray-400">Pour les professionnels. Monétisez vos œuvres, accédez à des statistiques avancées et construisez votre empire médiatique.</p>
           <ul className="space-y-3 text-sm text-gray-500">
             <li>• Part de revenus de 70% à 90%</li>
-            <li>• Micro-transactions (AfriCoins)</li>
+            <li>• Micro-transactions (Nexus-Coins)</li>
             <li>• Badge Certifié</li>
           </ul>
         </div>
         <div className="glass-card p-12 space-y-6 group hover:border-brand-green/30 transition-all cursor-pointer">
           <div className="w-16 h-16 bg-brand-green/10 rounded-2xl flex items-center justify-center text-brand-green font-display text-2xl font-bold">DRAFT</div>
-          <h3 className="text-4xl font-display font-bold">AfriStory Draft</h3>
+          <h3 className="text-4xl font-display font-bold">Nexus-Hub Draft</h3>
           <p className="text-gray-400">L'espace communautaire. Publiez librement, recevez des feedbacks et progressez vers le statut Pro.</p>
           <ul className="space-y-3 text-sm text-gray-500">
             <li>• Publication gratuite et illimitée</li>
@@ -239,10 +239,4 @@ const WorkCard = ({ work }: { work: any }) => {
   );
 };
 
-const mockWorks = [
-  { id: '1', title: 'Légendes d\'Oyo', author: 'Sola Adeyemi', type: 'WEBTOON', views: '24K', category: 'Fantaisie', isPro: true },
-  { id: '2', title: 'Cyber-Dakar 2077', author: 'Mariama Diop', type: 'BD', views: '15K', category: 'Sci-Fi', isPro: true },
-  { id: '3', title: 'L\'Esprit du Fleuve', author: 'Koffi Mensah', type: 'ROMAN', views: '8K', category: 'Mystère', isPro: true },
-  { id: '4', title: 'Projet : Kemet', author: 'Amateur99', type: 'WEBTOON', views: '1.2K', category: 'Action', isPro: false },
-  { id: '5', title: 'Souvenirs d\'Abidjan', author: 'JeuneTalent', type: 'BD', views: '800', category: 'Slice of Life', isPro: false },
-];
+const mockWorks: any[] = [];

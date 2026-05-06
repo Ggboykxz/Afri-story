@@ -55,7 +55,7 @@ export const Signup = () => {
       >
         <div className="text-center space-y-2">
            <h1 className="text-4xl font-display font-black uppercase tracking-tighter text-white">Rejoindre la Légende</h1>
-           <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">Créez votre compte AfriStory aujourd'hui</p>
+           <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">Créez votre compte Nexus-Hub aujourd'hui</p>
         </div>
 
         {error && (
