@@ -1,8 +1,27 @@
-import React from 'react';
-import { ShoppingBag, Box, Truck, Star, Filter, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShoppingBag, Box, Truck, Star, Filter, ArrowRight, Loader2, Coins } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useAuth } from '../context/AuthContext';
+import { workService } from '../lib/workService';
 
 export const Shop = () => {
+  const { user, profile } = useAuth();
+  const [buyingCoins, setBuyingCoins] = useState(false);
+
+  const handleBuyCoins = async (amount: number) => {
+    if (!user) return alert("Veuillez vous connecter pour acheter des AfriCoins");
+    setBuyingCoins(true);
+    try {
+      await workService.purchaseCoins(user.uid, amount);
+      // In a real app, we'd trigger a re-fetch or use real-time listeners
+      window.location.reload(); 
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setBuyingCoins(false);
+    }
+  };
+
   const products = [
     { id: 1, name: "T-Shirt 'Légendes d'Oyo'", price: "12,000 FCFA", category: "Vêtements", tag: "Best-seller" },
     { id: 2, name: "Art Book Vol. 1 - Edition Limitée", price: "25,000 FCFA", category: "Livres", tag: "Nouveauté" },
@@ -51,6 +70,33 @@ export const Shop = () => {
 
          {/* Product Grid */}
          <div className="lg:col-span-3">
+            {/* AfriCoins Section */}
+            <section className="mb-12 glass-card p-8 border-brand-gold/30 bg-linear-to-r from-brand-gold/5 via-transparent to-transparent">
+               <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                  <div className="flex items-center gap-6">
+                     <div className="w-16 h-16 bg-brand-gold/20 rounded-2xl flex items-center justify-center text-brand-gold">
+                        <Coins className="w-10 h-10" />
+                     </div>
+                     <div>
+                        <h2 className="text-2xl font-display font-black uppercase tracking-tighter">Votre solde : <span className="text-brand-gold">{profile?.afriCoins || 0} AfriCoins</span></h2>
+                        <p className="text-sm text-gray-500">Utilisez vos crédits pour débloquer des chapitres premium.</p>
+                     </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                     {[500, 1000, 2500].map(amount => (
+                       <button 
+                         key={amount}
+                         onClick={() => handleBuyCoins(amount)}
+                         disabled={buyingCoins}
+                         className="px-6 py-2 bg-white/5 border border-brand-gold/30 rounded-xl text-xs font-black hover:bg-brand-gold hover:text-brand-black transition-all flex items-center gap-2 disabled:opacity-50"
+                       >
+                         +{amount} <span className="opacity-50 text-[8px]">({amount === 500 ? '599 FCFA' : amount === 1000 ? '999 FCFA' : '1999 FCFA'})</span>
+                       </button>
+                     ))}
+                  </div>
+               </div>
+            </section>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                {products.map(product => (
                  <motion.div 

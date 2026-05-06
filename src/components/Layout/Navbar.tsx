@@ -44,6 +44,10 @@ export const Navbar = () => {
 
         {user ? (
           <div className="flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 px-3 py-1.5 rounded-full">
+              <span className="text-[10px] font-black text-brand-gold uppercase tracking-widest">AfriCoins</span>
+              <span className="text-sm font-display font-bold text-white">{profile?.afriCoins || 0}</span>
+            </div>
             <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
               <Bell className="w-5 h-5" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-brand-red rounded-full" />

@@ -105,6 +105,45 @@ export const Reader = () => {
              </button>
           </div>
           <Link to={`/work/${workId}`} className="block text-sm text-gray-500 hover:text-brand-gold font-bold uppercase tracking-widest">Voir tous les épisodes</Link>
+          
+          {/* Comment Section UI */}
+          <div className="text-left mt-16 glass-card p-8 space-y-6">
+             <h3 className="font-display font-bold flex items-center gap-3">
+                <MessageSquare className="w-5 h-5 text-brand-gold" />
+                Commentaires (24)
+             </h3>
+             <div className="flex gap-4 items-start">
+                <div className="w-10 h-10 rounded-full bg-brand-brown flex-shrink-0" />
+                <div className="flex-1 space-y-3">
+                   <textarea 
+                     placeholder="Ajouter un commentaire..." 
+                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none focus:border-brand-gold/50 transition-all min-h-[100px]"
+                   />
+                   <div className="flex justify-end">
+                      <button className="px-6 py-2 bg-brand-gold text-brand-black font-black text-xs rounded-lg uppercase">Publier</button>
+                   </div>
+                </div>
+             </div>
+
+             <div className="space-y-6 pt-6 border-t border-white/10">
+                {[1, 2].map(i => (
+                  <div key={i} className="flex gap-4">
+                     <div className="w-10 h-10 rounded-full bg-brand-brown flex-shrink-0" />
+                     <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                           <span className="font-bold text-sm">Aurore_K</span>
+                           <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Il y a 2h</span>
+                        </div>
+                        <p className="text-sm text-gray-400">Incroyable ce chapitre ! Le design des esprits est vraiment unique. J'ai hâte de voir la suite.</p>
+                        <div className="flex items-center gap-4 text-[10px] font-black uppercase text-gray-500 mt-2">
+                           <button className="hover:text-white">Répondre</button>
+                           <button className="hover:text-brand-red flex items-center gap-1"><Heart className="w-3 h-3" /> 12</button>
+                        </div>
+                     </div>
+                  </div>
+                ))}
+             </div>
+          </div>
         </div>
       </div>
 

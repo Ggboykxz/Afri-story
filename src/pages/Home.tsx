@@ -59,7 +59,27 @@ export const Home = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {mockWorks.map((work) => (
+          {mockWorks.filter(w => w.isPro).map((work) => (
+            <WorkCard key={work.id} work={work} />
+          ))}
+        </div>
+      </section>
+
+      {/* Draft Spotlight */}
+      <section className="px-6 md:px-12 mt-24 space-y-12">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Sparkles className="w-6 h-6 text-brand-green" />
+            <div>
+               <h2 className="text-3xl font-display font-bold">AfriStory <span className="text-brand-green">Draft</span></h2>
+               <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Les pépites de demain — Espace communautaire</p>
+            </div>
+          </div>
+          <Link to="/draft" className="text-brand-green text-sm font-bold hover:underline">Explorer le Draft</Link>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          {mockWorks.filter(w => !w.isPro).map((work) => (
             <WorkCard key={work.id} work={work} />
           ))}
         </div>
@@ -101,8 +121,15 @@ const WorkCard = ({ work }: { work: any }) => {
       className="group flex flex-col gap-3 cursor-pointer"
     >
       <div className="aspect-[3/4] rounded-2xl overflow-hidden glass-card relative shadow-xl">
-        <div className="absolute top-3 left-3 z-10 bg-brand-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[10px] font-bold border border-white/10 uppercase tracking-widest leading-none">
-          {work.type}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+          <div className="bg-brand-black/60 backdrop-blur-md px-2 py-1 rounded text-[8px] font-black border border-white/10 uppercase tracking-widest leading-none w-fit">
+            {work.type}
+          </div>
+          {!work.isPro && (
+            <div className="bg-brand-green/80 backdrop-blur-md px-2 py-1 rounded text-[8px] font-black border border-brand-green/20 uppercase tracking-widest leading-none w-fit text-white">
+              DRAFT
+            </div>
+          )}
         </div>
         <div className="absolute inset-0 bg-linear-to-t from-brand-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
           <button className="w-full py-2 bg-brand-gold text-brand-black text-xs font-black rounded-lg">LIRE MAINTENANT</button>
@@ -123,9 +150,9 @@ const WorkCard = ({ work }: { work: any }) => {
 };
 
 const mockWorks = [
-  { id: '1', title: 'Légendes d\'Oyo', author: 'Sola Adeyemi', type: 'WEBTOON', views: '24K', category: 'Fantaisie', cover: '' },
-  { id: '2', title: 'Cyber-Dakar 2077', author: 'Mariama Diop', type: 'BD', views: '15K', category: 'Sci-Fi', cover: '' },
-  { id: '3', title: 'L\'Esprit du Fleuve', author: 'Koffi Mensah', type: 'ROMAN', views: '8K', category: 'Mystère', cover: '' },
-  { id: '4', title: 'Justice de Fer', author: 'Buchi Onyebuchi', type: 'WEBTOON', views: '42K', category: 'Action', cover: '' },
-  { id: '5', title: 'Soleil de Minuit', author: 'Fatou Keita', type: 'BD', views: '19K', category: 'Drame', cover: '' },
+  { id: '1', title: 'Légendes d\'Oyo', author: 'Sola Adeyemi', type: 'WEBTOON', views: '24K', category: 'Fantaisie', isPro: true },
+  { id: '2', title: 'Cyber-Dakar 2077', author: 'Mariama Diop', type: 'BD', views: '15K', category: 'Sci-Fi', isPro: true },
+  { id: '3', title: 'L\'Esprit du Fleuve', author: 'Koffi Mensah', type: 'ROMAN', views: '8K', category: 'Mystère', isPro: true },
+  { id: '4', title: 'Projet : Kemet', author: 'Amateur99', type: 'WEBTOON', views: '1.2K', category: 'Action', isPro: false },
+  { id: '5', title: 'Souvenirs d\'Abidjan', author: 'JeuneTalent', type: 'BD', views: '800', category: 'Slice of Life', isPro: false },
 ];

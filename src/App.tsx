@@ -8,6 +8,7 @@ import { ArtistDashboard } from './pages/ArtistDashboard';
 import { Forum } from './pages/Forum';
 import { Profile } from './pages/Profile';
 import { Shop } from './pages/Shop';
+import { CreateWork } from './pages/CreateWork';
 import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/work/:id" element={<WorkDetail />} />
             <Route path="/read/:workId/:chapterId" element={<Reader />} />
             <Route path="/artist" element={<ArtistDashboard />} />
+            <Route path="/artist/new-work" element={<CreateWork />} />
             <Route path="/forum" element={<Forum />} />
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/shop" element={<Shop />} />

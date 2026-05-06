@@ -9,13 +9,42 @@ export const ArtistDashboard = () => {
 
   if (profile?.role === 'reader') {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 text-center space-y-6">
-        <div className="w-20 h-20 bg-brand-gold/10 rounded-3xl flex items-center justify-center text-brand-gold">
-          <ChefHat className="w-10 h-10" />
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 text-center space-y-8 max-w-2xl mx-auto">
+        <div className="w-24 h-24 bg-brand-gold/10 rounded-[2.5rem] flex items-center justify-center text-brand-gold relative">
+          <BookOpen className="w-10 h-10" />
+          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center text-brand-black border-4 border-brand-black">
+             <Plus className="w-4 h-4" />
+          </div>
         </div>
-        <h2 className="text-3xl font-display font-black">Devenez Créateur AfriStory</h2>
-        <p className="text-gray-400 max-w-md">Publiez vos premières planches sur Draft et rejoignez la communauté des artistes panafricains.</p>
-        <button className="px-8 py-4 bg-brand-gold text-brand-black font-black rounded-2xl">OUVRIR UN COMPTE ARTISTE</button>
+        <div className="space-y-4">
+          <h2 className="text-4xl md:text-5xl font-display font-black leading-tight">Devenez Créateur <br /><span className="gradient-text">AfriStory</span></h2>
+          <p className="text-gray-400 text-lg">
+            Rejoignez le hub créatif africain. Publiez vos premières planches sur notre espace <strong>Draft</strong> gratuitement et commencez à bâtir votre communauté.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4 w-full">
+           <div className="glass-card p-6 text-left space-y-4 border-brand-green/20">
+              <div className="text-brand-green font-display font-bold">AfriStory Draft</div>
+              <p className="text-xs text-gray-500">Pour les amateurs et débutants. Feedback constructif et liberté totale de publication.</p>
+           </div>
+           <div className="glass-card p-6 text-left space-y-4 border-brand-gold/20">
+              <div className="text-brand-gold font-display font-bold">AfriStory Pro</div>
+              <p className="text-xs text-gray-500">Pour les professionnels. Monétisation, statistiques et visibilité premium.</p>
+           </div>
+        </div>
+        <button 
+          onClick={async () => {
+            if (!user) return alert("Connectez-vous d'abord");
+            // Simulate role update
+            const { doc, updateDoc } = await import('firebase/firestore');
+            const { db } = await import('../lib/firebase');
+            await updateDoc(doc(db, 'users', user.uid), { role: 'artist_draft' });
+            window.location.reload();
+          }}
+          className="px-12 py-5 bg-brand-gold text-brand-black font-black rounded-2xl text-lg hover:scale-105 transition-transform shadow-xl shadow-brand-gold/20"
+        >
+          OUVRIR MON STUDIO DE CRÉATION
+        </button>
       </div>
     );
   }
@@ -27,7 +56,10 @@ export const ArtistDashboard = () => {
           <h1 className="text-4xl font-display font-black">Tableau de Bord</h1>
           <p className="text-gray-400">Bienvenue, {profile?.displayName}. Gérez vos créations et analysez vos revenus.</p>
         </div>
-        <button className="flex items-center justify-center gap-2 bg-brand-gold text-brand-black px-6 py-3 rounded-xl font-black hover:scale-105 transition-transform shadow-lg shadow-brand-gold/20">
+        <button 
+          onClick={() => navigate('/artist/new-work')}
+          className="flex items-center justify-center gap-2 bg-brand-gold text-brand-black px-6 py-3 rounded-xl font-black hover:scale-105 transition-transform shadow-lg shadow-brand-gold/20"
+        >
           <Plus className="w-5 h-5" />
           NOUVELLE ŒUVRE
         </button>
