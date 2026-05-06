@@ -87,6 +87,46 @@ export const workService = {
     }
   },
 
+  // Unlock a premium chapter
+  unlockChapter: async (workId: string, chapterId: string, price: number) => {
+    if (!auth.currentUser) throw new Error("Non authentifié");
+    const userId = auth.currentUser.uid;
+    const userRef = doc(db, 'users', userId);
+    const unlockRef = doc(db, 'users', userId, 'unlocks', chapterId);
+    
+    try {
+      const userDoc = await getDoc(userRef);
+      const coins = userDoc.data()?.afriCoins || 0;
+      
+      if (coins < price) throw new Error("AfriCoins insuffisants");
+
+      // Transaction-like update (simplified for brevity)
+      await updateDoc(userRef, { afriCoins: increment(-price) });
+      await setDoc(unlockRef, {
+        workId,
+        chapterId,
+        unlockedAt: serverTimestamp()
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `users/${userId}/unlocks/${chapterId}`);
+    }
+  },
+
+  // Rate a work (1-5 stars)
+  rateWork: async (workId: string, rating: number) => {
+    const path = `works/${workId}/ratings`;
+    try {
+      await setDoc(doc(db, 'works', workId, 'ratings', auth.currentUser!.uid), {
+        rating,
+        userId: auth.currentUser?.uid,
+        updatedAt: serverTimestamp()
+      });
+      // In real app, we'd trigger a cloud function to update works/{workId}/averageRating
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, path);
+    }
+  },
+
   // Purchase AfriCoins (Simulated increment)
   purchaseCoins: async (userId: string, amount: number) => {
     const path = `users/${userId}`;

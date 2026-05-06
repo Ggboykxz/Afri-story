@@ -39,6 +39,11 @@ export const Navbar = () => {
             type="text" 
             placeholder="Rechercher..." 
             className="bg-transparent border-none outline-none text-sm px-2 w-32 md:w-48 placeholder:text-gray-600"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                navigate(`/?search=${e.currentTarget.value}`);
+              }
+            }}
           />
         </div>
 
@@ -52,10 +57,37 @@ export const Navbar = () => {
               <span className="text-[10px] font-black text-brand-gold uppercase tracking-widest">AfriCoins</span>
               <span className="text-sm font-display font-bold text-white">{profile?.afriCoins || 0}</span>
             </div>
-            <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-brand-red rounded-full" />
-            </button>
+            
+            <div className="relative group">
+              <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-brand-red rounded-full animate-pulse" />
+              </button>
+              
+              {/* Notification Dropdown */}
+              <div className="absolute right-0 top-full mt-2 w-80 glass-card p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 translate-y-2 group-hover:translate-y-0">
+                <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+                   <h4 className="font-display font-bold">Notifications</h4>
+                   <button className="text-[8px] font-black uppercase text-brand-gold">Tout marquer comme lu</button>
+                </div>
+                <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                   <div className="flex gap-3 text-left">
+                      <div className="w-2 h-2 rounded-full bg-brand-gold mt-1.5 flex-shrink-0" />
+                      <div>
+                         <p className="text-xs text-white">Nouveau chapitre disponible : <span className="font-bold">Légendes d'Oyo #24</span></p>
+                         <span className="text-[8px] font-bold text-gray-500 uppercase">Il y a 10 minutes</span>
+                      </div>
+                   </div>
+                   <div className="flex gap-3 text-left">
+                      <div className="w-2 h-2 rounded-full bg-brand-gold mt-1.5 flex-shrink-0" />
+                      <div>
+                         <p className="text-xs text-white"><span className="font-bold">Aurore_K</span> a répondu à votre commentaire dans le forum.</p>
+                         <span className="text-[8px] font-bold text-gray-500 uppercase">Il y a 2 heures</span>
+                      </div>
+                   </div>
+                </div>
+              </div>
+            </div>
             <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate(`/profile/${user.uid}`)}>
               {profile?.photoURL ? (
                 <img src={profile.photoURL} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-white/10 group-hover:border-brand-gold transition-all" />

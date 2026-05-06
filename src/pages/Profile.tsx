@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Award, Zap, Book, ShieldCheck, Heart, Grid, List as ListIcon } from 'lucide-react';
+import { Award, Zap, Book, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const Profile = () => {

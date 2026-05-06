@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'motion/react';
 
 export const ArtistDashboard = () => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
   if (profile?.role === 'reader') {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2 } from 'lucide-react';
+import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, Loader2, Heart, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const Reader = () => {
@@ -9,6 +9,22 @@ export const Reader = () => {
   const [showControls, setShowControls] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [readerMode, setReaderMode] = useState<'webtoon' | 'bd'>('webtoon');
+  const [isLocked, setIsLocked] = useState(true); // Simulated lock state
+  const [unlocking, setUnlocking] = useState(false);
+
+  const handleUnlock = async () => {
+    setUnlocking(true);
+    try {
+      // Logic would call workService.unlockChapter
+      setTimeout(() => {
+        setIsLocked(false);
+        setUnlocking(false);
+      }, 1500);
+    } catch (error) {
+      console.error(error);
+      setUnlocking(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,30 +107,65 @@ export const Reader = () => {
       </div>
 
       {/* Content */}
-      <div className={`max-w-3xl mx-auto pt-4 flex flex-col items-center ${readerMode === 'bd' ? 'px-6' : ''}`}>
-        {pages.map((page, index) => (
-          <div key={index} className={`w-full relative ${readerMode === 'bd' ? 'mb-12 aspect-[3/4] bg-brand-brown rounded-2xl overflow-hidden shadow-2xl' : ''}`}>
-            <img 
-              src={page} 
-              alt={`Page ${index + 1}`} 
-              className={`w-full h-auto ${readerMode === 'bd' ? 'h-full object-cover' : ''}`}
-              draggable={false}
-            />
-            {readerMode === 'webtoon' && (
-              <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-brand-black to-transparent pointer-events-none" />
-            )}
-            {readerMode === 'bd' && (
-               <div className="absolute bottom-4 right-4 bg-brand-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 uppercase tracking-widest">
-                  Page {index + 1}
-               </div>
-            )}
+      <div className={`max-w-3xl mx-auto pt-4 flex flex-col items-center min-h-screen ${readerMode === 'bd' ? 'px-6' : ''}`}>
+        {isLocked ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-8 bg-linear-to-b from-brand-black/0 via-brand-black to-brand-black py-40">
+             <div className="w-24 h-24 bg-brand-gold/10 rounded-[2.5rem] flex items-center justify-center text-brand-gold relative">
+                <Lock className="w-10 h-10" />
+                <div className="absolute inset-0 border-2 border-brand-gold/20 rounded-[2.5rem] animate-pulse" />
+             </div>
+             <div className="space-y-4">
+                <h2 className="text-3xl font-display font-black uppercase tracking-tighter">Chapitre Premium</h2>
+                <p className="text-gray-400 max-w-sm mx-auto">
+                   Ce chapitre nécessite <span className="text-brand-gold font-bold">50 AfriCoins</span> pour être déverrouillé définitivement.
+                </p>
+             </div>
+             <div className="flex flex-col gap-3 w-full max-w-xs">
+                <button 
+                  onClick={handleUnlock}
+                  disabled={unlocking}
+                  className="w-full py-4 bg-brand-gold text-brand-black font-black rounded-2xl flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-brand-gold/20"
+                >
+                   {unlocking ? <Loader2 className="w-6 h-6 animate-spin" /> : "DÉBLOQUER (50 🪙)"}
+                </button>
+                <Link to="/shop" className="text-xs font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Acheter des AfriCoins</Link>
+             </div>
           </div>
-        ))}
+        ) : (
+          pages.map((page, index) => (
+            <div key={index} className={`w-full relative ${readerMode === 'bd' ? 'mb-12 aspect-[3/4] bg-brand-brown rounded-2xl overflow-hidden shadow-2xl' : ''}`}>
+              <img 
+                src={page} 
+                alt={`Page ${index + 1}`} 
+                className={`w-full h-auto ${readerMode === 'bd' ? 'h-full object-cover' : ''}`}
+                draggable={false}
+              />
+              {readerMode === 'webtoon' && (
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-brand-black to-transparent pointer-events-none" />
+              )}
+              {readerMode === 'bd' && (
+                 <div className="absolute bottom-4 right-4 bg-brand-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 uppercase tracking-widest">
+                    Page {index + 1}
+                 </div>
+              )}
+            </div>
+          ))
+        )}
 
         {/* End of chapter */}
         <div className="py-24 px-6 text-center space-y-8 w-full">
           <div className="h-[1px] w-full bg-linear-to-r from-transparent via-white/10 to-transparent" />
           <h2 className="text-3xl font-display font-black uppercase tracking-tighter">FIN DU CHAPITRE</h2>
+          <div className="space-y-4 py-8 border-y border-white/5">
+             <h3 className="text-sm font-black uppercase tracking-widest text-brand-gold">Donnez votre avis sur cet épisode</h3>
+             <div className="flex items-center justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                   <button key={star} className="p-2 hover:scale-125 transition-transform">
+                      <Star className={`w-10 h-10 ${star <= 4 ? 'fill-brand-gold text-brand-gold' : 'text-gray-700'}`} />
+                   </button>
+                ))}
+             </div>
+          </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
              <button className="w-full sm:w-auto px-8 py-4 bg-brand-gold text-brand-black font-black rounded-2xl flex items-center justify-center gap-2 group">
                ÉPISODE SUIVANT

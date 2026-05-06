@@ -1,13 +1,37 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
-import { ChefHat, TrendingUp, Sparkles, BookOpen } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ChefHat, TrendingUp, Sparkles, BookOpen, Search } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 export const Home = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const searchQuery = searchParams.get('search')?.toLowerCase() || "";
+
+  const filteredWorks = useMemo(() => {
+    if (!searchQuery) return mockWorks;
+    return mockWorks.filter(w => 
+      w.title.toLowerCase().includes(searchQuery) || 
+      w.author.toLowerCase().includes(searchQuery) ||
+      w.category.toLowerCase().includes(searchQuery)
+    );
+  }, [searchQuery]);
+
   return (
     <div className="pb-24">
+      {searchQuery && (
+        <section className="px-6 md:px-12 pt-12">
+           <div className="glass-card p-12 bg-linear-to-r from-brand-gold/10 via-transparent to-transparent">
+              <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter">Résultats : <span className="text-brand-gold">{searchQuery}</span></h1>
+              <p className="text-gray-400 mt-4 font-bold uppercase tracking-widest">{filteredWorks.length} œuvres trouvées</p>
+           </div>
+        </section>
+      )}
+
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center overflow-hidden px-6">
+      {!searchQuery && (
+        <section className="relative h-[80vh] flex items-center justify-center overflow-hidden px-6">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-linear-to-b from-brand-gold/10 via-brand-black/70 to-brand-black z-10" />
           <div className="grid grid-cols-4 gap-4 rotate-12 scale-150 opacity-10">
@@ -47,43 +71,46 @@ export const Home = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Trending & Rankings Section */}
-      <section className="px-6 md:px-12 mt-24 grid lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-3xl font-display font-bold flex items-center gap-3">
-              <TrendingUp className="w-6 h-6 text-brand-gold" />
-              Tendances du moment
-            </h2>
+      {!searchQuery && (
+        <section className="px-6 md:px-12 mt-24 grid lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-display font-bold flex items-center gap-3">
+                <TrendingUp className="w-6 h-6 text-brand-gold" />
+                Tendances du moment
+              </h2>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-6">
+              {mockWorks.slice(0, 4).map((work, i) => (
+                <TrendingWorkCard key={work.id} work={work} index={i + 1} />
+              ))}
+            </div>
           </div>
-          <div className="grid sm:grid-cols-2 gap-6">
-            {mockWorks.slice(0, 4).map((work, i) => (
-              <TrendingWorkCard key={work.id} work={work} index={i + 1} />
-            ))}
-          </div>
-        </div>
 
-        <div className="glass-card p-8 space-y-8 h-fit">
-          <h2 className="text-2xl font-display font-bold">Classement Top 5</h2>
-          <div className="space-y-6">
-            {mockWorks.map((work, i) => (
-              <div key={work.id} className="flex items-center gap-4 group cursor-pointer">
-                <span className="text-4xl font-display font-black text-white/10 group-hover:text-brand-gold transition-colors">{i + 1}</span>
-                <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0" />
-                <div className="flex-1">
-                  <h4 className="font-bold text-sm line-clamp-1">{work.title}</h4>
-                  <p className="text-[10px] text-gray-500 font-bold uppercase">{work.author}</p>
+          <div className="glass-card p-8 space-y-8 h-fit">
+            <h2 className="text-2xl font-display font-bold">Classement Top 5</h2>
+            <div className="space-y-6">
+              {mockWorks.map((work, i) => (
+                <div key={work.id} className="flex items-center gap-4 group cursor-pointer">
+                  <span className="text-4xl font-display font-black text-white/10 group-hover:text-brand-gold transition-colors">{i + 1}</span>
+                  <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-sm line-clamp-1">{work.title}</h4>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase">{work.author}</p>
+                  </div>
+                  <div className="text-right">
+                     <div className="text-xs font-black text-brand-gold">{work.views}</div>
+                     <div className="text-[8px] text-gray-600 font-bold uppercase">Vues</div>
+                  </div>
                 </div>
-                <div className="text-right">
-                   <div className="text-xs font-black text-brand-gold">{work.views}</div>
-                   <div className="text-[8px] text-gray-600 font-bold uppercase">Vues</div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Categories */}
       <section className="px-6 md:px-12 space-y-12">
@@ -96,7 +123,7 @@ export const Home = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {mockWorks.filter(w => w.isPro).map((work) => (
+          {filteredWorks.filter(w => w.isPro).map((work) => (
             <WorkCard key={work.id} work={work} />
           ))}
         </div>
@@ -116,7 +143,7 @@ export const Home = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {mockWorks.filter(w => !w.isPro).map((work) => (
+          {filteredWorks.filter(w => !w.isPro).map((work) => (
             <WorkCard key={work.id} work={work} />
           ))}
         </div>
