@@ -88,14 +88,43 @@ export const Navbar = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate(`/profile/${user.uid}`)}>
-              {profile?.photoURL ? (
-                <img src={profile.photoURL} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-white/10 group-hover:border-brand-gold transition-all" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-brand-brown flex items-center justify-center border-2 border-white/10 group-hover:border-brand-gold transition-all">
-                  <UserIcon className="w-4 h-4" />
+            <div className="relative group">
+              <div className="flex items-center gap-2 cursor-pointer" onClick={() => {}}>
+                {profile?.photoURL ? (
+                  <img src={profile.photoURL} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-white/10 group-hover:border-brand-gold transition-all" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-brand-brown flex items-center justify-center border-2 border-white/10 group-hover:border-brand-gold transition-all">
+                    <UserIcon className="w-4 h-4" />
+                  </div>
+                )}
+              </div>
+
+              {/* User Dropdown */}
+              <div className="absolute right-0 top-full mt-2 w-56 glass-card p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 translate-y-2 group-hover:translate-y-0 divide-y divide-white/5">
+                <div className="p-3">
+                   <div className="font-bold text-xs truncate text-white">{profile?.displayName || 'Utilisateur'}</div>
+                   <div className="text-[8px] font-black uppercase text-brand-gold tracking-widest mt-0.5">{profile?.role || 'LECTEUR'}</div>
                 </div>
-              )}
+                <div className="py-2">
+                   <Link to={`/profile/${user.uid}`} className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white">
+                      <UserIcon className="w-4 h-4" /> Profil
+                   </Link>
+                   <Link to="/settings" className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white">
+                      <LogIn className="w-4 h-4 rotate-180" /> Paramètres
+                   </Link>
+                   <Link to="/artist" className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white">
+                      <LayoutDashboard className="w-4 h-4" /> Dashboard Artiste
+                   </Link>
+                </div>
+                <div className="pt-2">
+                   <button 
+                     onClick={() => auth.signOut()}
+                     className="flex items-center gap-3 w-full p-3 hover:bg-red-500/10 rounded-lg text-xs font-black uppercase tracking-widest transition-all text-red-400"
+                   >
+                      Déconnexion
+                   </button>
+                </div>
+              </div>
             </div>
           </div>
         ) : (

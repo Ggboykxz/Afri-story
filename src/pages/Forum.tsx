@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { MessageSquare, Users, ShieldAlert, Sparkles, MessageCircle, Send, Loader2 } from 'lucide-react';
+import { MessageSquare, Users, ShieldAlert, Sparkles, MessageCircle, Send, Loader2, Plus, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { workService } from '../lib/workService';
+import { motion, AnimatePresence } from 'motion/react';
 
 export const Forum = () => {
   const { user, profile } = useAuth();
   const [posting, setPosting] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [newPost, setNewPost] = useState("");
 
   const handlePost = async (e: React.FormEvent) => {
@@ -15,7 +17,7 @@ export const Forum = () => {
     try {
       await workService.postInForum('general_1', newPost, profile?.displayName || "Anonyme");
       setNewPost("");
-      alert("Message publié !");
+      setShowModal(false);
     } catch (error) {
       console.error(error);
     } finally {
@@ -34,44 +36,35 @@ export const Forum = () => {
           <p className="text-gray-400 max-w-xl">L'espace d'échange pour tous les passionnés de narration graphique africaine.</p>
         </div>
 
-        <div className="flex gap-4">
-           <div className="text-right">
-              <div className="text-2xl font-display font-black">12.5K</div>
-              <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none">Membres Actifs</div>
+        <div className="flex flex-col md:items-end gap-6">
+           <div className="flex gap-4">
+              <div className="text-right">
+                 <div className="text-2xl font-display font-black">12.5K</div>
+                 <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none">Membres Actifs</div>
+              </div>
+              <div className="h-10 w-[1px] bg-white/10" />
+              <div className="text-right">
+                 <div className="text-2xl font-display font-black">842</div>
+                 <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none">Discussions</div>
+              </div>
            </div>
-           <div className="h-10 w-[1px] bg-white/10" />
-           <div className="text-right">
-              <div className="text-2xl font-display font-black">842</div>
-              <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none">Discussions</div>
-           </div>
+           {user && (
+             <button 
+               onClick={() => setShowModal(true)}
+               className="px-8 py-3 bg-brand-gold text-brand-black font-black text-xs rounded-xl uppercase flex items-center gap-2 hover:scale-105 transition-transform"
+             >
+                <Plus className="w-4 h-4" />
+                Démarrer une discussion
+             </button>
+           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Main Forum List */}
         <div className="lg:col-span-2 space-y-8">
-           {user && (
-             <form onSubmit={handlePost} className="glass-card p-6 space-y-4 border-brand-gold/20">
-                <h3 className="text-sm font-black uppercase tracking-widest text-brand-gold">Démarrer une discussion</h3>
-                <textarea 
-                  value={newPost}
-                  onChange={e => setNewPost(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none focus:border-brand-gold/50 transition-all min-h-[100px]"
-                  placeholder="De quoi voulez-vous parler ?"
-                />
-                <button 
-                  disabled={posting || !newPost.trim()}
-                  className="px-6 py-2 bg-brand-gold text-brand-black font-black text-xs rounded-lg uppercase flex items-center gap-2 disabled:opacity-50"
-                >
-                  {posting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  PUBLIER
-                </button>
-             </form>
-           )}
-
            <ForumSection 
              title="Discussions Générales" 
-             icon={<MessageSquare className="w-5 h-5" />}
+             icon={<MessageSquare className="w-5 h-5 text-brand-blue" />}
              topics={[
                { title: "Bienvenue sur AfriStory ! Présentez-vous ici", replies: 450, views: '12K', last: 'Il y a 2m' },
                { title: "Actualités de la plateforme & Mises à jour", replies: 89, views: '5K', last: 'Hier' },
@@ -101,7 +94,6 @@ export const Forum = () => {
            </div>
         </div>
 
-        {/* Sidebar */}
         <aside className="space-y-8">
            <div className="glass-card p-8 space-y-6">
               <h3 className="font-display font-bold flex items-center gap-3">
@@ -135,6 +127,52 @@ export const Forum = () => {
            </div>
         </aside>
       </div>
+
+      <AnimatePresence>
+         {showModal && (
+           <div className="fixed inset-0 z-50 flex items-center justify-center p-6 text-left">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowModal(false)}
+                className="absolute inset-0 bg-brand-black/90 backdrop-blur-md"
+              />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="glass-card max-w-xl w-full p-8 relative z-10 space-y-6"
+              >
+                 <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors">
+                    <X className="w-6 h-6" />
+                 </button>
+                 <div className="space-y-2">
+                    <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Nouveau Sujet</h3>
+                    <p className="text-sm text-gray-400">Partagez vos idées ou posez une question à la communauté.</p>
+                 </div>
+                 <form onSubmit={handlePost} className="space-y-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Contenu du message</label>
+                       <textarea 
+                        value={newPost}
+                        onChange={e => setNewPost(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none focus:border-brand-gold/50 transition-all min-h-[150px] resize-none"
+                        placeholder="Écrivez ici..."
+                       />
+                    </div>
+                    <button 
+                      disabled={posting || !newPost.trim()}
+                      className="w-full py-4 bg-brand-gold text-brand-black font-black text-xs rounded-xl uppercase flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                    >
+                       {posting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                       PUBLIER LA DISCUSSION
+                    </button>
+                 </form>
+              </motion.div>
+           </div>
+         )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -12,6 +12,7 @@ import { CreateWork } from './pages/CreateWork';
 import { Messaging } from './pages/Messaging';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { Rankings } from './pages/Rankings';
+import { Settings } from './pages/Settings';
 import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/messages" element={<Messaging />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/rankings" element={<Rankings />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </Layout>
       </BrowserRouter>
