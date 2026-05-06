@@ -11,7 +11,7 @@ export const Reader = () => {
   const [readerMode, setReaderMode] = useState<'webtoon' | 'bd'>('webtoon');
   const [showComments, setShowComments] = useState(false);
   const [showShare, setShowShare] = useState(false);
-  const [isLocked, setIsLocked] = useState(true); // Simulated lock state
+  const [isLocked, setIsLocked] = useState(true); 
   const [unlocking, setUnlocking] = useState(false);
 
   const handleUnlock = async () => {

@@ -10,7 +10,7 @@ export const Profile = () => {
   const [showProModal, setShowProModal] = React.useState(false);
   
   const isOwnProfile = user?.uid === userId;
-  const displayProfile = isOwnProfile ? profile : null; // In real app, fetch other user profile
+  const displayProfile = isOwnProfile ? profile : null; 
 
   const badges = [
     { label: 'Pionnier', icon: <Zap className="w-4 h-4" />, color: 'bg-brand-gold' },

@@ -119,7 +119,7 @@ export const Navbar = () => {
                 <div className="pt-2">
                    <button 
                      onClick={() => auth.signOut()}
-                     className="flex items-center gap-3 w-full p-3 hover:bg-red-500/10 rounded-lg text-xs font-black uppercase tracking-widest transition-all text-red-400"
+                     className="flex items-center gap-3 w-full p-3 hover:bg-red-500/10 rounded-lg text-xs font-black uppercase tracking-widest transition-all text-red-100"
                    >
                       Déconnexion
                    </button>
@@ -128,15 +128,19 @@ export const Navbar = () => {
             </div>
           </div>
         ) : (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleLogin}
-            className="flex items-center gap-2 bg-brand-gold text-brand-black px-4 py-2 rounded-full font-bold text-sm"
-          >
-            <LogIn className="w-4 h-4" />
-            Connexion
-          </motion.button>
+          <div className="flex items-center gap-4">
+             <Link to="/login" className="text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors hidden sm:block">
+                Connexion
+             </Link>
+             <motion.button
+               whileHover={{ scale: 1.05 }}
+               whileTap={{ scale: 0.95 }}
+               onClick={() => navigate('/signup')}
+               className="bg-brand-gold text-brand-black px-6 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-brand-gold/10"
+             >
+               S'inscrire
+             </motion.button>
+          </div>
         )}
         
         <button className="md:hidden p-2 text-gray-400">

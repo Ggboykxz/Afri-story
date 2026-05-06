@@ -13,6 +13,8 @@ import { Messaging } from './pages/Messaging';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { Rankings } from './pages/Rankings';
 import { Settings } from './pages/Settings';
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
 import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
@@ -33,6 +35,8 @@ export default function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/rankings" element={<Rankings />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
           </Routes>
         </Layout>
       </BrowserRouter>
