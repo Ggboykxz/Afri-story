@@ -1,13 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users } from 'lucide-react';
+import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users, Award, Sparkles, X, Briefcase, UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 export const ArtistDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [showRecruitModal, setShowRecruitModal] = useState(false);
+
+  const recruits = [
+    { name: 'Kossi B.', role: 'Coloriste', exp: '5 ans', rate: '20,000 / Chapitre' },
+    { name: 'Samba D.', role: 'Scénariste', exp: '2 ans', rate: '15,000 / Chapitre' },
+    { name: 'Awa M.', role: 'Lettreur', exp: '1 an', rate: '10,000 / Chapitre' },
+  ];
+
+  const statsData = [
+    { name: 'Lun', views: 400, revenue: 240 },
+    { name: 'Mar', views: 300, revenue: 139 },
+    { name: 'Mer', views: 200, revenue: 980 },
+    { name: 'Jeu', views: 278, revenue: 390 },
+    { name: 'Ven', views: 189, revenue: 480 },
+    { name: 'Sam', views: 239, revenue: 380 },
+    { name: 'Dim', views: 349, revenue: 430 },
+  ];
 
   if (profile?.role === 'reader') {
     return (
@@ -37,7 +55,6 @@ export const ArtistDashboard = () => {
         <button 
           onClick={async () => {
             if (!user) return alert("Connectez-vous d'abord");
-            // Simulate role update
             const { doc, updateDoc } = await import('firebase/firestore');
             const { db } = await import('../lib/firebase');
             await updateDoc(doc(db, 'users', user.uid), { role: 'artist_draft' });
@@ -55,7 +72,7 @@ export const ArtistDashboard = () => {
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
         <div>
-          <h1 className="text-4xl font-display font-black">Tableau de Bord</h1>
+          <h1 className="text-4xl font-display font-black uppercase tracking-tighter">Tableau de Bord</h1>
           <p className="text-gray-400">Bienvenue, {profile?.displayName}. Gérez vos créations et analysez vos revenus.</p>
         </div>
         <button 
@@ -87,6 +104,44 @@ export const ArtistDashboard = () => {
               <StatCard title="Vues Totales" value="128.4K" trend="+12%" />
               <StatCard title="Abonnés" value="12.2K" trend="+5%" />
               <StatCard title="Revenus (est.)" value="450.000 FCFA" trend="+18%" />
+          </div>
+
+          {/* Analytics Chart - Section 4.1 */}
+          <div className="glass-card p-8 space-y-6">
+             <div className="flex items-center justify-between">
+                <h3 className="text-xl font-display font-black uppercase tracking-tighter">Performance de la semaine</h3>
+                <div className="flex gap-4">
+                   <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-brand-gold" />
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">Revenus</span>
+                   </div>
+                   <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-brand-green" />
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">Lectures</span>
+                   </div>
+                </div>
+             </div>
+             <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                   <AreaChart data={statsData}>
+                      <defs>
+                         <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#22C55E" stopOpacity={0.1}/>
+                            <stop offset="95%" stopColor="#22C55E" stopOpacity={0}/>
+                         </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
+                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
+                      <Tooltip 
+                        contentStyle={{backgroundColor: '#1a1816', border: '1px solid #ffffff10', borderRadius: '12px'}}
+                        itemStyle={{fontSize: '12px', fontWeight: '900'}}
+                      />
+                      <Area type="monotone" dataKey="views" stroke="#22C55E" fillOpacity={1} fill="url(#colorViews)" strokeWidth={3} />
+                      <Area type="monotone" dataKey="revenue" stroke="#D4AF37" fill="transparent" strokeWidth={3} />
+                   </AreaChart>
+                </ResponsiveContainer>
+             </div>
           </div>
 
           {/* Active Works */}
@@ -130,7 +185,10 @@ export const ArtistDashboard = () => {
                    </h2>
                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Gérez votre équipe créative</p>
                 </div>
-                <button className="px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">
+                <button 
+                  onClick={() => setShowRecruitModal(true)}
+                  className="px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                >
                    AJOUTER UN COLLAB
                 </button>
              </div>
@@ -153,8 +211,74 @@ export const ArtistDashboard = () => {
                 </div>
              </div>
           </div>
-        </div>
-      </div>
+       </div>
+    </div>
+
+    {/* Recruitment Modal */}
+       <AnimatePresence>
+         {showRecruitModal && (
+           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowRecruitModal(false)}
+                className="absolute inset-0 bg-brand-black/90 backdrop-blur-md"
+              />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="glass-card max-w-2xl w-full p-8 relative z-10 space-y-8"
+              >
+                 <button onClick={() => setShowRecruitModal(false)} className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors">
+                    <X className="w-6 h-6" />
+                 </button>
+
+                 <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-brand-gold">
+                       <Briefcase className="w-6 h-6" />
+                       <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Recrutement de Collaborateurs</h3>
+                    </div>
+                    <p className="text-sm text-gray-400">Trouvez les meilleurs talents pour accélérer votre production.</p>
+                 </div>
+
+                 <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                       <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest border-b border-white/10 pb-2">Talents disponibles</h4>
+                       <div className="space-y-3">
+                          {recruits.map((r, i) => (
+                            <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between group hover:border-brand-gold/30 transition-all cursor-pointer">
+                               <div>
+                                  <div className="font-bold text-sm">{r.name}</div>
+                                  <div className="text-[10px] text-brand-gold font-black uppercase">{r.role} • {r.exp}</div>
+                               </div>
+                               <button className="p-2 bg-brand-gold/10 text-brand-gold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Plus className="w-4 h-4" />
+                               </button>
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+                    <div className="space-y-4">
+                       <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest border-b border-white/10 pb-2">Publier une annonce</h4>
+                       <div className="p-6 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-4 hover:border-brand-gold/30 transition-all cursor-pointer group">
+                          <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-gray-500 group-hover:text-brand-gold transition-colors">
+                             <Plus className="w-6 h-6" />
+                          </div>
+                          <p className="text-xs font-bold text-gray-400 text-center">Besoin d'un scénariste ou d'un coloriste spécifique ? <br /> <span className="text-brand-gold">Créez un appel d'offre</span></p>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="p-4 bg-brand-brown/10 rounded-xl border border-brand-brown/20 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-brand-brown rounded-lg flex items-center justify-center text-brand-gold">💡</div>
+                    <p className="text-[10px] text-gray-400 font-medium italic">Astuce : Les artistes certifiés Pro reçoivent 3x plus de candidatures pour leurs projets.</p>
+                 </div>
+              </motion.div>
+           </div>
+         )}
+       </AnimatePresence>
     </div>
   );
 };

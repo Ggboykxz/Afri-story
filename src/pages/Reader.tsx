@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, Loader2, Heart, Star } from 'lucide-react';
+import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, Loader2, Heart, Star, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const Reader = () => {
@@ -9,6 +9,8 @@ export const Reader = () => {
   const [showControls, setShowControls] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [readerMode, setReaderMode] = useState<'webtoon' | 'bd'>('webtoon');
+  const [showComments, setShowComments] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [isLocked, setIsLocked] = useState(true); // Simulated lock state
   const [unlocking, setUnlocking] = useState(false);
 
@@ -25,6 +27,11 @@ export const Reader = () => {
       setUnlocking(false);
     }
   };
+
+  const comments = [
+    { id: 1, user: "Yao K.", text: "Le dessin est incroyable sur cette planche !", time: "Il y a 5m" },
+    { id: 2, user: "Amina S.", text: "Enfin un webtoon avec ce style graphique, j'adore.", time: "Hier" },
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,8 +98,19 @@ export const Reader = () => {
                     BD
                  </button>
               </div>
-              <button className="p-2 hover:bg-white/10 rounded-full transition-colors"><List className="w-5 h-5" /></button>
-              <button className="p-2 hover:bg-white/10 rounded-full transition-colors"><Share2 className="w-5 h-5" /></button>
+              <button 
+                onClick={() => setShowComments(true)}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors relative"
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-brand-gold rounded-full" />
+              </button>
+              <button 
+                onClick={() => setShowShare(true)}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
             </div>
           </motion.div>
         )}
@@ -218,6 +236,86 @@ export const Reader = () => {
           </div>
         </div>
       </div>
+
+      {/* Comment Drawer */}
+      <AnimatePresence>
+        {showComments && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowComments(false)}
+              className="absolute inset-0 bg-brand-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              className="absolute right-0 inset-y-0 w-full max-w-md bg-brand-black border-l border-white/10 shadow-2xl flex flex-col"
+            >
+               <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                  <h3 className="text-xl font-display font-black uppercase tracking-tighter">Commentaires</h3>
+                  <button onClick={() => setShowComments(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-6 h-6" /></button>
+               </div>
+               <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {comments.map(comment => (
+                    <div key={comment.id} className="space-y-2">
+                       <div className="flex items-center justify-between">
+                          <span className="font-black text-xs uppercase tracking-widest">{comment.user}</span>
+                          <span className="text-[10px] text-gray-500 font-bold uppercase">{comment.time}</span>
+                       </div>
+                       <p className="text-sm text-gray-300 leading-relaxed font-medium bg-white/5 p-4 rounded-xl border border-white/5">{comment.text}</p>
+                    </div>
+                  ))}
+               </div>
+               <div className="p-6 border-t border-white/10 bg-white/5">
+                  <div className="relative">
+                     <textarea 
+                       placeholder="Votre commentaire..." 
+                       className="w-full bg-brand-black border border-white/10 rounded-xl p-4 pr-12 text-sm outline-none focus:border-brand-gold transition-colors resize-none"
+                       rows={3}
+                     />
+                     <button className="absolute bottom-4 right-4 p-2 text-brand-gold hover:scale-110 transition-transform">
+                        <ArrowLeft className="w-5 h-5 rotate-180" />
+                     </button>
+                  </div>
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {showShare && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowShare(false)}
+              className="absolute inset-0 bg-brand-black/90 backdrop-blur-md"
+            />
+            <motion.div 
+               initial={{ scale: 0.9, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               exit={{ scale: 0.9, opacity: 0 }}
+               className="glass-card max-w-sm w-full p-8 relative z-10 text-center space-y-6"
+            >
+               <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Partager l'œuvre</h3>
+               <div className="grid grid-cols-2 gap-4">
+                  {['WhatsApp', 'Facebook', 'Twitter', 'Copier Lien'].map(platform => (
+                    <button key={platform} className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-brand-gold hover:text-brand-gold transition-all text-[10px] font-black uppercase tracking-widest">
+                       {platform}
+                    </button>
+                  ))}
+               </div>
+               <button onClick={() => setShowShare(false)} className="text-xs font-black text-gray-500 uppercase hover:text-white transition-colors">Fermer</button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Floating Buttons */}
       <div className="fixed bottom-8 right-8 flex flex-col gap-4 z-40">

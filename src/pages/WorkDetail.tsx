@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { BookOpen, Heart, Share2, Award, User, Star, DollarSign } from 'lucide-react';
-import { motion } from 'motion/react';
+import { BookOpen, Heart, Share2, Award, User, Star, DollarSign, X, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export const WorkDetail = () => {
   const { id } = useParams();
+  const [showDonate, setShowDonate] = useState(false);
+  const [donated, setDonated] = useState(false);
 
   // Mock data for the work
   const work = {
@@ -25,6 +27,14 @@ export const WorkDetail = () => {
       { id: 'c3', number: 3, title: 'L\'Oracle d\'Ifa', date: '03 Juin 2024', isPremium: true },
       { id: 'c4', number: 4, title: 'La Colère de Shango', date: '10 Juin 2024', isPremium: true },
     ]
+  };
+
+  const handleDonate = () => {
+    setDonated(true);
+    setTimeout(() => {
+      setDonated(false);
+      setShowDonate(false);
+    }, 2000);
   };
 
   return (
@@ -62,7 +72,10 @@ export const WorkDetail = () => {
             <button className="flex items-center gap-2 px-6 py-3 bg-brand-gold text-brand-black font-black rounded-xl hover:scale-105 transition-transform">
               S'ABONNER
             </button>
-            <button className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-brand-gold/10 hover:border-brand-gold/50 transition-all font-bold text-sm">
+            <button 
+              onClick={() => setShowDonate(true)}
+              className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-brand-gold/10 hover:border-brand-gold/50 transition-all font-bold text-sm"
+            >
               <DollarSign className="w-4 h-4 text-brand-gold" />
               DONNER
             </button>
@@ -109,7 +122,7 @@ export const WorkDetail = () => {
                   
                   {chapter.isPremium ? (
                     <div className="flex items-center gap-2 bg-brand-gold/10 text-brand-gold border border-brand-gold/20 px-3 py-1 rounded-full text-[10px] font-black uppercase">
-                      <Star className="w-3 h-3 fill-current" />
+                      < Star className="w-3 h-3 fill-current" />
                       Premium
                     </div>
                   ) : (
@@ -152,6 +165,67 @@ export const WorkDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Donation Modal */}
+      <AnimatePresence>
+         {showDonate && (
+           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+             <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               onClick={() => setShowDonate(false)}
+               className="absolute inset-0 bg-brand-black/90 backdrop-blur-md"
+             />
+             <motion.div 
+               initial={{ scale: 0.9, opacity: 0, y: 20 }}
+               animate={{ scale: 1, opacity: 1, y: 0 }}
+               exit={{ scale: 0.9, opacity: 0, y: 20 }}
+               className="glass-card w-full max-w-md p-8 relative z-10 space-y-8"
+             >
+               <button onClick={() => setShowDonate(false)} className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors">
+                  <X className="w-6 h-6" />
+               </button>
+
+               <div className="text-center space-y-4">
+                  <div className="w-20 h-20 bg-brand-gold/10 rounded-full flex items-center justify-center text-brand-gold mx-auto">
+                     <DollarSign className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Soutenir {work.author}</h3>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Vos dons servent à faire avancer l'histoire !</p>
+               </div>
+
+               {donated ? (
+                 <motion.div 
+                   initial={{ opacity: 0, y: 10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   className="p-8 bg-brand-green/10 rounded-2xl flex flex-col items-center gap-4 text-brand-green"
+                 >
+                    <div className="w-12 h-12 bg-brand-green rounded-full flex items-center justify-center text-brand-black">
+                       <Check className="w-8 h-8" />
+                    </div>
+                    <p className="font-black uppercase tracking-widest">MERCI POUR VOTRE DON !</p>
+                 </motion.div>
+               ) : (
+                 <div className="grid grid-cols-2 gap-4">
+                    {[100, 500, 1000, 5000].map(amount => (
+                      <button 
+                        key={amount}
+                        onClick={handleDonate}
+                        className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-brand-gold/10 hover:border-brand-gold transition-all text-center group"
+                      >
+                         <div className="text-xl font-display font-black text-white group-hover:text-brand-gold">{amount}</div>
+                         <div className="text-[10px] font-bold text-gray-500 uppercase">FCFA</div>
+                      </button>
+                    ))}
+                 </div>
+               )}
+
+               <p className="text-[10px] text-gray-600 text-center font-bold italic">Un don de 10% est prélevé pour la maintenance d'AfriStory.</p>
+             </motion.div>
+           </div>
+         )}
+      </AnimatePresence>
     </div>
   );
 };

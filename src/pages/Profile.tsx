@@ -1,12 +1,13 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Award, Zap, Book, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Award, Zap, Book, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export const Profile = () => {
   const { userId } = useParams();
   const { user, profile } = useAuth();
+  const [showProModal, setShowProModal] = React.useState(false);
   
   const isOwnProfile = user?.uid === userId;
   const displayProfile = isOwnProfile ? profile : null; // In real app, fetch other user profile
@@ -19,6 +20,68 @@ export const Profile = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
+      {/* Pro Status Modal */}
+      <AnimatePresence>
+        {showProModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               onClick={() => setShowProModal(false)}
+               className="absolute inset-0 bg-brand-black/90 backdrop-blur-md"
+            />
+            <motion.div 
+               initial={{ scale: 0.9, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               exit={{ scale: 0.9, opacity: 0 }}
+               className="glass-card max-w-lg w-full p-8 relative z-10 space-y-6"
+            >
+               <button onClick={() => setShowProModal(false)} className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors">
+                  <X className="w-6 h-6" />
+               </button>
+
+               <div className="text-center space-y-4">
+                  <div className="w-20 h-20 bg-brand-gold/10 rounded-[2rem] flex items-center justify-center text-brand-gold mx-auto">
+                     <ShieldCheck className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Devenir Artiste Pro</h3>
+                  <p className="text-sm text-gray-400">Le statut Pro vous permet de monétiser vos œuvres, de vendre du merchandising et de figurer en tête des classements.</p>
+               </div>
+               
+               <div className="space-y-4 py-4 border-y border-white/10">
+                  <div className="flex items-start gap-4">
+                     <div className="w-6 h-6 rounded-full bg-brand-green/20 text-brand-green flex items-center justify-center flex-shrink-0 text-[10px] font-black">1</div>
+                     <div>
+                        <h4 className="text-[10px] font-black uppercase text-white">Portfolio Minimum</h4>
+                        <p className="text-xs text-gray-500">Avoir au moins une œuvre publiée avec plus de 1000 vues.</p>
+                     </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                     <div className="w-6 h-6 rounded-full bg-brand-green/20 text-brand-green flex items-center justify-center flex-shrink-0 text-[10px] font-black">2</div>
+                     <div>
+                        <h4 className="text-[10px] font-black uppercase text-white">Vérification d'Identité</h4>
+                        <p className="text-xs text-gray-500">Nos modérateurs vérifient l'originalité de vos créations.</p>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="flex flex-col gap-3">
+                  <button 
+                    onClick={() => {
+                       alert("Demande envoyée ! Nos modérateurs vous contacteront sous 48h.");
+                       setShowProModal(false);
+                    }}
+                    className="w-full py-4 bg-brand-gold text-brand-black font-black rounded-xl hover:scale-105 transition-all text-sm"
+                  >
+                     ENVOYER MA CANDIDATURE
+                  </button>
+                  <button onClick={() => setShowProModal(false)} className="py-2 text-[10px] font-black uppercase text-gray-500 hover:text-white transition-colors">Plus tard</button>
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       {/* Header */}
       <div className="relative">
          <div className="h-64 rounded-3xl bg-linear-to-tr from-brand-brown to-brand-black border border-white/10" />
@@ -45,7 +108,10 @@ export const Profile = () => {
                     </div>
                   ))}
                   {displayProfile?.role !== 'reader' && (
-                    <button className="flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-wider text-white hover:bg-brand-gold hover:text-brand-black transition-all">
+                    <button 
+                      onClick={() => setShowProModal(true)}
+                      className="flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-wider text-white hover:bg-brand-gold hover:text-brand-black transition-all"
+                    >
                        <MessageCircle className="w-4 h-4" />
                        Demande Professionnelle
                     </button>

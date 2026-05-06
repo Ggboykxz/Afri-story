@@ -1,25 +1,30 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Box, Truck, Star, Filter, ArrowRight, Loader2, Coins } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ShoppingBag, Box, Truck, Star, Filter, ArrowRight, Loader2, Coins, X, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { workService } from '../lib/workService';
 
 export const Shop = () => {
   const { user, profile } = useAuth();
   const [buyingCoins, setBuyingCoins] = useState(false);
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
   const handleBuyCoins = async (amount: number) => {
     if (!user) return alert("Veuillez vous connecter pour acheter des AfriCoins");
     setBuyingCoins(true);
     try {
       await workService.purchaseCoins(user.uid, amount);
-      // In a real app, we'd trigger a re-fetch or use real-time listeners
       window.location.reload(); 
     } catch (error) {
       console.error(error);
     } finally {
       setBuyingCoins(false);
     }
+  };
+
+  const handleBuyMerch = () => {
+    setPurchaseSuccess(true);
+    setTimeout(() => setPurchaseSuccess(false), 3000);
   };
 
   const products = [
@@ -29,8 +34,34 @@ export const Shop = () => {
     { id: 4, name: "Affiche 'Justice de Fer' (A2)", price: "8,000 FCFA", category: "Décoration", tag: "" },
   ];
 
+  const transactions = [
+    { id: 'tx_1', date: '04 Mai 2026', type: 'Achat', item: '+500 AfriCoins', amount: '-599 FCFA' },
+    { id: 'tx_2', date: '02 Mai 2026', type: 'Shop', item: 'T-Shirt Oyo', amount: '-12,000 FCFA' },
+    { id: 'tx_3', date: '01 Mai 2026', type: 'Récompense', item: 'Bonus Quotidien', amount: '+50 AfriCoins' },
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
+    <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 space-y-24">
+      {/* Purchase Notification */}
+      <AnimatePresence>
+        {purchaseSuccess && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-12 right-12 z-50 glass-card p-6 border-brand-green/30 flex items-center gap-4 shadow-2xl"
+          >
+             <div className="w-10 h-10 bg-brand-green rounded-xl flex items-center justify-center text-brand-black">
+                <Check className="w-6 h-6" />
+             </div>
+             <div>
+                <h4 className="font-bold">Commande reçue !</h4>
+                <p className="text-[10px] text-gray-500 font-bold uppercase">Consultez vos messages pour le suivi.</p>
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Hero */}
       <section className="relative h-[40vh] rounded-3xl overflow-hidden glass-card flex items-center px-12 mb-16">
          <div className="absolute inset-0 bg-brand-gold/10 -z-10" />
@@ -90,7 +121,8 @@ export const Shop = () => {
                          disabled={buyingCoins}
                          className="px-6 py-2 bg-white/5 border border-brand-gold/30 rounded-xl text-xs font-black hover:bg-brand-gold hover:text-brand-black transition-all flex items-center gap-2 disabled:opacity-50"
                        >
-                         +{amount} <span className="opacity-50 text-[8px]">({amount === 500 ? '599 FCFA' : amount === 1000 ? '999 FCFA' : '1999 FCFA'})</span>
+                         {buyingCoins ? <Loader2 className="w-3 h-3 animate-spin" /> : `+${amount}`} 
+                         <span className="opacity-50 text-[8px]">({amount === 500 ? '599 FCFA' : amount === 1000 ? '1199 FCFA' : '2499 FCFA'})</span>
                        </button>
                      ))}
                   </div>
@@ -111,7 +143,13 @@ export const Shop = () => {
                          </div>
                        )}
                        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform">
-                          <button className="w-full py-3 bg-white text-black font-black text-xs rounded-lg flex items-center justify-center gap-2">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBuyMerch();
+                            }}
+                            className="w-full py-3 bg-white text-black font-black text-xs rounded-lg flex items-center justify-center gap-2"
+                          >
                              AJOUTER AU PANIER
                              <ShoppingBag className="w-4 h-4" />
                           </button>
@@ -145,6 +183,46 @@ export const Shop = () => {
             </section>
          </div>
       </div>
+
+      {/* Transaction History - Section 4.5 */}
+      <section className="glass-card overflow-hidden">
+         <div className="p-8 border-b border-white/10 flex items-center justify-between">
+            <h3 className="text-xl font-display font-black uppercase tracking-tighter">Historique des Transactions</h3>
+            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">30 derniers jours</div>
+         </div>
+         <div className="overflow-x-auto">
+            <table className="w-full text-left">
+               <thead className="bg-white/5">
+                  <tr>
+                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Date</th>
+                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Type</th>
+                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Détails</th>
+                     <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500 text-right">Montant</th>
+                   </tr>
+               </thead>
+               <tbody className="divide-y divide-white/5">
+                  {transactions.map(tx => (
+                    <tr key={tx.id} className="hover:bg-white/[0.02] transition-colors">
+                       <td className="px-8 py-4 text-xs font-bold text-gray-400">{tx.date}</td>
+                       <td className="px-8 py-4">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${
+                            tx.type === 'Achat' ? 'bg-blue-500/10 text-blue-400' :
+                            tx.type === 'Shop' ? 'bg-brand-gold/10 text-brand-gold' :
+                            'bg-brand-green/10 text-brand-green'
+                          }`}>
+                            {tx.type}
+                          </span>
+                       </td>
+                       <td className="px-8 py-4 text-xs font-bold text-white">{tx.item}</td>
+                       <td className={`px-8 py-4 text-xs font-black text-right ${tx.amount.startsWith('+') ? 'text-brand-green' : 'text-red-400'}`}>
+                          {tx.amount}
+                       </td>
+                    </tr>
+                  ))}
+               </tbody>
+            </table>
+         </div>
+      </section>
     </div>
   );
 };

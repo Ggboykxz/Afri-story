@@ -91,7 +91,10 @@ export const Home = () => {
           </div>
 
           <div className="glass-card p-8 space-y-8 h-fit">
-            <h2 className="text-2xl font-display font-bold">Classement Top 5</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-display font-bold">Classement Top 5</h2>
+              <Link to="/rankings" className="text-brand-gold text-[10px] font-black uppercase tracking-widest hover:underline">Voir Tout</Link>
+            </div>
             <div className="space-y-6">
               {mockWorks.map((work, i) => (
                 <div key={work.id} className="flex items-center gap-4 group cursor-pointer">
