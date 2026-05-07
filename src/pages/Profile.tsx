@@ -117,7 +117,7 @@ export const Profile = () => {
                ) : (
                  <>
                    <h1 className="text-4xl font-display font-black inline-flex items-center gap-3">
-                      {displayProfile?.displayName || 'Utilisateur Nexus-Hub'}
+                      {displayProfile?.displayName || 'Utilisateur AfriStory'}
                       {displayProfile?.role === 'artist_pro' && <Award className="w-6 h-6 text-brand-gold" />}
                    </h1>
                    <div className="flex flex-wrap gap-2">
@@ -158,8 +158,8 @@ export const Profile = () => {
                      <div className="text-[10px] text-gray-500 font-bold uppercase">Favoris</div>
                   </div>
                   <div className="space-y-1">
-                     <div className="text-sm font-black text-white">{displayProfile?.nexusCoins || 0}</div>
-                     <div className="text-[10px] text-gray-500 font-bold uppercase">Nexus-Coins</div>
+                     <div className="text-sm font-black text-white">{displayProfile?.afriCoins || 0}</div>
+                     <div className="text-[10px] text-gray-500 font-bold uppercase">AfriCoins</div>
                   </div>
                   <div className="space-y-1">
                      <div className="text-sm font-black text-white">324</div>

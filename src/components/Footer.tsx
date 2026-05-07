@@ -11,9 +11,9 @@ export const Footer = () => {
         <div className="col-span-2 space-y-6">
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 bg-brand-gold rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform shadow-lg shadow-brand-gold/20">
-               <span className="font-display font-black text-brand-black text-xl">N</span>
+               <span className="font-display font-black text-brand-black text-xl">A</span>
             </div>
-            <span className="font-display text-2xl font-black uppercase tracking-tighter text-white">Nexus-Hub</span>
+            <span className="font-display text-2xl font-black uppercase tracking-tighter text-white">AfriStory</span>
           </Link>
           <p className="text-gray-500 text-sm max-w-sm font-medium leading-relaxed italic">
             La première destination pour la BD africaine moderne. Lisez, créez, et connectez-vous avec le futur de la narration afro-centrée.
@@ -59,11 +59,11 @@ export const Footer = () => {
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
          <p className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-600">
-            © {currentYear} NEXUS-HUB • TOUS DROITS RÉSERVÉS
+            © {currentYear} AFRISTORY • TOUS DROITS RÉSERVÉS
          </p>
          <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
-            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-400">Système Nexus Opérationnel</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-400">Système AfriStory Opérationnel</span>
          </div>
       </div>
     </footer>

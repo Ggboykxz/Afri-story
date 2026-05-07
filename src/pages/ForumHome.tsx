@@ -8,7 +8,7 @@ import { ForumThreadSkeleton, Skeleton } from '../components/Skeleton';
 const CATEGORIES = [
   { id: 'webtoons', name: 'Webtoons & BD', description: 'Discutez de vos oeuvres préférées et des dernières sorties.', icon: MessageCircle, count: '1.2K', color: 'text-brand-gold' },
   { id: 'artists', name: 'Espace Artistes', description: 'Partagez vos techniques, demandez des avis et progressez ensemble.', icon: Zap, count: '850', color: 'text-brand-green' },
-  { id: 'theories', name: 'Théories & Lore', description: 'Partagez vos théories les plus folles sur les univers du Nexus.', icon: Hash, count: '420', color: 'text-purple-400' },
+  { id: 'theories', name: 'Théories & Lore', description: 'Partagez vos théories les plus folles sur les univers d\'AfriStory.', icon: Hash, count: '420', color: 'text-purple-400' },
   { id: 'general', name: 'Général', description: 'Pour tout ce qui ne rentre pas ailleurs.', icon: Users, count: '2.5K', color: 'text-blue-400' },
 ];
 
@@ -36,7 +36,7 @@ export function ForumHome() {
       {/* Header */}
       <section className="space-y-4">
         <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter">
-          Nexus <span className="gradient-text">Forums</span>
+          AfriStory <span className="gradient-text">Forums</span>
         </h1>
         <p className="text-gray-400 max-w-2xl text-lg font-medium">
           L'agora du continent. Échangez avec des milliers de passionnés et créateurs.

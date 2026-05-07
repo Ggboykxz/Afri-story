@@ -1,10 +1,10 @@
-# Nexus-Hub Security Specification
+# AfriStory Security Specification
 
 ## Data Invariants
 1. A chapter cannot exist without a parent Work.
 2. Only `artist_pro` or `artist_draft` roles can create Works.
 3. Only the author of a Work can edit or delete it.
-4. Premium chapters require either a Pro subscription or Nexus-Coins to unlock (logic enforced in app, but rules must prevent unauthorized reading).
+4. Premium chapters require either a Pro subscription or AfriCoins to unlock (logic enforced in app, but rules must prevent unauthorized reading).
 5. Forums with `isPremium: true` are only readable by users with a `premium` badge.
 
 ## Security Rule Helpers

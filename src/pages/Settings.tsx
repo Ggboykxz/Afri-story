@@ -35,11 +35,11 @@ export const Settings = () => {
   };
 
   const sections = [
-    { id: 'profile', title: 'Profil Public', icon: User, desc: 'Gérez votre identité sur Nexus-Hub' },
+    { id: 'profile', title: 'Profil Public', icon: User, desc: 'Gérez votre identité sur AfriStory' },
     { id: 'notifications', title: 'Notifications', icon: Bell, desc: 'Alertes, e-mails et push' },
     { id: 'privacy', title: 'Privacité & Sécurité', icon: Shield, desc: 'Mot de passe et visibilité' },
     { id: 'display', title: 'Affichage', icon: Palette, desc: 'Mode sombre, lecteurs et polices' },
-    { id: 'billing', title: 'Abonnements & Nexus-Coins', icon: CreditCard, desc: 'Historique et facturation' },
+    { id: 'billing', title: 'Abonnements & AfriCoins', icon: CreditCard, desc: 'Historique et facturation' },
   ];
 
   if (['artist_pro', 'artist_draft', 'artist_mentor'].includes(profile?.role)) {
@@ -189,7 +189,7 @@ export const Settings = () => {
                            { t: 'Nouveaux chapitres', d: 'Recevoir une alerte quand un webtoon suivi est mis à jour' },
                            { t: 'Messages privés', d: 'Être notifié quand vous recevez un nouveau message' },
                            { t: 'Activités sociales', d: 'Likes, commentaires et mentions sur vos publications' },
-                           { t: 'Offres Boutique', d: 'Alertes sur les réductions Nexus-Coins et nouveaux goodies' },
+                           { t: 'Offres Boutique', d: 'Alertes sur les réductions AfriCoins et nouveaux goodies' },
                          ].map((item, i) => (
                            <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 group hover:border-brand-gold/30 transition-all">
                               <div>

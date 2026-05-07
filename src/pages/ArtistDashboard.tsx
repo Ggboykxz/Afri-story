@@ -107,18 +107,18 @@ export const ArtistDashboard = () => {
           </div>
         </div>
         <div className="space-y-4">
-          <h2 className="text-4xl md:text-5xl font-display font-black leading-tight">Devenez Créateur <br /><span className="gradient-text">Nexus-Hub</span></h2>
+          <h2 className="text-4xl md:text-5xl font-display font-black leading-tight">Devenez Créateur <br /><span className="gradient-text">AfriStory</span></h2>
           <p className="text-gray-400 text-lg">
             Rejoignez le hub créatif africain. Publiez vos premières planches sur notre espace <strong>Draft</strong> gratuitement et commencez à bâtir votre communauté.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 gap-4 w-full">
            <div className="glass-card p-6 text-left space-y-4 border-brand-green/20">
-              <div className="text-brand-green font-display font-bold">Nexus-Hub Draft</div>
+              <div className="text-brand-green font-display font-bold">AfriStory Draft</div>
               <p className="text-xs text-gray-500">Pour les amateurs et débutants. Feedback constructif et liberté totale de publication.</p>
            </div>
            <div className="glass-card p-6 text-left space-y-4 border-brand-gold/20">
-              <div className="text-brand-gold font-display font-bold">Nexus-Hub Pro</div>
+              <div className="text-brand-gold font-display font-bold">AfriStory Pro</div>
               <p className="text-xs text-gray-500">Pour les professionnels. Monétisation, statistiques et visibilité premium.</p>
            </div>
         </div>
@@ -176,7 +176,7 @@ export const ArtistDashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <StatCard title="Vues Totales" value={totals.views.toLocaleString()} trend="+12%" />
               <StatCard title="Abonnés" value={totals.likes.toLocaleString()} trend="+5%" />
-              <StatCard title="Nexus-Coins" value={profile?.nexusCoins || 0} trend="Revenu" />
+              <StatCard title="AfriCoins" value={profile?.afriCoins || 0} trend="Revenu" />
           </div>
 
           {/* Analytics Chart - Section 4.1 */}

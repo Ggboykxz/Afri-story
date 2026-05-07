@@ -1,6 +1,6 @@
 {
-  "name": "Nexus-Hub",
-  "description": "Le hub ultime de la narration graphique africaine (Webtoons & BD).",
+  "name": "AfriStory",
+  "description": "Portail web de lecture de Webtoons et BD africaines, incluant une plateforme de monétisation pour artistes Draft et Pro.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

@@ -47,7 +47,7 @@ export function CollaborationHub() {
             Construisez votre <span className="gradient-text">Équipe de Rêve</span>
           </h1>
           <p className="text-gray-400 text-lg font-medium leading-relaxed">
-            Le Nexus n'est pas qu'un lieu de lecture. C'est l'endroit où les talents se rencontrent pour donner vie aux prochaines légendes de la BD africaine.
+            AfriStory n'est pas qu'un lieu de lecture. C'est l'endroit où les talents se rencontrent pour donner vie aux prochaines légendes de la BD africaine.
           </p>
         </div>
       </section>
@@ -177,7 +177,7 @@ export function CollaborationHub() {
         <div className="w-full md:w-1/3 glass-card bg-brand-black/10 border-white/20 p-8 space-y-4">
            <Info className="w-8 h-8" />
            <p className="text-xs font-bold leading-relaxed">
-             Nexus-Hub ne prend aucune commission sur les collaborations. Les accords financiers sont gérés directement entre les parties.
+             AfriStory ne prend aucune commission sur les collaborations. Les accords financiers sont gérés directement entre les parties.
            </p>
            <button className="w-full py-3 bg-brand-black text-brand-gold font-black uppercase text-[10px] rounded-xl tracking-widest">
              Lire la Charte

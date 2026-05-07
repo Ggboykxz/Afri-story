@@ -27,7 +27,7 @@ export function PublicArtistProfile() {
     }
   };
 
-  const artistName = works[0]?.author || "Artiste Nexus";
+  const artistName = works[0]?.author || "Artiste AfriStory";
   const isPro = works.some(w => w.isPro);
 
   return (
@@ -62,7 +62,7 @@ export function PublicArtistProfile() {
                 )}
               </div>
               <p className="text-gray-400 max-w-xl text-sm font-medium leading-relaxed">
-                Créateur passionné explorant les frontières entre tradition et futur. Bienvenue dans mon univers sur le Nexus-Hub.
+                Créateur passionné explorant les frontières entre tradition et futur. Bienvenue dans mon univers sur AfriStory.
               </p>
               <div className="flex flex-wrap gap-6 text-[10px] font-black uppercase tracking-widest text-gray-500 italic">
                  <div className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-brand-gold" /> {works.length} Œuvres</div>
@@ -155,7 +155,7 @@ export function PublicArtistProfile() {
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-display font-black uppercase text-brand-gold">Soutenir l'Artiste</h3>
-                <p className="text-sm text-gray-400 font-medium">Contribuez directement au développement de nouvelles œuvres en offrant des Nexus-Coins.</p>
+                <p className="text-sm text-gray-400 font-medium">Contribuez directement au développement de nouvelles œuvres en offrant des AfriCoins.</p>
               </div>
               <button className="px-12 py-3 bg-brand-gold text-brand-black font-black rounded-xl text-[10px] uppercase tracking-widest">
                 OFFRIR UN DON

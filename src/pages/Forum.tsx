@@ -32,7 +32,7 @@ export const Forum = () => {
           <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 px-3 py-1 rounded-full text-brand-gold text-[10px] font-black uppercase tracking-widest">
              Communauté
           </div>
-          <h1 className="text-5xl font-display font-black leading-none">Forums <br /><span className="gradient-text">Nexus-Hub</span></h1>
+          <h1 className="text-5xl font-display font-black leading-none">Forums <br /><span className="gradient-text">AfriStory</span></h1>
           <p className="text-gray-400 max-w-xl">L'espace d'échange pour tous les passionnés de narration graphique africaine.</p>
         </div>
 

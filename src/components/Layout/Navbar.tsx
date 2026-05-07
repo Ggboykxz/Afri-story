@@ -49,9 +49,9 @@ export const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 h-16 z-50 glass-navbar px-4 md:px-8 flex items-center justify-between">
       <Link to="/" className="flex items-center gap-2 group">
         <div className="w-8 h-8 bg-brand-gold rounded-lg flex items-center justify-center text-brand-black rotate-[-5deg] group-hover:rotate-0 transition-transform">
-           <span className="font-display font-black text-xl">N</span>
+           <span className="font-display font-black text-xl">A</span>
         </div>
-        <span className="font-display text-xl font-bold tracking-tighter text-white">Nexus-Hub</span>
+        <span className="font-display text-xl font-bold tracking-tighter text-white">AfriStory</span>
       </Link>
 
       <div className="hidden md:flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.15em]">
@@ -83,8 +83,8 @@ export const Navbar = () => {
               <span className="text-[10px] font-black text-white uppercase tracking-widest">Messages</span>
             </Link>
             <div className="hidden lg:flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 px-3 py-1.5 rounded-full">
-              <span className="text-[10px] font-black text-brand-gold uppercase tracking-widest">Nexus-Coins</span>
-              <span className="text-sm font-display font-bold text-white">{profile?.nexusCoins || 0}</span>
+              <span className="text-[10px] font-black text-brand-gold uppercase tracking-widest">AfriCoins</span>
+              <span className="text-sm font-display font-bold text-white">{profile?.afriCoins || 0}</span>
             </div>
             
             <div className="relative group">

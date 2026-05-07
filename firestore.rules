@@ -39,7 +39,7 @@ service cloud.firestore {
         && data.userId == request.auth.uid
         && data.role in ['reader', 'artist_draft', 'artist_pro']
         && data.email is string && data.email.size() <= 200
-        && (data.afriCoins == 0 || data.afriCoins is number);
+        && (!('afriCoins' in data) || data.afriCoins is number);
     }
 
     function isValidWork(data) {

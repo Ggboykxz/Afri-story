@@ -160,12 +160,12 @@ export const workService = {
     
     try {
       const userDoc = await getDoc(userRef);
-      const coins = userDoc.data()?.nexusCoins || 0;
+      const coins = userDoc.data()?.afriCoins || 0;
       
-      if (coins < price) throw new Error("Nexus-Coins insuffisants");
+      if (coins < price) throw new Error("AfriCoins insuffisants");
 
       // Transaction-like update (simplified for brevity)
-      await updateDoc(userRef, { nexusCoins: increment(-price) });
+      await updateDoc(userRef, { afriCoins: increment(-price) });
       await setDoc(unlockRef, {
         workId,
         chapterId,
@@ -191,13 +191,13 @@ export const workService = {
     }
   },
 
-  // Purchase Nexus-Coins (Simulated increment)
+  // Purchase AfriCoins (Simulated increment)
   purchaseCoins: async (userId: string, amount: number) => {
     const path = `users/${userId}`;
     try {
       const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
-        nexusCoins: increment(amount)
+        afriCoins: increment(amount)
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);

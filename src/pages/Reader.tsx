@@ -20,7 +20,7 @@ export const Reader = () => {
 
   const handleUnlock = async () => {
     if (!user || !workId || !chapterId) return alert("Veuillez vous connecter.");
-    if ((profile?.nexusCoins || 0) < 50) return alert("Nexus-Coins insuffisants.");
+    if ((profile?.afriCoins || 0) < 50) return alert("AfriCoins insuffisants.");
     
     setUnlocking(true);
     try {
@@ -152,7 +152,7 @@ export const Reader = () => {
              <div className="space-y-4">
                 <h2 className="text-3xl font-display font-black uppercase tracking-tighter">Chapitre Premium</h2>
                 <p className="text-gray-400 max-w-sm mx-auto">
-                   Ce chapitre nécessite <span className="text-brand-gold font-bold">50 Nexus-Coins</span> pour être déverrouillé définitivement.
+                   Ce chapitre nécessite <span className="text-brand-gold font-bold">50 AfriCoins</span> pour être déverrouillé définitivement.
                 </p>
              </div>
              <div className="flex flex-col gap-3 w-full max-w-xs">
@@ -163,7 +163,7 @@ export const Reader = () => {
                 >
                    {unlocking ? <Loader2 className="w-6 h-6 animate-spin" /> : "DÉBLOQUER (50 🪙)"}
                 </button>
-                <Link to="/shop" className="text-xs font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Acheter des Nexus-Coins</Link>
+                <Link to="/shop" className="text-xs font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Acheter des AfriCoins</Link>
              </div>
           </div>
         ) : (

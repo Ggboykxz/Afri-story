@@ -69,7 +69,7 @@ export function AdminDashboard() {
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
         <Shield className="w-16 h-16 text-brand-red opacity-20" />
         <h1 className="text-2xl font-display font-black uppercase">Accès Refusé</h1>
-        <p className="text-gray-500">Seuls les administrateurs du Nexus peuvent accéder à cet espace.</p>
+        <p className="text-gray-500">Seuls les administrateurs de AfriStory peuvent accéder à cet espace.</p>
       </div>
     );
   }
@@ -197,7 +197,7 @@ export function AdminDashboard() {
                   <div className="text-brand-green text-[10px] font-black flex items-center gap-2"><TrendingUp className="w-3 h-3" /> +24.5%</div>
                </div>
                <div className="glass-card p-8 space-y-4">
-                  <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Nexus-Coins Vendus</h4>
+                  <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest">AfriCoins Vendus</h4>
                   <div className="text-4xl font-display font-black">450K</div>
                   <div className="text-brand-green text-[10px] font-black flex items-center gap-2"><TrendingUp className="w-3 h-3" /> +12.8%</div>
                </div>
@@ -211,8 +211,8 @@ export function AdminDashboard() {
              <div className="glass-card p-12 bg-brand-gold/5 border-brand-gold/20 flex flex-col justify-center items-center text-center space-y-6">
                 <Shield className="w-12 h-12 text-brand-gold" />
                 <div className="space-y-2">
-                   <h3 className="text-2xl font-display font-black uppercase">Sécurité du Nexus</h3>
-                   <p className="text-sm text-gray-400 font-medium max-w-lg">Tous les systèmes de surveillance sont opérationnels. Aucune intrusion détectée dans les transactions Nexus-Coins.</p>
+                   <h3 className="text-2xl font-display font-black uppercase">Sécurité de AfriStory</h3>
+                   <p className="text-sm text-gray-400 font-medium max-w-lg">Tous les systèmes de surveillance sont opérationnels. Aucune intrusion détectée dans les transactions AfriCoins.</p>
                 </div>
              </div>
           </div>

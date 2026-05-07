@@ -15,7 +15,7 @@ export function Privacy() {
              <Shield className="w-6 h-6" /> 1. Données Collectées
           </h2>
           <p>
-            Nous collectons uniquement les données nécessaires à votre expérience de lecture : email pour l'authentification, historique de lecture et transactions de Nexus-Coins.
+            Nous collectons uniquement les données nécessaires à votre expérience de lecture : email pour l'authentification, historique de lecture et transactions de AfriCoins.
           </p>
         </div>
 
@@ -39,7 +39,7 @@ export function Privacy() {
       </section>
 
       <div className="bg-white/5 p-8 rounded-3xl border border-white/10 italic text-sm">
-        Pour exercer vos droits de suppression de données, écrivez à privacy@nexus-hub.africa
+        Pour exercer vos droits de suppression de données, écrivez à privacy@afristory.africa
       </div>
     </div>
   );

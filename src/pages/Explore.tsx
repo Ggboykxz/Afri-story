@@ -46,7 +46,7 @@ export function Explore() {
       {/* Header Section */}
       <section className="space-y-6">
         <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter">
-          Explorer le <span className="gradient-text">Nexus-Hub</span>
+          Explorer le <span className="gradient-text">AfriStory</span>
         </h1>
         <p className="text-gray-400 max-w-2xl text-lg font-medium">
           Découvrez les meilleures histoires du continent. Des talents émergents du Draft aux icônes du Pro.
@@ -60,7 +60,7 @@ export function Explore() {
           <img src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80" alt="Draft Banner" className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-1000" />
           <div className="relative z-20 h-full flex flex-col justify-center p-12 max-w-2xl space-y-6">
             <div className="inline-flex items-center gap-2 bg-brand-gold/20 border border-brand-gold/30 px-3 py-1 rounded-full text-brand-gold text-[10px] font-black uppercase tracking-widest w-fit">
-              Nexus-Hub Draft
+              AfriStory Draft
             </div>
             <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter leading-none">Soutenez les <span className="text-brand-gold">Talents</span> de demain</h2>
             <p className="text-gray-300 text-sm font-medium">Les créateurs amateurs ont besoin de vos retours. Lisez, likez et commentez pour les aider à atteindre le statut Pro.</p>

@@ -70,8 +70,7 @@ export const Home = () => {
           </motion.div>
         </div>
 
-        <div className="relative z-20 max-w-5xl text-center space-y-10">
-          <div className="flex flex-col items-center gap-6">
+        <div className="relative z-20 max-w-5xl text-center space-y-10">        <div className="flex flex-col items-center gap-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -268,7 +267,7 @@ export const Home = () => {
           <div className="flex items-center gap-4">
             <Sparkles className="w-6 h-6 text-brand-green" />
             <div>
-               <h2 className="text-3xl font-display font-bold">Nexus-Hub <span className="text-brand-green">Draft</span></h2>
+               <h2 className="text-3xl font-display font-bold">AfriStory <span className="text-brand-green">Draft</span></h2>
                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Les pépites de demain — Espace communautaire</p>
             </div>
           </div>
@@ -290,17 +289,17 @@ export const Home = () => {
       <section className="px-6 md:px-12 mt-32 grid md:grid-cols-2 gap-8">
         <div className="glass-card p-12 space-y-6 group hover:border-brand-gold/30 transition-all cursor-pointer">
           <div className="w-16 h-16 bg-brand-gold/10 rounded-2xl flex items-center justify-center text-brand-gold font-display text-2xl font-bold">PRO</div>
-          <h3 className="text-4xl font-display font-bold">Nexus-Hub Pro</h3>
+          <h3 className="text-4xl font-display font-bold">AfriStory Pro</h3>
           <p className="text-gray-400">Pour les professionnels. Monétisez vos œuvres, accédez à des statistiques avancées et construisez votre empire médiatique.</p>
           <ul className="space-y-3 text-sm text-gray-500">
             <li>• Part de revenus de 70% à 90%</li>
-            <li>• Micro-transactions (Nexus-Coins)</li>
+            <li>• Micro-transactions (AfriCoins)</li>
             <li>• Badge Certifié</li>
           </ul>
         </div>
         <div className="glass-card p-12 space-y-6 group hover:border-brand-green/30 transition-all cursor-pointer">
           <div className="w-16 h-16 bg-brand-green/10 rounded-2xl flex items-center justify-center text-brand-green font-display text-2xl font-bold">DRAFT</div>
-          <h3 className="text-4xl font-display font-bold">Nexus-Hub Draft</h3>
+          <h3 className="text-4xl font-display font-bold">AfriStory Draft</h3>
           <p className="text-gray-400">L'espace communautaire. Publiez librement, recevez des feedbacks et progressez vers le statut Pro.</p>
           <ul className="space-y-3 text-sm text-gray-500">
             <li>• Publication gratuite et illimitée</li>

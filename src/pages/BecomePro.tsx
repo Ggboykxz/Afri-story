@@ -55,7 +55,7 @@ export function BecomePro() {
          </div>
          <div className="space-y-2">
            <h2 className="text-3xl font-display font-black uppercase text-brand-gold">Félicitations, vous êtes Pro !</h2>
-           <p className="text-gray-400 font-medium">Vous bénéficiez déjà de tous les avantages du Nexus-Hub pour les créateurs certifiés.</p>
+           <p className="text-gray-400 font-medium">Vous bénéficiez déjà de tous les avantages d'AfriStory pour les créateurs certifiés.</p>
          </div>
          <Link to="/artist" className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black rounded-xl uppercase tracking-widest text-[10px] hover:bg-white hover:text-brand-black transition-all">
            ACCÉDER AU DASHBOARD
@@ -188,7 +188,7 @@ export function BecomePro() {
                         </div>
                         <div className="flex gap-3 text-sm font-medium text-gray-300">
                            <CheckCircle className="w-5 h-5 text-brand-gold flex-shrink-0" />
-                           <p>Je m'engage à respecter la Charte de la communauté Nexus-Hub.</p>
+                           <p>Je m'engage à respecter la Charte de la communauté AfriStory.</p>
                         </div>
                      </div>
                      <button type="submit" className="w-full py-4 bg-brand-gold text-brand-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:shadow-xl hover:shadow-brand-gold/20 flex items-center justify-center gap-3 transition-all">
@@ -207,7 +207,7 @@ export function BecomePro() {
                 <div className="space-y-4">
                    {[
                      { t: "Certification de Compte", d: "Badge Pro et inclusion dans les classements officiels." },
-                     { t: "Monétisation Directe", d: "Gain de Nexus-Coins sur chaque chapitre Early Access." },
+                     { t: "Monétisation Directe", d: "Gain d'AfriCoins sur chaque chapitre Early Access." },
                      { t: "Outils de Collaboration", d: "Créez des annonces prioritaires pour recruter vos coloristes." },
                      { t: "Support Dédié", d: "Accès prioritaire à notre équipe de modération et technique." },
                    ].map((perk, i) => (

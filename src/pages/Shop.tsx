@@ -11,13 +11,13 @@ export const Shop = () => {
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
   const handleBuyCoins = async (amount: number) => {
-    if (!user) return alert("Veuillez vous connecter pour acheter des Nexus-Coins");
+    if (!user) return alert("Veuillez vous connecter pour acheter des AfriCoins");
     setBuyingCoins(true);
     try {
       // Simulate real transaction delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       await workService.purchaseCoins(user.uid, amount);
-      alert(`Succès ! ${amount} Nexus-Coins ajoutés à votre compte.`);
+      alert(`Succès ! ${amount} AfriCoins ajoutés à votre compte.`);
       window.location.reload(); 
     } catch (error) {
       console.error(error);
@@ -104,7 +104,7 @@ export const Shop = () => {
 
          {/* Product Grid */}
          <div className="lg:col-span-3">
-            {/* Nexus-Coins Section */}
+            {/* AfriCoins Section */}
             <section className="mb-12 glass-card p-8 border-brand-gold/30 bg-linear-to-r from-brand-gold/5 via-transparent to-transparent">
                <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                   <div className="flex items-center gap-6">
@@ -112,7 +112,7 @@ export const Shop = () => {
                         <Coins className="w-10 h-10" />
                      </div>
                      <div>
-                        <h2 className="text-2xl font-display font-black uppercase tracking-tighter">Votre solde : <span className="text-brand-gold">{profile?.nexusCoins || 0} Nexus-Coins</span></h2>
+                        <h2 className="text-2xl font-display font-black uppercase tracking-tighter">Votre solde : <span className="text-brand-gold">{profile?.afriCoins || 0} AfriCoins</span></h2>
                         <p className="text-sm text-gray-500">Utilisez vos crédits pour débloquer des chapitres premium.</p>
                      </div>
                   </div>

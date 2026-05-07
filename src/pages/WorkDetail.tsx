@@ -300,7 +300,7 @@ export const WorkDetail = () => {
                  </div>
                )}
 
-               <p className="text-[10px] text-gray-600 text-center font-bold italic">Un don de 10% est prélevé pour la maintenance de Nexus-Hub.</p>
+               <p className="text-[10px] text-gray-600 text-center font-bold italic">Un don de 10% est prélevé pour la maintenance de AfriStory.</p>
              </motion.div>
            </div>
          )}

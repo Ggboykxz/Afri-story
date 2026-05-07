@@ -7,16 +7,16 @@ const FAQ_ITEMS = [
     category: 'Général',
     icon: HelpCircle,
     questions: [
-      { q: "Qu'est-ce que le Nexus-Hub ?", a: "Nexus-Hub est la première plateforme dédiée à la promotion des créateurs de BD, Webtoons et Romans africains, mêlant lecture, communauté et économie créative." },
+      { q: "Qu'est-ce que AfriStory ?", a: "AfriStory est la première plateforme dédiée à la promotion des créateurs de BD, Webtoons et Romans africains, mêlant lecture, communauté et économie créative." },
       { q: "Comment fonctionne le système Pro-Draft ?", a: "Le Draft est l'espace communautaire où chacun peut publier. Le statut Pro est réservé aux artistes certifiés qui bénéficient de la monétisation et d'une visibilité accrue." }
     ]
   },
   {
-    category: 'Nexus-Coins & Boutique',
+    category: 'AfriCoins & Boutique',
     icon: CreditCard,
     questions: [
-      { q: "À quoi servent les Nexus-Coins ?", a: "Ils permettent de débloquer les chapitres premium 'Early Access' et de soutenir directement les artistes via des dons." },
-      { q: "Comment obtenir des Nexus-Coins ?", a: "Vous pouvez en acheter dans la boutique via divers moyens de paiement locaux et internationaux." }
+      { q: "À quoi servent les AfriCoins ?", a: "Ils permettent de débloquer les chapitres premium 'Early Access' et de soutenir directement les artistes via des dons." },
+      { q: "Comment obtenir des AfriCoins ?", a: "Vous pouvez en acheter dans la boutique via divers moyens de paiement locaux et internationaux." }
     ]
   },
   {
@@ -24,7 +24,7 @@ const FAQ_ITEMS = [
     icon: Book,
     questions: [
       { q: "Comment devenir un artiste Pro ?", a: "Vous devez d'abord publier dans le Draft. Une fois une audience établie, vous pouvez demander une certification via votre tableau de bord." },
-      { q: "Quelle est la part de revenu des artistes ?", a: "Nexus-Hub reverse jusqu'à 70% des revenus générés par les Nexus-Coins directement aux créateurs." }
+      { q: "Quelle est la part de revenu des artistes ?", a: "AfriStory reverse jusqu'à 70% des revenus générés par les AfriCoins directement aux créateurs." }
     ]
   }
 ];
@@ -36,7 +36,7 @@ export function FAQ() {
     <div className="max-w-4xl mx-auto px-6 py-12 space-y-12">
       <div className="text-center space-y-4">
         <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter">Centre d'<span className="gradient-text">Aide</span></h1>
-        <p className="text-gray-400 font-medium text-lg">Tout ce que vous devez savoir pour naviguer dans le Nexus.</p>
+        <p className="text-gray-400 font-medium text-lg">Tout ce que vous devez savoir pour naviguer dans AfriStory.</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
@@ -99,7 +99,7 @@ export function FAQ() {
       {/* Still need help? */}
       <section className="bg-brand-brown/20 border border-brand-gold/20 rounded-3xl p-12 text-center space-y-6">
          <h2 className="text-2xl font-display font-black uppercase">Encore des questions ?</h2>
-         <p className="text-gray-400 max-w-lg mx-auto font-medium">Notre équipe est là pour vous aider à chaque étape de votre aventure dans le Nexus.</p>
+         <p className="text-gray-400 max-w-lg mx-auto font-medium">Notre équipe est là pour vous aider à chaque étape de votre aventure dans AfriStory.</p>
          <button className="px-12 py-4 bg-brand-gold text-brand-black font-black rounded-xl text-[10px] uppercase tracking-widest hover:scale-105 transition-transform">
            NOUS CONTACTER
          </button>

@@ -16,7 +16,7 @@ export function About() {
         <div className="space-y-4">
            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-brand-gold">Le Futur de la BD Africaine</span>
            <h1 className="text-5xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.8]">
-             Nexus-<span className="gradient-text">Hub</span>
+             AfriStory
            </h1>
         </div>
         <p className="text-gray-400 text-lg md:text-2xl max-w-3xl mx-auto font-medium leading-relaxed italic">
@@ -29,7 +29,7 @@ export function About() {
         <div className="lg:col-span-2 glass-card p-12 bg-linear-to-br from-brand-brown/40 to-brand-black border-white/10 space-y-8 flex flex-col justify-center">
            <h2 className="text-3xl md:text-5xl font-display font-black uppercase leading-none">Notre <span className="text-brand-gold">Mission</span></h2>
            <p className="text-gray-400 text-lg leading-relaxed font-medium">
-             Nous croyons que l'Afrique regorge de récits extraordinaires qui ne demandent qu'à être illustrés. Nexus-Hub est conçu pour offrir aux créateurs une plateforme de monétisation juste, une communauté engagée et les outils technologiques pour briller à l'international.
+             Nous croyons que l'Afrique regorge de récits extraordinaires qui ne demandent qu'à être illustrés. AfriStory est conçu pour offrir aux créateurs une plateforme de monétisation juste, une communauté engagée et les outils technologiques pour briller à l'international.
            </p>
            <div className="flex gap-4">
               <div className="p-4 bg-white/5 rounded-2xl border border-white/5 flex-1 text-center space-y-2">
@@ -51,7 +51,7 @@ export function About() {
            <div className="space-y-6">
              <Rocket className="w-12 h-12" />
              <h3 className="text-3xl font-display font-black uppercase leading-tight">Rejoignez l'Aventure</h3>
-             <p className="font-bold opacity-80">Que vous soyez un lecteur passionné ou un artiste en herbe, votre place est dans le Nexus.</p>
+             <p className="font-bold opacity-80">Que vous soyez un lecteur passionné ou un artiste en herbe, votre place est dans AfriStory.</p>
            </div>
            <div className="flex items-center justify-between pt-8">
               <span className="text-xs font-black uppercase tracking-widest underline decoration-2">S'inscrire</span>
@@ -62,7 +62,7 @@ export function About() {
 
       {/* Values */}
       <section className="space-y-12">
-        <h2 className="text-center text-4xl font-display font-black uppercase tracking-tight">Les Piliers du <span className="text-brand-gold">Nexus</span></h2>
+        <h2 className="text-center text-4xl font-display font-black uppercase tracking-tight">Les Piliers de <span className="text-brand-gold">AfriStory</span></h2>
         <div className="grid md:grid-cols-3 gap-8">
            {[
              { icon: Award, title: "Excellence", desc: "Le programme Pro-Draft garantit une qualité éditoriale supérieure pour nos lecteurs." },
@@ -82,7 +82,7 @@ export function About() {
 
       {/* CTA Footer */}
       <section className="py-24 text-center space-y-8 border-t border-white/5">
-         <h2 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter">Prêt à entrer dans <br /> le <span className="gradient-text">Nexus-Hub ?</span></h2>
+         <h2 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter">Prêt à entrer dans <br /> <span className="gradient-text">AfriStory ?</span></h2>
          <div className="flex flex-wrap justify-center gap-6">
             <button 
               onClick={() => navigate('/explore')}
