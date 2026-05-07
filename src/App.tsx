@@ -115,6 +115,9 @@ export default function App() {
                 <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explore />} />
+            <Route path="/explorer" element={<Navigate to="/explore" replace />} />
+            <Route path="/explorer/pro" element={<Explore />} />
+            <Route path="/explorer/draft" element={<Explore />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/library" element={
               <ProtectedRoute requireAuth={true} allowedRoles={['reader', 'reader_premium', 'reader_supporter', 'artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
@@ -141,6 +144,9 @@ export default function App() {
             <Route path="/collaboration" element={<CollaborationHub />} />
             <Route path="/rankings" element={<Rankings />} />
             <Route path="/rankings/:type" element={<Rankings />} />
+            
+            <Route path="/bookclubs" element={<CollaborationHub />} />
+            <Route path="/contests" element={<CollaborationHub />} />
 
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
