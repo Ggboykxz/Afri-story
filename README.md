@@ -77,7 +77,11 @@ Devenir la référence continentale pour le contenu numérique africain, en offr
 
 ---
 
-## 📱 Déploiements
+## 📱 Lien Officiel
+
+**https://afri-story.vercel.app/**
+
+### Autres déploiements
 
 - **Vercel**: https://afri-story.vercel.app
 - **Firebase**: https://gen-lang-client-0232154573.web.app

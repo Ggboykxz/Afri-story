@@ -319,7 +319,7 @@ npm test -- --coverage
 
 ## 📱 Plateformes Déployées
 
-- **Vercel**: https://afri-story.vercel.app
+- **Vercel**: https://afri-story.vercel.app (OFFICIEL)
 - **Firebase**: https://gen-lang-client-0232154573.web.app
 - **Netlify**: https://afristory.netlify.app
 
