@@ -36,6 +36,32 @@ export const subscriptionService = {
     }
   },
 
+  async createCheckoutSession(
+    userId: string, 
+    plan: SubscriptionPlan
+  ): Promise<{ sessionId: string; url: string } | null> {
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          priceId: plan,
+          mode: 'subscription',
+        }),
+      });
+      
+      if (!response.ok) {
+        return null;
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      return null;
+    }
+  },
+
   async createSubscription(
     userId: string, 
     plan: SubscriptionPlan,
@@ -79,24 +105,7 @@ export const subscriptionService = {
     }
   },
 
-  async checkAndDowngradeExpired(userId: string): Promise<void> {
-    try {
-      const sub = await this.getSubscription(userId);
-      if (sub && sub.expiresAt && new Date(sub.expiresAt) < new Date() && !sub.autoRenew) {
-        await updateDoc(doc(db, 'users', userId), {
-          subscription: 'free',
-          role: 'reader',
-        });
-        await updateDoc(doc(db, 'subscriptions', userId), {
-          status: 'expired',
-        });
-      }
-    } catch (error) {
-      console.error('Error checking subscription:', error);
-    }
-  },
-
-  async getSubscriptionPlans(): Promise<typeof SUBSCRIPTION_PLANS> {
+  async getAvailablePlans(): Promise<Record<SubscriptionPlan, { name: string; price: number; currency: string; features: string[] }>> {
     return SUBSCRIPTION_PLANS;
   },
 };
@@ -110,6 +119,28 @@ export const afriCoinsService = {
     } catch (error) {
       console.error('Error getting balance:', error);
       return 0;
+    }
+  },
+
+  async createAfriCoinsCheckout(userId: string, amount: number): Promise<{ sessionId: string; url: string } | null> {
+    try {
+      const response = await fetch('/api/create-africoins-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          amount,
+        }),
+      });
+      
+      if (!response.ok) {
+        return null;
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      return null;
     }
   },
 
@@ -178,15 +209,7 @@ export const afriCoinsService = {
       if (balance < amount) return false;
       if (amount < 10) return false;
 
-      await updateDoc(doc(db, 'users', donorId), {
-        afriCoins: increment(-amount),
-      });
-
-      await updateDoc(doc(db, 'users', artistId), {
-        afriCoins: increment(Math.floor(amount * 0.9)),
-      });
-
-      const donationTx: Omit<AfriCoinTransaction, 'id'> = {
+      const transaction: Omit<AfriCoinTransaction, 'id'> = {
         userId: donorId,
         amount: -amount,
         type: 'donation',
@@ -196,15 +219,23 @@ export const afriCoinsService = {
         createdAt: new Date(),
       };
 
-      await setDoc(doc(collection(db, 'africoins_transactions')), donationTx);
+      await updateDoc(doc(db, 'users', donorId), {
+        afriCoins: increment(-amount),
+      });
+
+      await updateDoc(doc(db, 'users', artistId), {
+        afriCoins: increment(amount),
+      });
+
+      await setDoc(doc(collection(db, 'africoins_transactions')), transaction);
       return true;
     } catch (error) {
-      console.error('Error donating:', error);
+      console.error('Error donating to artist:', error);
       return false;
     }
   },
 
-  async getTransactionHistory(userId: string, limitCount: number = 20): Promise<AfriCoinTransaction[]> {
+  async getTransactionHistory(userId: string, limitCount = 50): Promise<AfriCoinTransaction[]> {
     try {
       const q = query(
         collection(db, 'africoins_transactions'),
@@ -213,37 +244,21 @@ export const afriCoinsService = {
         limit(limitCount)
       );
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as AfriCoinTransaction[];
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AfriCoinTransaction));
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      console.error('Error getting transaction history:', error);
       return [];
     }
   },
 
-  async awardMonthlyBonus(userId: string, amount: number): Promise<void> {
-    try {
-      await updateDoc(doc(db, 'users', userId), {
-        afriCoins: increment(amount),
-      });
-
-      const bonusTx: Omit<AfriCoinTransaction, 'id'> = {
-        userId,
-        amount,
-        type: 'monthly_bonus',
-        description: 'Bonus mensuel Supporter',
-        createdAt: new Date(),
-      };
-
-      await setDoc(doc(collection(db, 'africoins_transactions')), bonusTx);
-    } catch (error) {
-      console.error('Error awarding bonus:', error);
-    }
-  },
-
-  PRICES: {
-    discovery: { coins: 100, price: 0.99, bonus: 0 },
-    standard: { coins: 500, price: 3.99, bonus: 50 },
-    premium: { coins: 1500, price: 9.99, bonus: 250 },
-    mega: { coins: 5000, price: 29.99, bonus: 1000 },
+  getStripePublishableKey(): string {
+    return '';
   },
 };
+
+export const AFRICOINS_PACKS = [
+  { id: '100', amount: 100, price: 0.99, name: 'Pack Découverte' },
+  { id: '500', amount: 500, bonus: 50, price: 3.99, name: 'Pack Standard' },
+  { id: '1500', amount: 1500, bonus: 250, price: 9.99, name: 'Pack Premium' },
+  { id: '5000', amount: 5000, bonus: 1000, price: 29.99, name: 'Pack Méga' },
+];

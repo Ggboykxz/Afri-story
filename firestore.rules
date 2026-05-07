@@ -1,110 +1,197 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 0. Default Deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // --- Helpers ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
-    
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-    
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    function getUserData(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data;
-    }
-
-    // --- Entity Validations ---
-    
-    function isValidUser(data) {
-      return data.keys().hasAll(['userId', 'email', 'role']) 
-        && data.userId == request.auth.uid
-        && data.role in ['reader', 'artist_draft', 'artist_pro']
-        && data.email is string && data.email.size() <= 200
-        && (!('afriCoins' in data) || data.afriCoins is number);
-    }
-
-    function isValidWork(data) {
-      return data.keys().hasAll(['title', 'authorId', 'type', 'isPro'])
-        && data.title is string && data.title.size() <= 200
-        && data.authorId == request.auth.uid
-        && data.type in ['webtoon', 'bd', 'novel']
-        && data.isPro is bool;
-    }
-
-    function isValidChapter(data) {
-      return data.keys().hasAll(['workId', 'chapterNumber', 'title'])
-        && data.workId is string
-        && data.chapterNumber is number
-        && data.title is string && data.title.size() <= 200;
-    }
-
-    // --- Collection Routes ---
-
+    // USERS
     match /users/{userId} {
-      allow get: if isSignedIn() && isValidId(userId);
-      allow list: if false; 
-      allow create: if isOwner(userId) && isValidId(userId) && isValidUser(incoming());
-      allow update: if isOwner(userId) && isValidId(userId) && isValidUser(incoming())
-        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'bio', 'afriCoins', 'badges']);
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+      
+      // Subcollections
+      match /favorites/{favoriteId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /reading_history/{historyId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && request.auth.uid == userId;
+        allow delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
-
+    
+    // WORKS
     match /works/{workId} {
-      allow get: if isValidId(workId);
-      allow list: if true; 
-      allow create: if isSignedIn() 
-        && isValidId(workId)
-        && (getUserData(request.auth.uid).role in ['artist_pro', 'artist_draft'])
-        && isValidWork(incoming());
-      allow update: if isOwner(existing().authorId) 
-        && isValidId(workId)
-        && isValidWork(incoming())
-        && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'coverURL', 'status', 'category', 'tags', 'views', 'likes']);
-      allow delete: if isOwner(existing().authorId) && isValidId(workId);
+      allow read: if true;
+      allow create: if hasRole(['artist_draft', 'artist_pro', 'artist_mentor']);
+      allow update: if request.auth != null && (resource.data.authorId == request.auth.uid || hasRole(['moderator', 'supervisor', 'admin']));
+      allow delete: if request.auth != null && (resource.data.authorId == request.auth.uid || hasRole(['admin']));
+      
+      // Chapters
+      match /chapters/{chapterId} {
+        allow read: if true;
+        allow create: if hasRole(['artist_draft', 'artist_pro', 'artist_mentor']) && resource.data.authorId == request.auth.uid;
+        allow update: if hasRole(['artist_draft', 'artist_pro', 'artist_mentor']) && resource.data.authorId == request.auth.uid;
+        allow delete: if hasRole(['artist_draft', 'artist_pro', 'artist_mentor']) && resource.data.authorId == request.auth.uid;
+        
+        // Comments
+        match /comments/{commentId} {
+          allow read: if true;
+          allow create: if request.auth != null;
+          allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || hasRole(['moderator', 'supervisor', 'admin']));
+        }
+      }
+      
+      // Reviews
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || hasRole(['moderator', 'supervisor', 'admin']));
+      }
+      
+      // Exclusives
+      match /exclusives/{exclusiveId} {
+        allow read: if hasRole(['reader_premium', 'reader_supporter', 'artist_pro', 'artist_mentor', 'enterprise']) || resource.data.usedBy[request.auth.uid] == true;
+        allow create: if hasRole(['artist_pro', 'artist_mentor']) && resource.data.authorId == request.auth.uid;
+      }
     }
-
-    match /works/{workId}/chapters/{chapterId} {
-      allow get: if isValidId(workId) && isValidId(chapterId) && (
-        resource.data.isPremium == false 
-        || (isSignedIn() && (isOwner(get(/databases/$(database)/documents/works/$(workId)).data.authorId) 
-           || exists(/databases/$(database)/documents/users/$(request.auth.uid)/unlocks/$(chapterId))))
-      );
-      allow list: if true;
-      allow create: if isValidId(workId) && isValidId(chapterId) && isOwner(get(/databases/$(database)/documents/works/$(workId)).data.authorId) && isValidChapter(incoming());
-      allow update: if isValidId(workId) && isValidId(chapterId) && isOwner(get(/databases/$(database)/documents/works/$(workId)).data.authorId) && isValidChapter(incoming());
-      allow delete: if isValidId(workId) && isValidId(chapterId) && isOwner(get(/databases/$(database)/documents/works/$(workId)).data.authorId);
-    }
-
+    
+    // FORUMS
     match /forums/{forumId} {
-      allow get: if isValidId(forumId) && (resource.data.isPremium == false || (isSignedIn() && getUserData(request.auth.uid).role == 'artist_pro'));
-      allow list: if true;
-      allow create, update, delete: if false; 
+      allow read: if true;
+      allow create, update, delete: if hasRole(['moderator', 'supervisor', 'admin']);
     }
-
-    match /forums/{forumId}/posts/{postId} {
-      allow get: if isValidId(forumId) && isValidId(postId);
-      allow list: if true;
-      allow create: if isSignedIn() && isValidId(forumId) && isValidId(postId) && incoming().authorId == request.auth.uid;
-      allow update: if isOwner(existing().authorId) && isValidId(forumId) && isValidId(postId);
-      allow delete: if isOwner(existing().authorId) && isValidId(forumId) && isValidId(postId);
+    
+    match /forum_threads/{threadId} {
+      allow read: if true;
+      allow create: if request.auth != null && (!resource.data.get('isLocked', false));
+      allow update: if hasRole(['moderator', 'supervisor', 'admin']) || (request.auth != null && resource.data.authorId == request.auth.uid);
+      allow delete: if hasRole(['moderator', 'supervisor', 'admin']);
+    }
+    
+    match /forum_replies/{replyId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if hasRole(['moderator', 'supervisor', 'admin']) || (request.auth != null && resource.data.authorId == request.auth.uid);
+    }
+    
+    // NOTIFICATIONS
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if hasRole(['moderator', 'supervisor', 'admin']);
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // CONVERSATIONS
+    match /conversations/{conversationId} {
+      allow read: if request.auth != null && resource.data.participants[request.auth.uid] == true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+      
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+      }
+    }
+    
+    // COLLECTIONS
+    match /collections/{collectionId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // BOOK CLUBS
+    match /book_clubs/{clubId} {
+      allow read: if true;
+      allow create: if hasRole(['reader_premium', 'reader_supporter', 'artist_pro']);
+      allow update: if request.auth != null;
+      allow delete: if hasRole(['artist_pro', 'moderator', 'admin']);
+    }
+    
+    // CONTESTS
+    match /contests/{contestId} {
+      allow read: if true;
+      allow create: if hasRole(['artist_pro', 'moderator', 'admin']);
+      allow update: if hasRole(['moderator', 'supervisor', 'admin']);
+      allow delete: if hasRole(['admin']);
+    }
+    
+    // AMA SESSIONS
+    match /ama_sessions/{sessionId} {
+      allow read: if true;
+      allow create: if hasRole(['artist_pro', 'artist_mentor']);
+      allow update: if hasRole(['artist_pro', 'artist_mentor']) && resource.data.artistId == request.auth.uid;
+      allow delete: if hasRole(['artist_pro', 'artist_mentor']) && resource.data.artistId == request.auth.uid;
+    }
+    
+    // SCHEDULED CHAPTERS
+    match /scheduled_chapters/{chapterId} {
+      allow read: if true;
+      allow create: if hasRole(['artist_draft', 'artist_pro', 'artist_mentor']);
+      allow update, delete: if hasRole(['artist_draft', 'artist_pro', 'artist_mentor']) && resource.data.authorId == request.auth.uid;
+    }
+    
+    // RECRUITMENT ADS
+    match /recruitment_ads/{adId} {
+      allow read: if true;
+      allow create: if hasRole(['artist_draft', 'artist_pro', 'artist_mentor']);
+      allow update, delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    }
+    
+    // TEAM MEMBERS
+    match /team_members/{memberId} {
+      allow read: if true;
+      allow create: if hasRole(['artist_pro', 'artist_mentor']);
+      allow update, delete: if request.auth != null;
+    }
+    
+    // REPORTS
+    match /reports/{reportId} {
+      allow read: if hasRole(['moderator', 'supervisor', 'admin']);
+      allow create: if request.auth != null;
+      allow update, delete: if hasRole(['moderator', 'supervisor', 'admin']);
+    }
+    
+    // MODERATION ACTIONS
+    match /moderation_actions/{actionId} {
+      allow read: if hasRole(['moderator', 'supervisor', 'admin']);
+      allow create: if hasRole(['moderator', 'supervisor', 'admin']);
+      allow delete: if hasRole(['admin']);
+    }
+    
+    // VERIFICATION REQUESTS
+    match /verification_requests/{requestId} {
+      allow read: if hasRole(['moderator', 'supervisor', 'admin']) || (request.auth != null && resource.data.artistId == request.auth.uid);
+      allow create: if request.auth != null && hasRole(['artist_draft']);
+      allow update: if hasRole(['moderator', 'supervisor', 'admin']);
+      allow delete: if request.auth != null && resource.data.artistId == request.auth.uid;
+    }
+    
+    // AFRICOINS TRANSACTIONS
+    match /africoins_transactions/{transactionId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if hasRole(['admin']);
+      allow update, delete: if hasRole(['admin']);
+    }
+    
+    // COMMENT REACTIONS
+    match /comment_reactions/{reactionId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Helper functions
+    function hasRole(roles) {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in roles;
     }
   }
 }

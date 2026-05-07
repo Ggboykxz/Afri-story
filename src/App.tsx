@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout/Layout';
 import { Home } from './pages/Home';
@@ -38,7 +38,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
 import { ScrollToTop } from './components/ScrollToTop';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
-import { UserRole } from './lib/roles';
 
 const ProtectedRoute = ({ 
   children, 
@@ -46,10 +45,10 @@ const ProtectedRoute = ({
   requireAuth = true,
   fallbackTo = '/login'
 }: { 
-  children: React.ReactNode, 
-  allowedRoles?: string[],
-  requireAuth?: boolean,
-  fallbackTo?: string
+  children: React.ReactNode; 
+  allowedRoles?: string[];
+  requireAuth?: boolean;
+  fallbackTo?: string;
 }) => {
   const { user, profile, loading, hasPermission } = useAuth();
 
@@ -102,6 +101,14 @@ const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+function LoadingFallback() {
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-brand-gold border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -112,159 +119,123 @@ export default function App() {
               <ScrollToTop />
               <ScrollToTopButton />
               <Layout>
-                <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/explore" element={<Explore />} />
-            <Route path="/explorer" element={<Navigate to="/explore" replace />} />
-            <Route path="/explorer/pro" element={<Explore />} />
-            <Route path="/explorer/draft" element={<Explore />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/library" element={
-              <ProtectedRoute requireAuth={true} allowedRoles={['reader', 'reader_premium', 'reader_supporter', 'artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
-                <Library />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/forum" element={<ForumHome />} />
-            <Route path="/forum/public" element={<ForumHome />} />
-            <Route path="/forum/premium" element={
-              <ProtectedRoute requireAuth={true} allowedRoles={['reader_premium', 'reader_supporter', 'artist_pro', 'artist_mentor', 'moderator', 'supervisor', 'admin']}>
-                <ForumHome />
-              </ProtectedRoute>
-            } />
-            <Route path="/forum/category/:categoryId" element={<ForumCategory />} />
-            <Route path="/forum/thread/:threadId" element={<ThreadDetail />} />
-            <Route path="/forum/work/:workId" element={<Forum />} />
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/explore" element={<Explore />} />
+                    <Route path="/explorer" element={<Navigate to="/explore" replace />} />
+                    <Route path="/explorer/pro" element={<Explore />} />
+                    <Route path="/explorer/draft" element={<Explore />} />
+                    <Route path="/search" element={<SearchPage />} />
+                    <Route path="/library" element={
+                      <ProtectedRoute requireAuth={true} allowedRoles={['reader', 'reader_premium', 'reader_supporter', 'artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
+                        <Library />
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/forum" element={<ForumHome />} />
+                    <Route path="/forum/public" element={<ForumHome />} />
+                    <Route path="/forum/premium" element={
+                      <ProtectedRoute requireAuth={true} allowedRoles={['reader_premium', 'reader_supporter', 'artist_pro', 'artist_mentor', 'moderator', 'supervisor', 'admin']}>
+                        <ForumHome />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/forum/category/:categoryId" element={<ForumCategory />} />
+                    <Route path="/forum/thread/:threadId" element={<ThreadDetail />} />
+                    <Route path="/forum/work/:workId" element={<Forum />} />
 
-            <Route path="/notifications" element={
-              <ProtectedRoute requireAuth={true}>
-                <NotificationsPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/collaboration" element={<CollaborationHub />} />
-            <Route path="/rankings" element={<Rankings />} />
-            <Route path="/rankings/:type" element={<Rankings />} />
-            
-            <Route path="/bookclubs" element={<CollaborationHub />} />
-            <Route path="/contests" element={<CollaborationHub />} />
+                    <Route path="/notifications" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <NotificationsPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/collaboration" element={<CollaborationHub />} />
+                    <Route path="/rankings" element={<Rankings />} />
+                    <Route path="/rankings/:type" element={<Rankings />} />
+                    
+                    <Route path="/bookclubs" element={<CollaborationHub />} />
+                    <Route path="/contests" element={<CollaborationHub />} />
 
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/shop/:productId" element={<Shop />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/shop" element={<Shop />} />
+                    <Route path="/shop/:productId" element={<Shop />} />
 
-            <Route path="/become-pro" element={<BecomePro />} />
-            <Route path="/become-artist" element={<BecomePro />} />
+                    <Route path="/become-pro" element={<BecomePro />} />
+                    <Route path="/become-artist" element={<BecomePro />} />
 
-            <Route path="/subscription" element={<SubscriptionPage />} />
-            <Route path="/work/:id" element={<WorkDetail />} />
-            <Route path="/work/:id/chapter/:chapterId" element={<Reader />} />
-            <Route path="/read/:workId/:chapterId" element={<Reader />} />
+                    <Route path="/subscription" element={<SubscriptionPage />} />
+                    <Route path="/work/:id" element={<WorkDetail />} />
+                    <Route path="/work/:id/chapter/:chapterId" element={<Reader />} />
+                    <Route path="/read/:workId/:chapterId" element={<Reader />} />
 
-            <Route path="/subscription" element={<SubscriptionPage />} />
-            <Route path="/africoins" element={<SubscriptionPage />} />
-            <Route path="/copyright" element={<CopyrightPage />} />
+                    <Route path="/subscription" element={<SubscriptionPage />} />
+                    <Route path="/africoins" element={<SubscriptionPage />} />
+                    <Route path="/copyright" element={<CopyrightPage />} />
 
-            <Route path="/become-pro" element={<BecomePro />} />
+                    <Route path="/login" element={
+                      <GuestRoute>
+                        <Login />
+                      </GuestRoute>
+                    } />
+                    <Route path="/signup" element={
+                      <GuestRoute>
+                        <Signup />
+                      </GuestRoute>
+                    } />
 
-            <Route path="/artist" element={
-              <ProtectedRoute allowedRoles={['artist_pro', 'artist_draft', 'artist_mentor']}>
-                <ArtistDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/new-work" element={
-              <ProtectedRoute allowedRoles={['artist_pro', 'artist_draft', 'artist_mentor']}>
-                <CreateWork />
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/team" element={
-              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor']}>
-                <ArtistDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/stats" element={
-              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor']}>
-                <ArtistDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/revenue" element={
-              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor']}>
-                <ArtistDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/shop" element={
-              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor']}>
-                <ArtistDashboard />
-              </ProtectedRoute>
-            } />
+                    <Route path="/profile" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <Profile />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/profile/:userId" element={<PublicArtistProfile />} />
 
-            <Route path="/artist-profile/:id" element={<PublicArtistProfile />} />
+                    <Route path="/artist" element={
+                      <ProtectedRoute requireAuth={true} allowedRoles={['artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
+                        <ArtistDashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/artist/new-work" element={
+                      <ProtectedRoute requireAuth={true} allowedRoles={['artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
+                        <CreateWork />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/artist/create-work" element={
+                      <ProtectedRoute requireAuth={true} allowedRoles={['artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
+                        <CreateWork />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/artist-profile/:id" element={<PublicArtistProfile />} />
 
-            <Route path="/profile/:userId" element={<Profile />} />
-            <Route path="/profile" element={
-              <ProtectedRoute requireAuth={true}>
-                <Profile />
-              </ProtectedRoute>
-            } />
+                    <Route path="/messages" element={
+                      <ProtectedRoute requireAuth={true} allowedRoles={['artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
+                        <Messaging />
+                      </ProtectedRoute>
+                    } />
 
-            <Route path="/messages" element={
-              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor', 'admin', 'moderator', 'enterprise']}>
-                <Messaging />
-              </ProtectedRoute>
-            } />
+                    <Route path="/admin" element={
+                      <ProtectedRoute requireAuth={true} allowedRoles={['moderator', 'supervisor', 'admin']}>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    } />
 
-            <Route path="/admin" element={
-              <ProtectedRoute allowedRoles={['admin', 'moderator', 'supervisor']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute allowedRoles={['admin', 'supervisor']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/moderation" element={
-              <ProtectedRoute allowedRoles={['admin', 'moderator', 'supervisor']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/reports" element={
-              <ProtectedRoute allowedRoles={['admin', 'moderator', 'supervisor']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/stats" element={
-              <ProtectedRoute allowedRoles={['admin', 'supervisor']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
+                    <Route path="/settings" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <Settings />
+                      </ProtectedRoute>
+                    } />
 
-            <Route path="/settings" element={
-              <ProtectedRoute requireAuth={true}>
-                <Settings />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/login" element={
-              <GuestRoute>
-                <Login />
-              </GuestRoute>
-            } />
-            <Route path="/signup" element={
-              <GuestRoute>
-                <Signup />
-              </GuestRoute>
-            } />
-
-            <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </BrowserRouter>
-      </AuthProvider>
-      </ThemeProvider>
-    </ToastProvider>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            </BrowserRouter>
+          </AuthProvider>
+        </ThemeProvider>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }
