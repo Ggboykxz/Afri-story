@@ -6,10 +6,10 @@ import { forumService, Thread } from '../lib/forumService';
 import { ForumThreadSkeleton, Skeleton } from '../components/Skeleton';
 
 const CATEGORIES = [
-  { id: 'webtoons', name: 'Webtoons & BD', description: 'Discutez de vos oeuvres préférées et des dernières sorties.', icon: MessageCircle, count: '1.2K', color: 'text-brand-gold' },
-  { id: 'artists', name: 'Espace Artistes', description: 'Partagez vos techniques, demandez des avis et progressez ensemble.', icon: Zap, count: '850', color: 'text-brand-green' },
-  { id: 'theories', name: 'Théories & Lore', description: 'Partagez vos théories les plus folles sur les univers d\'AfriStory.', icon: Hash, count: '420', color: 'text-purple-400' },
-  { id: 'general', name: 'Général', description: 'Pour tout ce qui ne rentre pas ailleurs.', icon: Users, count: '2.5K', color: 'text-blue-400' },
+  { id: 'webtoons', name: 'Webtoons & BD', description: 'Discutez de vos oeuvres préférées et des dernières sorties.', icon: MessageCircle, color: 'text-brand-gold' },
+  { id: 'artists', name: 'Espace Artistes', description: 'Partagez vos techniques, demandez des avis et progressez ensemble.', icon: Zap, color: 'text-brand-green' },
+  { id: 'theories', name: 'Théories & Lore', description: 'Partagez vos théories les plus folles sur les univers d\'AfriStory.', icon: Hash, color: 'text-purple-400' },
+  { id: 'general', name: 'Général', description: 'Pour tout ce qui ne rentre pas ailleurs.', icon: Users, color: 'text-blue-400' },
 ];
 
 export function ForumHome() {

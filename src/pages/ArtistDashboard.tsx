@@ -45,15 +45,7 @@ export const ArtistDashboard = () => {
     likes: acc.likes + (w.likes || 0),
   }), { views: 0, likes: 0 });
 
-  const statsData = [
-    { name: 'Lun', views: Math.floor(totals.views * 0.1), revenue: 1200 },
-    { name: 'Mar', views: Math.floor(totals.views * 0.15), revenue: 1500 },
-    { name: 'Mer', views: Math.floor(totals.views * 0.12), revenue: 1100 },
-    { name: 'Jeu', views: Math.floor(totals.views * 0.2), revenue: 2400 },
-    { name: 'Ven', views: Math.floor(totals.views * 0.25), revenue: 3200 },
-    { name: 'Sam', views: Math.floor(totals.views * 0.3), revenue: 4500 },
-    { name: 'Dim', views: Math.floor(totals.views * 0.18), revenue: 2100 },
-  ];
+  const statsData = [];
 
   const handleCreateWork = async () => {
     const title = prompt("Titre de l'oeuvre ?");
@@ -211,28 +203,35 @@ export const ArtistDashboard = () => {
                           <span className="text-[10px] font-bold text-gray-500 uppercase">Lectures</span>
                        </div>
                     </div>
-                 </div>
-                 <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                       <AreaChart data={statsData}>
-                          <defs>
-                             <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#22C55E" stopOpacity={0.1}/>
-                                <stop offset="95%" stopColor="#22C55E" stopOpacity={0}/>
-                             </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
-                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
-                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
-                          <Tooltip 
-                            contentStyle={{backgroundColor: '#1a1816', border: '1px solid #ffffff10', borderRadius: '12px'}}
-                            itemStyle={{fontSize: '12px', fontWeight: '900'}}
-                          />
-                          <Area type="monotone" dataKey="views" stroke="#22C55E" fillOpacity={1} fill="url(#colorViews)" strokeWidth={3} />
-                          <Area type="monotone" dataKey="revenue" stroke="#D4AF37" fill="transparent" strokeWidth={3} />
-                       </AreaChart>
-                    </ResponsiveContainer>
-                 </div>
+</div>
+                  <div className="h-[300px] w-full flex items-center justify-center">
+                     {works.length > 0 ? (
+                       <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={statsData}>
+                           <defs>
+                              <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                                 <stop offset="5%" stopColor="#22C55E" stopOpacity={0.1}/>
+                                 <stop offset="95%" stopColor="#22C55E" stopOpacity={0}/>
+                              </linearGradient>
+                           </defs>
+                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
+                           <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
+                           <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
+                           <Tooltip 
+                             contentStyle={{backgroundColor: '#1a1816', border: '1px solid #ffffff10', borderRadius: '12px'}}
+                             itemStyle={{fontSize: '12px', fontWeight: '900'}}
+                           />
+                           <Area type="monotone" dataKey="views" stroke="#22C55E" fillOpacity={1} fill="url(#colorViews)" strokeWidth={3} />
+                           <Area type="monotone" dataKey="revenue" stroke="#D4AF37" fill="transparent" strokeWidth={3} />
+                        </AreaChart>
+                       </ResponsiveContainer>
+                     ) : (
+                       <div className="text-center text-gray-500">
+                          <p className="text-sm font-bold uppercase tracking-widest">Aucune donnée de performance</p>
+                          <p className="text-xs mt-2">Publiez votre première œuvre pour voir vos statistiques</p>
+                       </div>
+                     )}
+                  </div>
               </div>
 
               {/* Active Works */}
@@ -305,23 +304,25 @@ export const ArtistDashboard = () => {
                     </button>
                  </div>
 
-                 <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
-                       <div className="w-12 h-12 rounded-xl bg-brand-brown flex items-center justify-center font-display font-bold">M</div>
-                       <div className="flex-1">
-                          <h4 className="font-bold text-sm">Mamadou G.</h4>
-                          <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest">Scénariste</p>
+<div className="grid sm:grid-cols-2 gap-4">
+                     {works.length > 0 ? works.slice(0, 2).map(work => (
+                       <div key={work.id} className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                          <div className="w-12 h-12 rounded-xl bg-brand-brown flex items-center justify-center font-display font-bold"></div>
+                          <div className="flex-1">
+                             <h4 className="font-bold text-sm">{work.title}</h4>
+                             <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest">{work.category}</p>
+                          </div>
                        </div>
-                       <button className="p-2 text-gray-500 hover:text-brand-red text-xs font-bold uppercase">Retirer</button>
-                    </div>
-                    <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 opacity-50">
-                       <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center font-display font-bold">+</div>
-                       <div className="flex-1">
-                          <h4 className="font-bold text-sm italic text-gray-400">Ajouter Coloriste</h4>
-                          <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Poste vacant</p>
+                     )) : (
+                       <div className="col-span-2 flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 opacity-50">
+                          <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center font-display font-bold">+</div>
+                          <div className="flex-1">
+                             <h4 className="font-bold text-sm italic text-gray-400">Aucune œuvre publiée</h4>
+                             <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Créez votre première œuvre</p>
+                          </div>
                        </div>
-                    </div>
-                 </div>
+                     )}
+                  </div>
               </div>
             </>
           )}

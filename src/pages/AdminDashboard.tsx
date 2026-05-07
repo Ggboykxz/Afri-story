@@ -193,18 +193,18 @@ export function AdminDashboard() {
              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                <div className="glass-card p-8 space-y-4">
                   <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Lecture Mensuelles</h4>
-                  <div className="text-4xl font-display font-black">1.2M</div>
-                  <div className="text-brand-green text-[10px] font-black flex items-center gap-2"><TrendingUp className="w-3 h-3" /> +24.5%</div>
+                  <div className="text-4xl font-display font-black">—</div>
+                  <div className="text-gray-600 text-[10px] font-black">En attente de données</div>
                </div>
                <div className="glass-card p-8 space-y-4">
                   <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest">AfriCoins Vendus</h4>
-                  <div className="text-4xl font-display font-black">450K</div>
-                  <div className="text-brand-green text-[10px] font-black flex items-center gap-2"><TrendingUp className="w-3 h-3" /> +12.8%</div>
+                  <div className="text-4xl font-display font-black">—</div>
+                  <div className="text-gray-600 text-[10px] font-black">En attente de données</div>
                </div>
                <div className="glass-card p-8 space-y-4">
                   <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Nouveaux Artistes</h4>
-                  <div className="text-4xl font-display font-black">+84</div>
-                  <div className="text-brand-red text-[10px] font-black flex items-center gap-2">Stagnation</div>
+                  <div className="text-4xl font-display font-black">—</div>
+                  <div className="text-gray-600 text-[10px] font-black">En attente de données</div>
                </div>
              </div>
              
@@ -212,7 +212,7 @@ export function AdminDashboard() {
                 <Shield className="w-12 h-12 text-brand-gold" />
                 <div className="space-y-2">
                    <h3 className="text-2xl font-display font-black uppercase">Sécurité de AfriStory</h3>
-                   <p className="text-sm text-gray-400 font-medium max-w-lg">Tous les systèmes de surveillance sont opérationnels. Aucune intrusion détectée dans les transactions AfriCoins.</p>
+                   <p className="text-sm text-gray-400 font-medium max-w-lg">Les statistiques de la plateforme seront affichées ici une fois les données collectées.</p>
                 </div>
              </div>
           </div>
