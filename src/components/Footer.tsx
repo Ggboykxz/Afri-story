@@ -1,74 +1,69 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Globe, Shield, Instagram, Twitter, Youtube } from 'lucide-react';
+import { Mail, Github, Instagram, Twitter, MessageCircle, Youtube } from 'lucide-react';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/10 pt-24 pb-12 mt-24">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-        <div className="space-y-6">
+    <footer className="bg-brand-black border-t border-white/5 pt-24 pb-12 mt-24">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-20">
+        <div className="col-span-2 space-y-6">
           <Link to="/" className="flex items-center gap-2 group">
-             <div className="w-10 h-10 bg-brand-gold rounded-xl flex items-center justify-center text-brand-black rotate-[-5deg] group-hover:rotate-0 transition-transform">
-                <span className="font-display font-black text-2xl">N</span>
-             </div>
-             <span className="text-xl font-display font-black uppercase tracking-tighter">Nexus-Hub</span>
+            <div className="w-10 h-10 bg-brand-gold rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform shadow-lg shadow-brand-gold/20">
+               <span className="font-display font-black text-brand-black text-xl">N</span>
+            </div>
+            <span className="font-display text-2xl font-black uppercase tracking-tighter text-white">Nexus-Hub</span>
           </Link>
-          <p className="text-sm text-gray-500 font-medium leading-relaxed">
-            La destination ultime pour le webtoon africain. Racontez votre histoire, bâtissez votre communauté, et vivez de votre art.
+          <p className="text-gray-500 text-sm max-w-sm font-medium leading-relaxed italic">
+            La première destination pour la BD africaine moderne. Lisez, créez, et connectez-vous avec le futur de la narration afro-centrée.
           </p>
           <div className="flex gap-4">
-             {[Instagram, Twitter, Youtube].map((Icon, i) => (
-               <a key={i} href="#" className="p-2 bg-white/5 rounded-lg text-gray-400 hover:text-brand-gold hover:bg-brand-gold/10 transition-all border border-transparent hover:border-brand-gold/20">
+             {[Twitter, Instagram, Youtube, MessageCircle].map((Icon, i) => (
+               <a key={i} href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-brand-gold hover:text-brand-black transition-all">
                   <Icon className="w-5 h-5" />
                </a>
              ))}
           </div>
         </div>
 
-        <div>
-          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white mb-6">Plateforme</h4>
-          <ul className="space-y-4">
-             {['Découvrir', 'Dernières Sorties', 'Classements', 'Boutique Nexus-Coins'].map(item => (
-               <li key={item}>
-                 <Link to="#" className="text-sm font-bold text-gray-500 hover:text-brand-gold transition-colors">{item}</Link>
-               </li>
-             ))}
-          </ul>
-        </div>
-
-        <div>
-           <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white mb-6">Communauté</h4>
-           <ul className="space-y-4">
-              {['Forum Général', 'Espace Créateurs', 'Support & Aide', 'Contact Pro'].map(item => (
-                <li key={item}>
-                  <Link to="#" className="text-sm font-bold text-gray-500 hover:text-brand-gold transition-colors">{item}</Link>
-                </li>
-              ))}
+        <div className="space-y-6">
+           <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-gold">Plateforme</h4>
+           <ul className="space-y-4 text-xs font-bold uppercase tracking-widest text-gray-400">
+              <li><Link to="/explore" className="hover:text-white transition-colors">Explorer</Link></li>
+              <li><Link to="/forum" className="hover:text-white transition-colors">Forums</Link></li>
+              <li><Link to="/rankings" className="hover:text-white transition-colors">Classements</Link></li>
+              <li><Link to="/shop" className="hover:text-white transition-colors">Boutique</Link></li>
            </ul>
         </div>
 
-        <div className="glass-card p-6 border-brand-gold/20 space-y-4 relative overflow-hidden group">
-           <div className="absolute -top-12 -right-12 w-24 h-24 bg-brand-gold opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity" />
-           <h4 className="font-display font-black text-lg">Prêt à créer ?</h4>
-           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Rejoignez plus de 5,000 artistes africains.</p>
-           <Link to="/artist-dashboard" className="block w-full py-3 bg-brand-gold text-brand-black text-center text-[10px] font-black uppercase tracking-wider rounded-lg hover:scale-[1.02] transition-transform">
-              DEVENIR CRÉATEUR
-           </Link>
+        <div className="space-y-6">
+           <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-gold">Communauté</h4>
+           <ul className="space-y-4 text-xs font-bold uppercase tracking-widest text-gray-400">
+              <li><Link to="/collaboration" className="hover:text-white transition-colors">Hub Collab</Link></li>
+              <li><Link to="/become-pro" className="hover:text-white transition-colors">Devenir Pro</Link></li>
+              <li><Link to="/artist" className="hover:text-white transition-colors">Tableau de Bord</Link></li>
+           </ul>
+        </div>
+
+        <div className="space-y-6">
+           <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-gold">Aide & Info</h4>
+           <ul className="space-y-4 text-xs font-bold uppercase tracking-widest text-gray-400">
+              <li><Link to="/about" className="hover:text-white transition-colors">À Propos</Link></li>
+              <li><Link to="/faq" className="hover:text-white transition-colors">FAQ / Aide</Link></li>
+              <li><Link to="/terms" className="hover:text-white transition-colors">TOS</Link></li>
+              <li><Link to="/privacy" className="hover:text-white transition-colors">Confidentialité</Link></li>
+           </ul>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-         <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">
-            © {currentYear} AFRISTORY INC • TOUS DROITS RÉSERVÉS
-         </div>
-         <div className="flex gap-8">
-            {['Mentions Légales', 'Confidentialité', 'Cookies'].map(item => (
-              <Link key={item} to="#" className="text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-white transition-colors">
-                 {item}
-              </Link>
-            ))}
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+         <p className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-600">
+            © {currentYear} NEXUS-HUB • TOUS DROITS RÉSERVÉS
+         </p>
+         <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
+            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-400">Système Nexus Opérationnel</span>
          </div>
       </div>
     </footer>

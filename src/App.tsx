@@ -20,6 +20,10 @@ import { ForumCategory } from './pages/ForumCategory';
 import { ThreadDetail } from './pages/ThreadDetail';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { CollaborationHub } from './pages/CollaborationHub';
+import { PublicArtistProfile } from './pages/PublicArtistProfile';
+import { FAQ } from './pages/FAQ';
+import { About } from './pages/About';
+import { BecomePro } from './pages/BecomePro';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { AuthProvider } from './context/AuthContext';
@@ -38,6 +42,10 @@ export default function App() {
             <Route path="/forum/thread/:threadId" element={<ThreadDetail />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/collaboration" element={<CollaborationHub />} />
+            <Route path="/artist-profile/:artistId" element={<PublicArtistProfile />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/become-pro" element={<BecomePro />} />
             <Route path="/work/:id" element={<WorkDetail />} />
             <Route path="/read/:workId/:chapterId" element={<Reader />} />
             <Route path="/artist" element={<ArtistDashboard />} />
