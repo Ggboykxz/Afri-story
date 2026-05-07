@@ -1,11 +1,12 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Award, Zap, BookOpen, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X, Camera, Loader2, Star, Pencil, Check } from 'lucide-react';
+import { Award, Zap, BookOpen, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X, Camera, Loader2, Star, Pencil, Check, Trash2, Clock, Eye, Heart as HeartIcon, BookMarked } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { updateProfile } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
+import { workService, Work } from '../lib/workService';
 import { Skeleton } from '../components/Skeleton';
 import { BADGES } from '../lib/roles';
 
@@ -13,23 +14,57 @@ export const Profile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { user, profile, updateProfile: updateUserProfile } = useAuth();
-  const [showProModal, setShowProModal] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [editName, setEditName] = React.useState('');
-  const [editBio, setEditBio] = React.useState('');
-  const [saving, setSaving] = React.useState(false);
+  const [showProModal, setShowProModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'library' | 'favorites' | 'portfolio' | 'activity'>('library');
+  const [favoriteWorks, setFavoriteWorks] = useState<Work[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
 
   const currentUserId = userId || user?.uid;
 
-  React.useEffect(() => {
-    if (user) {
-      setLoading(false);
+  // Fetch favorite works
+  useEffect(() => {
+    if (!user || !profile?.favorites?.length) {
+      setFavoriteWorks([]);
+      return;
     }
-  }, [currentUserId, user]);
-  
+
+    const fetchFavorites = async () => {
+      const works: Work[] = [];
+      for (const id of profile.favorites) {
+        const w = await workService.getWork(id);
+        if (w) works.push(w);
+      }
+      setFavoriteWorks(works);
+    };
+
+    fetchFavorites();
+  }, [user, profile?.favorites]);
+
+  // Fetch recent activities from reading history
+  useEffect(() => {
+    if (!user) return;
+
+    const historyQuery = query(
+      collection(db, 'users', user.uid, 'reading_history'),
+      orderBy('lastReadAt', 'desc'),
+      limit(10)
+    );
+
+    const unsub = onSnapshot(historyQuery, (snap) => {
+      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setActivities(items);
+    });
+
+    return () => unsub();
+  }, [user]);
+
   const isOwnProfile = user?.uid === currentUserId;
-  const displayProfile = isOwnProfile ? profile : null; 
+  const displayProfile = profile;
 
   const handleSaveProfile = async () => {
     if (!user || !editName.trim()) return;
@@ -293,12 +328,32 @@ export const Profile = () => {
          <div className="lg:col-span-3 space-y-12">
             <div className="flex items-center justify-between border-b border-white/10 pb-6">
                <div className="flex gap-8">
-                  <button className="font-display font-black text-2xl border-b-2 border-brand-gold pb-6 -mb-6.5 text-white">Ma Bibliothèque</button>
-                  <button className="font-display font-black text-2xl text-gray-500 hover:text-white transition-colors pb-6">Favoris</button>
+                  <button 
+                    onClick={() => setActiveTab('library')}
+                    className={`font-display font-black text-2xl pb-6 -mb-6.5 transition-colors ${activeTab === 'library' ? 'border-b-2 border-brand-gold text-white' : 'text-gray-500 hover:text-white'}`}
+                  >
+                    Ma Bibliothèque
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('favorites')}
+                    className={`font-display font-black text-2xl pb-6 -mb-6.5 transition-colors ${activeTab === 'favorites' ? 'border-b-2 border-brand-gold text-white' : 'text-gray-500 hover:text-white'}`}
+                  >
+                    Favoris
+                  </button>
                   {displayProfile?.role !== 'reader' && (
-                    <button className="font-display font-black text-2xl text-gray-500 hover:text-white transition-colors pb-6">Portfolio Artistique</button>
+                    <button 
+                      onClick={() => setActiveTab('portfolio')}
+                      className={`font-display font-black text-2xl pb-6 -mb-6.5 transition-colors ${activeTab === 'portfolio' ? 'border-b-2 border-brand-gold text-white' : 'text-gray-500 hover:text-white'}`}
+                    >
+                      Portfolio Artistique
+                    </button>
                   )}
-                  <button className="font-display font-black text-2xl text-gray-500 hover:text-white transition-colors pb-6">Activités</button>
+                  <button 
+                    onClick={() => setActiveTab('activity')}
+                    className={`font-display font-black text-2xl pb-6 -mb-6.5 transition-colors ${activeTab === 'activity' ? 'border-b-2 border-brand-gold text-white' : 'text-gray-500 hover:text-white'}`}
+                  >
+                    Activités
+                  </button>
                </div>
                <div className="flex gap-2 text-gray-500">
                   <button className="p-2 hover:text-white"><Grid className="w-5 h-5" /></button>
@@ -306,45 +361,110 @@ export const Profile = () => {
                </div>
             </div>
 
+            {activeTab === 'library' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-               {loading ? (
-                 Array(4).fill(0).map((_, i) => (
-                   <div key={i} className="space-y-3">
-                     <Skeleton className="aspect-[3/4] rounded-2xl" />
-                     <Skeleton variant="text" className="w-3/4 h-4" />
-                     <Skeleton className="w-full h-1 rounded-full" />
+               {favoriteWorks.length > 0 ? (
+                 favoriteWorks.slice(0, 4).map((work) => (
+                   <motion.div 
+                     key={work.id}
+                     whileHover={{ y: -8 }}
+                     className="space-y-3 group cursor-pointer"
+                   >
+                      <Link to={`/work/${work.id}`}>
+                        <div className="aspect-[3/4] bg-brand-brown rounded-2xl border border-white/10 overflow-hidden relative">
+                           {work.coverURL ? (
+                             <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />
+                           ) : (
+                             <div className="w-full h-full bg-brand-brown" />
+                           )}
+                           <div className="absolute inset-0 bg-linear-to-t from-brand-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                              <div className="text-[10px] font-bold text-white uppercase tracking-widest">LIRE</div>
+                           </div>
+                        </div>
+                        <h4 className="font-bold text-sm mt-2">{work.title}</h4>
+                      </Link>
+                   </motion.div>
+                 ))
+               ) : (
+                 <div className="col-span-full py-12 text-center">
+                    <p className="text-gray-500">Aucune œuvre dans votre bibliothèque</p>
+                    <Link to="/explore" className="text-brand-gold text-sm">Explorer</Link>
+                 </div>
+               )}
+            </div>
+            )}
+
+            {activeTab === 'favorites' && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+               {favoriteWorks.length > 0 ? (
+                 favoriteWorks.map((work) => (
+                   <motion.div 
+                     key={work.id}
+                     whileHover={{ y: -8 }}
+                     className="space-y-3 group cursor-pointer relative"
+                   >
+                      <Link to={`/work/${work.id}`}>
+                        <div className="aspect-[3/4] bg-brand-brown rounded-2xl border border-white/10 overflow-hidden relative">
+                           {work.coverURL ? (
+                             <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />
+                           ) : (
+                             <div className="w-full h-full bg-brand-brown" />
+                           )}
+                        </div>
+                        <h4 className="font-bold text-sm mt-2">{work.title}</h4>
+                      </Link>
+                   </motion.div>
+                 ))
+               ) : (
+                 <div className="col-span-full py-12 text-center">
+                    <p className="text-gray-500">Aucun favori</p>
+                    <Link to="/explore" className="text-brand-gold text-sm">Ajouter des favoris</Link>
+                 </div>
+               )}
+            </div>
+            )}
+
+            {activeTab === 'portfolio' && displayProfile?.role !== 'reader' && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+               <div className="col-span-full py-12 text-center">
+                  <p className="text-gray-500">Pas encore de portfolio</p>
+               </div>
+            </div>
+            )}
+
+            {activeTab === 'activity' && (
+            <div className="space-y-4">
+               {activities.length > 0 ? (
+                 activities.map((item, i) => (
+                   <div key={i} className="flex items-center gap-4 glass-card p-4">
+                      <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0 overflow-hidden">
+                        {item.coverURL ? (
+                          <img src={item.coverURL} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-brand-brown" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                         <h4 className="font-bold">{item.title || 'Œuvre'}</h4>
+                         <div className="flex items-center gap-3 text-xs text-gray-500">
+                           <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Chapitre {item.chapterNumber || 1}</span>
+                           <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {item.views || 0} vues</span>
+                         </div>
+                      </div>
+                      <Link to={`/work/${item.workId}`} className="text-brand-gold text-xs font-black uppercase">
+                        Reprendre
+                      </Link>
                    </div>
                  ))
                ) : (
-                 <>
-                   {[1, 2, 3].map(i => (
-                     <motion.div 
-                       key={i} 
-                       whileHover={{ y: -8 }}
-                       className="space-y-3 group cursor-pointer"
-                     >
-                        <div className="aspect-[3/4] bg-brand-brown rounded-2xl border border-white/10 overflow-hidden relative">
-                           <div className="absolute inset-0 bg-linear-to-t from-brand-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                              <div className="text-[10px] font-bold text-white uppercase tracking-widest">Chapitre 12 / 24</div>
-                           </div>
-                        </div>
-                        <div>
-                           <h4 className="font-bold text-sm">L'Esprit du Fleuve</h4>
-                           <div className="h-1 w-full bg-white/10 rounded-full mt-2 overflow-hidden">
-                              <div className="h-full bg-brand-gold w-1/2" />
-                           </div>
-                        </div>
-                     </motion.div>
-                   ))}
-                   <div className="aspect-[3/4] border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center p-6 text-center gap-4 hover:border-brand-gold/30 transition-all cursor-pointer group">
-                      <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-gray-500 group-hover:text-brand-gold">
-                         <Grid className="w-6 h-6" />
-                      </div>
-                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Explorer plus d'œuvres</p>
-                   </div>
-                 </>
+                 <div className="glass-card p-8 text-center">
+                    <Clock className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-500">Aucune activité récente</p>
+                    <Link to="/explore" className="text-brand-gold text-sm mt-2 inline-block">Commencer à lire</Link>
+                 </div>
                )}
             </div>
+            )}
          </div>
       </div>
     </div>
