@@ -17,7 +17,7 @@ export interface Notification {
   userId: string;
   title: string;
   message: string;
-  type: 'system' | 'work' | 'forum' | 'chat';
+  type: 'system' | 'work' | 'forum' | 'chat' | 'contest' | 'chapter' | 'subscription' | 'milestone' | 'verification';
   isRead: boolean;
   link?: string;
   createdAt: any;
@@ -35,6 +35,79 @@ export const notificationService = {
     } catch (error) {
       console.error("Error sending notification", error);
     }
+  },
+
+  // Quick notification helpers for different types
+  notifyNewChapter: async (userId: string, workTitle: string, chapterNumber: number, link: string) => {
+    return notificationService.send(userId, {
+      userId,
+      title: 'Nouveau chapitre !',
+      message: `${workTitle} - Chapitre ${chapterNumber} est disponible`,
+      type: 'chapter',
+      link,
+    });
+  },
+
+  notifyNewFollower: async (userId: string, followerName: string, link: string) => {
+    return notificationService.send(userId, {
+      userId,
+      title: 'Nouvel abonné !',
+      message: `${followerName} vous suit désormais`,
+      type: 'work',
+      link,
+    });
+  },
+
+  notifyComment: async (userId: string, commenterName: string, preview: string, link: string) => {
+    return notificationService.send(userId, {
+      userId,
+      title: 'Nouveau commentaire',
+      message: `${commenterName}: ${preview.slice(0, 50)}...`,
+      type: 'work',
+      link,
+    });
+  },
+
+  notifyMilestone: async (userId: string, milestone: string, link: string) => {
+    return notificationService.send(userId, {
+      userId,
+      title: 'Félicitations !',
+      message: milestone,
+      type: 'milestone',
+      link,
+    });
+  },
+
+  notifyContest: async (userId: string, contestTitle: string, message: string, link: string) => {
+    return notificationService.send(userId, {
+      userId,
+      title: contestTitle,
+      message,
+      type: 'contest',
+      link,
+    });
+  },
+
+  notifyVerification: async (userId: string, approved: boolean, message: string) => {
+    return notificationService.send(userId, {
+      userId,
+      title: approved ? 'Compte vérifié !' : 'Demande de vérification',
+      message,
+      type: 'verification',
+      link: approved ? '/profile' : '/become-pro',
+    });
+  },
+
+  notifySubscription: async (userId: string, plan: string, expiring: boolean) => {
+    return notificationService.send(userId, {
+      userId,
+      title: expiring ? 'Abonnement expirant' : 'Abonnement actif',
+      message: expiring 
+        ? `Votre abonnement ${plan} expire dans 3 jours`
+        : `Votre abonnement ${plan} est confirmé`,
+      type: 'subscription',
+      link: '/subscription',
+    });
   },
 
   // Listen for user notifications

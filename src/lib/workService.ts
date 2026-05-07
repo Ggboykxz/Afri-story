@@ -26,7 +26,7 @@ export interface Work {
   authorId: string;
   type: string;
   category: string;
-  status?: string;
+  status?: 'draft' | 'published' | 'hidden' | 'archived';
   isPro: boolean;
   coverURL?: string;
   views: number;
@@ -37,6 +37,10 @@ export interface Work {
     count: number;
     userRating?: number;
   };
+  adsEnabled?: boolean;
+  featured?: boolean;
+  featuredAt?: any;
+  earlyAccessChapters?: number;
   createdAt: any;
 }
 
@@ -610,6 +614,84 @@ export const workService = {
     } catch (error) {
       console.error('Error getting messages:', error);
       return [];
+    }
+  },
+
+  // Work Status Management
+  updateWorkStatus: async (workId: string, status: Work['status']) => {
+    try {
+      const workRef = doc(db, 'works', workId);
+      await updateDoc(workRef, { status });
+      return true;
+    } catch (error) {
+      console.error('Error updating work status:', error);
+      return null;
+    }
+  },
+
+  // Ads Configuration
+  toggleAds: async (workId: string, enabled: boolean) => {
+    try {
+      const workRef = doc(db, 'works', workId);
+      await updateDoc(workRef, { adsEnabled: enabled });
+      return true;
+    } catch (error) {
+      console.error('Error toggling ads:', error);
+      return null;
+    }
+  },
+
+  // Featured Works
+  setFeatured: async (workId: string, featured: boolean) => {
+    try {
+      const workRef = doc(db, 'works', workId);
+      await updateDoc(workRef, { 
+        featured,
+        featuredAt: featured ? serverTimestamp() : null
+      });
+      return true;
+    } catch (error) {
+      console.error('Error setting featured:', error);
+      return null;
+    }
+  },
+
+  getFeaturedWorks: async (): Promise<Work[]> => {
+    try {
+      const q = query(collection(db, 'works'), where('featured', '==', true));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() })) as Work[];
+    } catch (error) {
+      console.error('Error getting featured works:', error);
+      return [];
+    }
+  },
+
+  // Artist Verification
+  requestVerification: async (artistId: string, data: { portfolio: string; description: string; documents: string[] }) => {
+    try {
+      const docRef = await addDoc(collection(db, 'verification_requests'), {
+        artistId,
+        ...data,
+        status: 'pending',
+        submittedAt: serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error requesting verification:', error);
+      return null;
+    }
+  },
+
+  getVerificationStatus: async (artistId: string) => {
+    try {
+      const q = query(collection(db, 'verification_requests'), where('artistId', '==', artistId));
+      const snap = await getDocs(q);
+      if (snap.empty) return null;
+      return { id: snap.docs[0].id, ...snap.docs[0].data() };
+    } catch (error) {
+      console.error('Error getting verification status:', error);
+      return null;
     }
   }
 };
