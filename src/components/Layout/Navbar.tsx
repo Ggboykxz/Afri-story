@@ -147,7 +147,7 @@ export const Navbar = () => {
               </div>
             </div>
             <div className="relative group">
-              <Link to={`/profile/${user.uid}`} className="flex items-center gap-2 cursor-pointer">
+              <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                 {profile?.photoURL ? (
                   <img src={profile.photoURL} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-white/10 group-hover:border-brand-gold transition-all" />
                 ) : (

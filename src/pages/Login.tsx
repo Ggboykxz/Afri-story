@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Loader2, CheckCircle2, Facebook } from 'lucide-react';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import { 
   signInWithPopup, 
   GoogleAuthProvider, 
@@ -9,6 +9,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail 
 } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const Login = () => {
@@ -22,8 +23,26 @@ export const Login = () => {
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      navigate('/');
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      const docRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        await setDoc(docRef, {
+          userId: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email?.split('@')[0] || "Voyageur",
+          photoURL: user.photoURL,
+          role: 'reader',
+          afriCoins: 100,
+          badges: [],
+          createdAt: new Date().toISOString()
+        });
+      }
+      
+      navigate('/profile');
     } catch (err: any) {
       setError("Erreur de connexion avec Google.");
       console.error(err);
@@ -33,8 +52,26 @@ export const Login = () => {
   const handleFacebookLogin = async () => {
     const provider = new FacebookAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      navigate('/');
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      const docRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        await setDoc(docRef, {
+          userId: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email?.split('@')[0] || "Voyageur",
+          photoURL: user.photoURL,
+          role: 'reader',
+          afriCoins: 100,
+          badges: [],
+          createdAt: new Date().toISOString()
+        });
+      }
+      
+      navigate('/profile');
     } catch (err: any) {
       setError("Erreur de connexion avec Facebook.");
       console.error(err);

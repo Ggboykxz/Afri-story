@@ -40,7 +40,7 @@ export const Signup = () => {
         });
       }
       
-      navigate('/');
+      navigate('/profile');
     } catch (err: any) {
       setError("Erreur lors de l'inscription avec Google. " + (err.message || ""));
       console.error(err);
@@ -78,7 +78,7 @@ export const Signup = () => {
         createdAt: new Date().toISOString()
       });
 
-      navigate('/');
+      navigate('/profile');
     } catch (err: any) {
       setError("Erreur : " + (err.message || "Cette adresse e-mail est déjà utilisée ou invalide."));
       console.error(err);
