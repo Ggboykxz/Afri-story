@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Award, Zap, BookOpen, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X, Camera, Loader2, Star } from 'lucide-react';
+import { Award, Zap, BookOpen, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X, Camera, Loader2, Star, Pencil, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { updateProfile } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -28,6 +28,32 @@ export const Profile = () => {
   
   const isOwnProfile = user?.uid === userId;
   const displayProfile = isOwnProfile ? profile : null; 
+
+  const handleSaveProfile = async () => {
+    if (!user || !editName.trim()) return;
+    setSaving(true);
+    try {
+      if (editName.trim()) {
+        await updateProfile(auth.currentUser!, { displayName: editName.trim() });
+        await updateDoc(doc(db, 'users', user.uid), {
+          displayName: editName.trim(),
+          bio: editBio.trim(),
+        });
+        await updateUserProfile({ displayName: editName.trim(), bio: editBio.trim() });
+      }
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEditing = () => {
+    setEditName(profile?.displayName || '');
+    setEditBio(profile?.bio || '');
+    setIsEditing(true);
+  }; 
 
   const getBadgeDisplay = (badgeId: string) => {
     const badgeInfo = BADGES[badgeId];
@@ -129,21 +155,55 @@ export const Profile = () => {
                )}
             </div>
             <div className="pb-4 space-y-1">
-               {loading ? (
-                 <div className="space-y-2">
-                    <Skeleton variant="text" className="w-64 h-10" />
-                    <div className="flex gap-2">
-                       <Skeleton className="w-24 h-6 rounded-full" />
-                       <Skeleton className="w-32 h-6 rounded-full" />
-                    </div>
-                 </div>
-               ) : (
-                 <>
-                   <h1 className="text-4xl font-display font-black inline-flex items-center gap-3">
-                      {displayProfile?.displayName || 'Utilisateur AfriStory'}
-                      {displayProfile?.role === 'artist_pro' && <Award className="w-6 h-6 text-brand-gold" />}
-                   </h1>
-<div className="flex flex-wrap gap-2">
+{loading ? (
+                  <div className="space-y-2">
+                     <Skeleton variant="text" className="w-64 h-10" />
+                     <div className="flex gap-2">
+                        <Skeleton className="w-24 h-6 rounded-full" />
+                        <Skeleton className="w-32 h-6 rounded-full" />
+                     </div>
+                  </div>
+                ) : (
+                  <>
+                    {isOwnProfile && !isEditing && (
+                      <button onClick={startEditing} className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:border-brand-gold/50 transition-all">
+                        <Pencil className="w-4 h-4 text-gray-400" />
+                        <span className="text-[10px] font-black uppercase text-gray-400">Modifier</span>
+                      </button>
+                    )}
+                    {isEditing ? (
+                      <div className="flex flex-col gap-3">
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          placeholder="Votre nom"
+                          className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xl font-black text-white placeholder:text-gray-500 outline-none focus:border-brand-gold"
+                        />
+                        <textarea
+                          value={editBio}
+                          onChange={(e) => setEditBio(e.target.value)}
+                          placeholder="Bio (optionnel)"
+                          className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-gray-300 placeholder:text-gray-500 outline-none focus:border-brand-gold w-full max-w-md"
+                          rows={3}
+                        />
+                        <div className="flex gap-2">
+                          <button onClick={handleSaveProfile} disabled={saving} className="flex items-center gap-2 px-4 py-2 bg-brand-gold text-brand-black rounded-lg font-bold hover:scale-105 transition-all">
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                            <span className="text-sm">Enregistrer</span>
+                          </button>
+                          <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-gray-400 hover:text-white text-sm">
+                            Annuler
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <h1 className="text-4xl font-display font-black inline-flex items-center gap-3">
+                        {displayProfile?.displayName || 'Utilisateur AfriStory'}
+                        {displayProfile?.role === 'artist_pro' && <Award className="w-6 h-6 text-brand-gold" />}
+                      </h1>
+                    )}
+                    <div className="flex flex-wrap gap-2">
                       {userBadges.length > 0 ? (
                         userBadges.map((badge, i) => badge && (
                           <div key={i} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white ${badge.color}`}>
