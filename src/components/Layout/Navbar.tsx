@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, User as UserIcon, Menu, LogIn, LayoutDashboard, MessageCircle, Loader2 } from 'lucide-react';
+import { Search, Bell, User as UserIcon, Menu, LogIn, LayoutDashboard, MessageCircle, Shield, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { signInWithGoogle, auth } from '../../lib/firebase';
 import { motion } from 'motion/react';
@@ -165,11 +165,21 @@ export const Navbar = () => {
                    <Link to={`/profile/${user.uid}`} className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white">
                       <UserIcon className="w-4 h-4" /> Profil
                    </Link>
+                   {profile?.role === 'admin' ? (
+                     <Link to="/admin" className="flex items-center gap-3 w-full p-3 hover:bg-brand-gold/10 rounded-lg text-xs font-black transition-all text-brand-gold">
+                        <Shield className="w-4 h-4" /> Panel Admin
+                     </Link>
+                   ) : (profile?.role === 'artist_pro' || profile?.role === 'artist_draft') ? (
+                     <Link to="/artist" className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white">
+                        <LayoutDashboard className="w-4 h-4" /> Studio Créateur
+                     </Link>
+                   ) : (
+                     <Link to="/become-pro" className="flex items-center gap-3 w-full p-3 hover:bg-brand-gold/10 rounded-lg text-xs font-black transition-all text-brand-gold">
+                        <LayoutDashboard className="w-4 h-4" /> Devenir Créateur
+                     </Link>
+                   )}
                    <Link to="/settings" className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white">
                       <LogIn className="w-4 h-4 rotate-180" /> Paramètres
-                   </Link>
-                   <Link to="/artist" className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white">
-                      <LayoutDashboard className="w-4 h-4" /> Dashboard Artiste
                    </Link>
                 </div>
                 <div className="pt-2">

@@ -21,11 +21,11 @@ export const signInWithGoogle = async () => {
 
 async function testConnection() {
   try {
-    await getDocFromServer(doc(db, "test", "connection"));
-  } catch (error: any) {
-    if (error?.message?.includes("the client is offline")) {
-      console.error("Please check your Firebase configuration.");
+    if (typeof window !== 'undefined') {
+      await getDocFromServer(doc(db, "test", "connection"));
     }
+  } catch (error: any) {
+    console.warn("Firebase connection status:", error?.message);
   }
 }
 
