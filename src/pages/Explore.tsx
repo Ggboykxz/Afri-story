@@ -4,6 +4,8 @@ import { Search, Filter, BookOpen, Clock, Zap, Award, ChevronDown } from 'lucide
 import { workService, Work } from '../lib/workService';
 import { Link } from 'react-router-dom';
 import { WorkCardSkeleton } from '../components/Skeleton';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export function Explore() {
   const [works, setWorks] = useState<Work[]>([]);
@@ -17,21 +19,16 @@ export function Explore() {
   const formats = ['Tous', 'WEBTOON', 'BD', 'ROMAN'];
 
   useEffect(() => {
-    fetchWorks();
-  }, []);
-
-  const fetchWorks = async () => {
-    try {
-      setLoading(true);
-      // For now we fetch all and filter client-side since we have few
-      const allWorks = await workService.getPopularWorks();
-      setWorks(allWorks);
-    } catch (error) {
-      console.error(error);
-    } finally {
+    // REAL-TIME: Subscribe to all works
+    const q = query(collection(db, 'works'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const worksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Work[];
+      setWorks(worksData);
       setLoading(false);
-    }
-  };
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const filteredWorks = works.filter(work => {
     const matchesGenre = activeGenre === 'Tous' || work.category.includes(activeGenre);

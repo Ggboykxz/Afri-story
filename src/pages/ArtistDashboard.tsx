@@ -21,24 +21,9 @@ export const ArtistDashboard = () => {
   const isPro = ['artist_pro', 'artist_mentor', 'admin'].includes(profile?.role || '');
 
   useEffect(() => {
-    if (user) {
-      fetchArtistWorks();
-    }
-  }, [user]);
-
-  const fetchArtistWorks = async () => {
     if (!user) return;
-    try {
-      setLoading(true);
-      const allWorks = await workService.getWorks();
-      const artistWorks = allWorks.filter((w: Work) => w.authorId === user.uid);
-      setWorks(artistWorks);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setLoading(false);
+  }, [user]);
 
   const totals = works.reduce((acc, w) => ({
     views: acc.views + (w.views || 0),
@@ -63,8 +48,6 @@ export const ArtistDashboard = () => {
         authorId: user.uid,
         author: profile?.displayName || 'Artiste'
       });
-      alert("Oeuvre créée avec succès !");
-      fetchArtistWorks();
       navigate(`/artist/new-work`);
     } catch (err) {
       console.error(err);

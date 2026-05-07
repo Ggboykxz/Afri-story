@@ -6,6 +6,8 @@ import { workService, Work } from '../lib/workService';
 import { Link, useNavigate } from 'react-router-dom';
 import { WorkCardSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export function Library() {
   const { user, profile } = useAuth();
@@ -17,33 +19,34 @@ export function Library() {
 
   useEffect(() => {
     if (!user) return;
-    fetchLibrary();
-  }, [user]);
 
-  const fetchLibrary = async () => {
-    if (!user) return;
-    try {
-      setLoading(true);
-      const [favIds, hist] = await Promise.all([
-        workService.getFavorites(user.uid),
-        workService.getReadingHistory(user.uid)
-      ]);
-      setHistory(hist);
-
-      if (favIds.length > 0) {
-        const favWorks: Work[] = [];
-        for (const id of favIds) {
-          const w = await workService.getWork(id);
-          if (w) favWorks.push(w);
-        }
-        setFavorites(favWorks);
+    // REAL-TIME: Subscribe to user's favorites
+    const favQuery = query(collection(db, 'users', user.uid, 'favorites'));
+    const unsubFavorites = onSnapshot(favQuery, async (snap) => {
+      const favIds = snap.docs.map(d => d.id);
+      
+      // Fetch full work data for each favorite
+      const favWorks: Work[] = [];
+      for (const id of favIds) {
+        const w = await workService.getWork(id);
+        if (w) favWorks.push(w);
       }
-    } catch (error) {
-      console.error(error);
-    } finally {
+      setFavorites(favWorks);
       setLoading(false);
-    }
-  };
+    });
+
+    // REAL-TIME: Subscribe to reading history
+    const historyQuery = query(collection(db, 'users', user.uid, 'reading_history'));
+    const unsubHistory = onSnapshot(historyQuery, (snap) => {
+      const histData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setHistory(histData);
+    });
+
+    return () => {
+      unsubFavorites();
+      unsubHistory();
+    };
+  }, [user]);
 
   const handleRemoveFavorite = async (workId: string) => {
     if (!user) return;

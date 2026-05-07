@@ -4,6 +4,8 @@ import { ChefHat, TrendingUp, Sparkles, BookOpen, Search, Loader2, ShieldCheck }
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { workService, Work } from '../lib/workService';
 import { WorkCardSkeleton, Skeleton } from '../components/Skeleton';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -15,18 +17,15 @@ export const Home = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchWorks = async () => {
-      setLoading(true);
-      try {
-        const popular = await workService.getPopularWorks();
-        setWorks(popular);
-      } catch (err) {
-        console.error("Error fetching works", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchWorks();
+    // REAL-TIME: Subscribe to popular works
+    const q = query(collection(db, 'works'), orderBy('views', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const worksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Work[];
+      setWorks(worksData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const filteredWorks = useMemo(() => {
