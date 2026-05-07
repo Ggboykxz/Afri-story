@@ -179,10 +179,10 @@ export const Profile = () => {
             <div className="glass-card p-8 space-y-6">
                <h3 className="font-display font-bold text-sm uppercase tracking-widest text-gray-500">Statistiques</h3>
 <div className="grid grid-cols-2 gap-4">
-                   <div className="space-y-1">
-                      <div className="text-sm font-black text-white">{displayProfile?.statistics?.totalReads || 0}</div>
-                      <div className="text-[10px] text-gray-500 font-bold uppercase">Lectures</div>
-                   </div>
+                    <div className="space-y-1">
+                       <div className="text-sm font-black text-white">{(displayProfile?.statistics as any)?.totalReads || 0}</div>
+                       <div className="text-[10px] text-gray-500 font-bold uppercase">Lectures</div>
+                    </div>
                    <div className="space-y-1">
                       <div className="text-sm font-black text-white">{displayProfile?.favorites?.length || 0}</div>
                       <div className="text-[10px] text-gray-500 font-bold uppercase">Favoris</div>

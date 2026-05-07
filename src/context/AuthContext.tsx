@@ -31,6 +31,12 @@ export interface UserProfile {
   createdAt: Date;
   bio?: string;
   unlockedChapters?: string[];
+  statistics?: {
+    totalReads: number;
+    totalLikes: number;
+    totalComments: number;
+    readingTime: number;
+  };
   preferences?: {
     notifications: boolean;
     emailNotifications: boolean;

@@ -399,6 +399,7 @@ export const workService = {
         userName: 'User',
         rating,
         containsSpoiler: false,
+        createdAt: new Date(),
       });
     } catch (error) {
       console.error('Error rating work:', error);
