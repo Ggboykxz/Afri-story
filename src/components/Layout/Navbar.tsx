@@ -217,14 +217,25 @@ export const Navbar = () => {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[9999] md:hidden" style={{ backgroundColor: 'black' }}>
-          <div className="fixed inset-0 bg-black" onClick={() => setMobileMenuOpen(false)} style={{ opacity: 1 }} />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
+          <div 
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'black', opacity: 1 }} 
+            onClick={() => setMobileMenuOpen(false)}
+          />
           <motion.div 
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 bottom-0 w-72 z-[10000]"
-            style={{ backgroundColor: '#000000' }}
+            style={{ 
+              position: 'fixed', 
+              top: 0, 
+              right: 0, 
+              bottom: 0, 
+              width: '18rem', 
+              backgroundColor: 'black',
+              zIndex: 10000,
+              borderLeft: '1px solid rgba(255,255,255,0.1)'
+            }}
           >
             <div className="p-4 flex items-center justify-between border-b border-white/10">
               <span className="font-display font-bold text-white">Menu</span>
