@@ -31,6 +31,11 @@ export interface UserProfile {
   createdAt: Date;
   bio?: string;
   unlockedChapters?: string[];
+  socialLinks?: {
+    instagram?: string;
+    twitter?: string;
+    website?: string;
+  };
   statistics?: {
     totalReads: number;
     totalLikes: number;
@@ -147,6 +152,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             following: data.following || [],
             favorites: data.favorites || [],
             createdAt: data.createdAt?.toDate?.() || new Date(),
+            bio: data.bio,
+            socialLinks: data.socialLinks,
             preferences: data.preferences || {
               notifications: true,
               emailNotifications: true,
@@ -157,18 +164,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const newProfile: UserProfile = {
             userId: user.uid,
             email: user.email || '',
-            displayName: user.displayName || 'Voyageur',
+            displayName: user.displayName || user.email?.split('@')[0] || 'Voyageur',
             photoURL: user.photoURL,
             role: 'reader',
-            afriCoins: 0,
+            afriCoins: 100,
             badges: [],
+            createdAt: new Date(),
             following: [],
             favorites: [],
-            createdAt: new Date(),
+            bio: '',
+            socialLinks: {
+              instagram: '',
+              twitter: '',
+              website: '',
+            },
             preferences: {
               notifications: true,
               emailNotifications: true,
               darkMode: true,
+            },
+            statistics: {
+              totalReads: 0,
+              totalLikes: 0,
+              totalComments: 0,
+              readingTime: 0,
             },
           };
           await setDoc(docRef, newProfile);
