@@ -147,7 +147,7 @@ export const Navbar = () => {
               </div>
             </div>
             <div className="relative group">
-              <div className="flex items-center gap-2 cursor-pointer" onClick={() => {}}>
+              <Link to={`/profile/${user.uid}`} className="flex items-center gap-2 cursor-pointer">
                 {profile?.photoURL ? (
                   <img src={profile.photoURL} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-white/10 group-hover:border-brand-gold transition-all" />
                 ) : (
@@ -155,7 +155,7 @@ export const Navbar = () => {
                     <UserIcon className="w-4 h-4" />
                   </div>
                 )}
-              </div>
+              </Link>
 
               {/* User Dropdown */}
               <div className="absolute right-0 top-full mt-2 w-56 glass-card p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 translate-y-2 group-hover:translate-y-0 divide-y divide-white/5">
