@@ -1,20 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users, Award, Sparkles, X, Briefcase, UserPlus, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users, Award, Sparkles, X, Briefcase, UserPlus, ShieldAlert, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { workService, Work } from '../lib/workService';
 
 export const ArtistDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [showRecruitModal, setShowRecruitModal] = useState(false);
+  const [works, setWorks] = useState<Work[]>([]);
+  const [loading, setLoading] = useState(true);
+  const recruits: any[] = [];
 
-  const recruits = [
-    { name: "Mariama K.", role: "Coloriste", exp: "5 ans exp." },
-    { name: "Kofi B.", role: "Scénariste", exp: "2 ans exp." },
-    { name: "Amara S.", role: "Illustratrice", exp: "4 ans exp." },
+  useEffect(() => {
+    if (user) {
+      fetchArtistWorks();
+    }
+  }, [user]);
+
+  const fetchArtistWorks = async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const allWorks = await workService.getWorks();
+      const artistWorks = allWorks.filter((w: Work) => w.authorId === user.uid);
+      setWorks(artistWorks);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totals = works.reduce((acc, w) => ({
+    views: acc.views + (w.views || 0),
+    likes: acc.likes + (w.likes || 0),
+  }), { views: 0, likes: 0 });
+
+  const statsData = [
+    { name: 'Lun', views: Math.floor(totals.views * 0.1), revenue: 1200 },
+    { name: 'Mar', views: Math.floor(totals.views * 0.15), revenue: 1500 },
+    { name: 'Mer', views: Math.floor(totals.views * 0.12), revenue: 1100 },
+    { name: 'Jeu', views: Math.floor(totals.views * 0.2), revenue: 2400 },
+    { name: 'Ven', views: Math.floor(totals.views * 0.25), revenue: 3200 },
+    { name: 'Sam', views: Math.floor(totals.views * 0.3), revenue: 4500 },
+    { name: 'Dim', views: Math.floor(totals.views * 0.18), revenue: 2100 },
   ];
 
   const handleCreateWork = async () => {
@@ -29,10 +62,12 @@ export const ArtistDashboard = () => {
         category: "Action",
         isPro: profile?.role === 'artist_pro',
         views: 0,
-        likes: 0
+        likes: 0,
+        authorId: user.uid,
+        author: profile?.displayName || 'Artiste'
       });
       alert("Oeuvre créée avec succès !");
-      window.location.reload();
+      fetchArtistWorks();
     } catch (err) {
       console.error(err);
     }
@@ -131,9 +166,9 @@ export const ArtistDashboard = () => {
         <div className="md:col-span-3 space-y-8">
           {/* Stats Summary */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <StatCard title="Vues Totales" value="128.4K" trend="+12%" />
-              <StatCard title="Abonnés" value="12.2K" trend="+5%" />
-              <StatCard title="Revenus (est.)" value="450.000 FCFA" trend="+18%" />
+              <StatCard title="Vues Totales" value={totals.views.toLocaleString()} trend="+12%" />
+              <StatCard title="Abonnés" value={totals.likes.toLocaleString()} trend="+5%" />
+              <StatCard title="Nexus-Coins" value={profile?.nexusCoins || 0} trend="Revenu" />
           </div>
 
           {/* Analytics Chart - Section 4.1 */}
@@ -178,15 +213,37 @@ export const ArtistDashboard = () => {
           <div className="glass-card overflow-hidden">
              <div className="p-6 border-b border-white/10 flex items-center justify-between">
                 <h3 className="font-display font-bold text-lg">Œuvres Récentes</h3>
-                <button className="text-xs font-black uppercase text-brand-gold hover:underline">Tout voir</button>
+                <button onClick={() => setActiveTab('works')} className="text-xs font-black uppercase text-brand-gold hover:underline">Tout voir</button>
              </div>
              <div className="divide-y divide-white/5">
-                <div className="p-12 text-center text-gray-600 font-bold uppercase tracking-widest text-xs">
-                   Aucune œuvre publiée pour le moment
-                </div>
+                {loading ? (
+                   <div className="py-12 flex justify-center"><Loader2 className="w-8 h-8 text-brand-gold animate-spin" /></div>
+                ) : works.length > 0 ? (
+                   works.slice(0, 3).map(work => (
+                     <div key={work.id} className="p-6 flex items-center justify-between group hover:bg-white/5 transition-all">
+                        <div className="flex items-center gap-4">
+                           <div className="w-12 h-16 rounded-lg bg-brand-brown/40 relative overflow-hidden">
+                              {work.coverURL && <img src={work.coverURL} alt="" className="w-full h-full object-cover" />}
+                           </div>
+                           <div>
+                              <h4 className="font-bold text-sm">{work.title}</h4>
+                              <p className="text-[10px] text-gray-500 font-bold uppercase">{work.category} • {work.views} vues</p>
+                           </div>
+                        </div>
+                        <div className="flex gap-4">
+                           <button onClick={() => navigate(`/work/${work.id}`)} className="text-[10px] font-black uppercase text-gray-400 hover:text-white">Détails</button>
+                           <button onClick={() => handleAddChapter(work.id!)} className="text-[10px] font-black uppercase text-brand-gold hover:underline">Nouv. Chapitre</button>
+                        </div>
+                     </div>
+                   ))
+                ) : (
+                  <div className="p-12 text-center text-gray-600 font-bold uppercase tracking-widest text-xs">
+                    Aucune œuvre publiée pour le moment
+                  </div>
+                )}
              </div>
              <div className="p-6 bg-white/5 text-center">
-                <button className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Gérer tout le catalogue</button>
+                <button onClick={() => setActiveTab('works')} className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Gérer tout le catalogue</button>
              </div>
           </div>
 
@@ -343,12 +400,4 @@ const StatCard = ({ title, value, trend }: { title: string, value: string, trend
        {trend} ce mois
     </div>
   </div>
-);
-
-const ChefHat = ({ className }: { className?: string }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 13.8V21h12v-7.2" />
-        <path d="M14 2h-4v3h4V2z" />
-        <path d="M3 13h18c.5 0 1-.5 1-1V9c0-3.9-3.1-7-7-7H9C5.1 2 2 5.1 2 9v3c0 .5.5 1 1 1z" />
-    </svg>
 );

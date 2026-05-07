@@ -15,7 +15,7 @@ export const Shop = () => {
     try {
       // Simulate real transaction delay
       await new Promise(resolve => setTimeout(resolve, 1500));
-      await workService.topUpNexusCoins(user.uid, amount);
+      await workService.purchaseCoins(user.uid, amount);
       alert(`Succès ! ${amount} Nexus-Coins ajoutés à votre compte.`);
       window.location.reload(); 
     } catch (error) {

@@ -21,6 +21,8 @@ import { ThreadDetail } from './pages/ThreadDetail';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { CollaborationHub } from './pages/CollaborationHub';
 import { PublicArtistProfile } from './pages/PublicArtistProfile';
+import { Terms } from './pages/Terms';
+import { Privacy } from './pages/Privacy';
 import { FAQ } from './pages/FAQ';
 import { About } from './pages/About';
 import { BecomePro } from './pages/BecomePro';
@@ -42,6 +44,9 @@ export default function App() {
             <Route path="/forum/thread/:threadId" element={<ThreadDetail />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/collaboration" element={<CollaborationHub />} />
+            <Route path="/rankings" element={<Rankings />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="/artist-profile/:artistId" element={<PublicArtistProfile />} />
             <Route path="/about" element={<About />} />
             <Route path="/faq" element={<FAQ />} />
@@ -55,7 +60,6 @@ export default function App() {
             <Route path="/shop" element={<Shop />} />
             <Route path="/messages" element={<Messaging />} />
             <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/rankings" element={<Rankings />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />

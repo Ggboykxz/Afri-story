@@ -41,9 +41,28 @@ export function BecomePro() {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    if (!user) return;
+    try {
+      const { doc, setDoc } = await import('firebase/firestore');
+      const { db } = await import('../lib/firebase');
+      
+      // We'll store requests in a 'pro_applications' collection
+      await setDoc(doc(db, 'pro_applications', user.uid), {
+        userId: user.uid,
+        userName: profile?.displayName || 'Anonyme',
+        email: user.email,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      setSubmitted(true);
+    } catch (err) {
+      console.error(err);
+      alert("Une erreur est survenue lors de l'envoi de votre candidature.");
+    }
   };
 
   return (

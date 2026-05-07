@@ -113,7 +113,7 @@ export const workService = {
   },
 
   // Get works (can filter by type or author)
-  getWorks: async (filters: { isPro?: boolean, authorId?: string } = {}) => {
+  getWorks: async (filters: { isPro?: boolean, authorId?: string } = {}): Promise<Work[]> => {
     const path = 'works';
     try {
       let q = query(collection(db, path), orderBy('createdAt', 'desc'));
@@ -126,9 +126,10 @@ export const workService = {
       }
 
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Work[];
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, path);
+      return [];
     }
   },
 

@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, Loader2, Heart, Star, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-
+import { useAuth } from '../context/AuthContext';
 import { workService } from '../lib/workService';
 
 export const Reader = () => {
   const { workId, chapterId } = useParams();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [showControls, setShowControls] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -22,7 +23,7 @@ export const Reader = () => {
     
     setUnlocking(true);
     try {
-      await workService.unlockChapter(user.uid, workId, chapterId, 50);
+      await workService.unlockChapter(workId, chapterId, 50);
       setIsLocked(false);
       alert("Chapitre débloqué !");
     } catch (error) {
@@ -35,6 +36,7 @@ export const Reader = () => {
 
   const [chapterContent, setChapterContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const comments: any[] = [];
 
   useEffect(() => {
     fetchChapter();

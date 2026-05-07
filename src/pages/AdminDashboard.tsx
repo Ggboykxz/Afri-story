@@ -21,9 +21,7 @@ export function AdminDashboard() {
   const fetchProRequests = async () => {
     try {
       setLoading(true);
-      // In a real app, we'd have a 'pro_applications' collection
-      // Mocking for now from a 'users' query looking for 'pending_pro' flag or similar
-      const q = query(collection(db, 'users'), where('status', '==', 'pending_pro'));
+      const q = query(collection(db, 'pro_applications'), where('status', '==', 'pending'));
       const querySnapshot = await getDocs(q);
       const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setRequests(docs);
@@ -34,13 +32,31 @@ export function AdminDashboard() {
     }
   };
 
-  const handleApprovePro = async (userId: string) => {
+  const handleApprovePro = async (applicationId: string, userId: string) => {
     try {
+      // 1. Update user role
       await updateDoc(doc(db, 'users', userId), {
-        role: 'artist_pro',
-        status: 'approved'
+        role: 'artist_pro'
+      });
+      // 2. Update application status
+      await updateDoc(doc(db, 'pro_applications', applicationId), {
+        status: 'approved',
+        updatedAt: new Date()
       });
       alert('Artiste promu au statut PRO !');
+      fetchProRequests();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleRejectPro = async (applicationId: string) => {
+    try {
+      await updateDoc(doc(db, 'pro_applications', applicationId), {
+        status: 'rejected',
+        updatedAt: new Date()
+      });
+      alert('Demande rejetée.');
       fetchProRequests();
     } catch (error) {
       console.error(error);
@@ -127,7 +143,7 @@ export function AdminDashboard() {
                           <Users className="w-10 h-10 text-brand-gold/30" />
                        </div>
                        <div className="flex-1 space-y-1 text-center md:text-left">
-                          <h4 className="font-display font-black uppercase text-xl">{req.displayName || 'Utilisateur Anonyme'}</h4>
+                          <h4 className="font-display font-black uppercase text-xl">{req.userName || 'Utilisateur Anonyme'}</h4>
                           <p className="text-xs text-gray-500 font-bold uppercase">{req.email}</p>
                           <div className="flex gap-2 justify-center md:justify-start pt-2">
                              <span className="bg-white/5 text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">Draft Artist</span>
@@ -136,12 +152,15 @@ export function AdminDashboard() {
                        </div>
                        <div className="flex gap-4">
                           <button 
-                            onClick={() => handleApprovePro(req.id)}
+                            onClick={() => handleApprovePro(req.id, req.userId)}
                             className="bg-brand-gold text-brand-black p-4 rounded-xl hover:scale-105 transition-transform"
                           >
                              <CheckCircle className="w-6 h-6" />
                           </button>
-                          <button className="bg-white/5 border border-white/10 text-gray-500 p-4 rounded-xl hover:bg-brand-red/10 hover:text-brand-red transition-all">
+                          <button 
+                            onClick={() => handleRejectPro(req.id)}
+                            className="bg-white/5 border border-white/10 text-gray-500 p-4 rounded-xl hover:bg-brand-red/10 hover:text-brand-red transition-all"
+                          >
                              <XCircle className="w-6 h-6" />
                           </button>
                        </div>

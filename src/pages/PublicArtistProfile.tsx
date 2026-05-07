@@ -17,8 +17,8 @@ export function PublicArtistProfile() {
     try {
       setLoading(true);
       // In a real app, we'd fetch profile + works separately
-      const artistWorks = await workService.getWorks({ authorId: artistId });
-      setWorks(artistWorks);
+      const artistWorks = await workService.getWorks({ authorId: artistId }) as Work[];
+      setWorks(artistWorks || []);
     } catch (error) {
       console.error(error);
     } finally {
