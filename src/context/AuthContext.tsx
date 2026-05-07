@@ -11,6 +11,7 @@ interface AuthContextType {
   hasPermission: (permission: string) => boolean;
   isAtLeastRole: (minRole: UserRole) => boolean;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
+  refreshProfile: () => Promise<void>;
   followUser: (artistId: string) => Promise<void>;
   unfollowUser: (artistId: string) => Promise<void>;
   isFollowing: (artistId: string) => boolean;
@@ -130,6 +131,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return profile?.following?.includes(artistId) ?? false;
   };
 
+  const refreshProfile = async () => {
+    if (!user) return;
+    const docRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      setProfile({
+        userId: user.uid,
+        email: user.email || '',
+        displayName: data.displayName || user.displayName || 'Voyageur',
+        photoURL: data.photoURL || user.photoURL,
+        role: data.role || 'reader',
+        afriCoins: data.afriCoins || 0,
+        badges: data.badges || [],
+        subscription: data.subscription,
+        subscriptionExpiresAt: data.subscriptionExpiresAt?.toDate?.() || data.subscriptionExpiresAt,
+        following: data.following || [],
+        favorites: data.favorites || [],
+        createdAt: data.createdAt?.toDate?.() || new Date(),
+        bio: data.bio,
+        socialLinks: data.socialLinks,
+        preferences: data.preferences || {
+          notifications: true,
+          emailNotifications: true,
+          darkMode: true,
+        },
+      });
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
@@ -203,7 +234,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, hasPermission, isAtLeastRole, updateProfile: updateProfileData, followUser, unfollowUser, isFollowing }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      loading, 
+      hasPermission, 
+      isAtLeastRole, 
+      updateProfile: updateProfileData, 
+      refreshProfile,
+      followUser, 
+      unfollowUser, 
+      isFollowing 
+    }}>
       {children}
     </AuthContext.Provider>
   );
