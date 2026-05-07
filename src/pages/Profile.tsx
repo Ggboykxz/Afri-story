@@ -363,7 +363,15 @@ export const Profile = () => {
 
             {activeTab === 'library' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-               {favoriteWorks.length > 0 ? (
+               {loading ? (
+                 Array(4).fill(0).map((_, i) => (
+                   <div key={i} className="space-y-3">
+                     <Skeleton className="aspect-[3/4] rounded-2xl" />
+                     <Skeleton variant="text" className="w-3/4 h-4" />
+                     <Skeleton className="w-full h-1 rounded-full" />
+                   </div>
+                 ))
+               ) : favoriteWorks.length > 0 ? (
                  favoriteWorks.slice(0, 4).map((work) => (
                    <motion.div 
                      key={work.id}
@@ -385,20 +393,27 @@ export const Profile = () => {
                       </Link>
                    </motion.div>
                  ))
-               ) : (
-                 <div className="col-span-full py-12 text-center">
-                    <p className="text-gray-500">Aucune œuvre dans votre bibliothèque</p>
-                    <Link to="/explore" className="text-brand-gold text-sm">Explorer</Link>
-                 </div>
-               )}
-            </div>
-            )}
+) : (
+                  <div className="col-span-full py-12 text-center">
+                     <p className="text-gray-500">Aucune œuvre dans votre bibliothèque</p>
+                     <Link to="/explore" className="text-brand-gold text-sm">Explorer</Link>
+                  </div>
+                )}
+             </div>
+             )}
 
             {activeTab === 'favorites' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-               {favoriteWorks.length > 0 ? (
-                 favoriteWorks.map((work) => (
-                   <motion.div 
+               {loading ? (
+                 Array(4).fill(0).map((_, i) => (
+                   <div key={i} className="space-y-3">
+                     <Skeleton className="aspect-[3/4] rounded-2xl" />
+                     <Skeleton variant="text" className="w-3/4 h-4" />
+                   </div>
+                 ))
+) : favoriteWorks.length > 0 ? (
+                  favoriteWorks.map((work) => (
+                    <motion.div
                      key={work.id}
                      whileHover={{ y: -8 }}
                      className="space-y-3 group cursor-pointer relative"
@@ -426,15 +441,34 @@ export const Profile = () => {
 
             {activeTab === 'portfolio' && displayProfile?.role !== 'reader' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-               <div className="col-span-full py-12 text-center">
-                  <p className="text-gray-500">Pas encore de portfolio</p>
-               </div>
+               {loading ? (
+                 Array(4).fill(0).map((_, i) => (
+                   <div key={i} className="space-y-3">
+                     <Skeleton className="aspect-[3/4] rounded-2xl" />
+                     <Skeleton variant="text" className="w-3/4 h-4" />
+                   </div>
+                 ))
+               ) : (
+                 <div className="col-span-full py-12 text-center">
+                    <p className="text-gray-500">Pas encore de portfolio</p>
+                 </div>
+               )}
             </div>
             )}
 
             {activeTab === 'activity' && (
             <div className="space-y-4">
-               {activities.length > 0 ? (
+               {loading ? (
+                 Array(4).fill(0).map((_, i) => (
+                   <div key={i} className="flex items-center gap-4 glass-card p-4">
+                     <Skeleton className="w-12 h-16 rounded-lg" />
+                     <div className="flex-1 space-y-2">
+                       <Skeleton variant="text" className="w-1/3 h-4" />
+                       <Skeleton className="w-1/2 h-3" />
+                     </div>
+                   </div>
+                 ))
+               ) : activities.length > 0 ? (
                  activities.map((item, i) => (
                    <div key={i} className="flex items-center gap-4 glass-card p-4">
                       <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0 overflow-hidden">
