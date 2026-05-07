@@ -44,13 +44,14 @@ export const Navbar = () => {
         <span className="font-display text-xl font-bold tracking-tighter text-white">Nexus-Hub</span>
       </Link>
 
-      <div className="hidden md:flex items-center gap-6 text-sm font-medium">
-        <Link to="/" className="text-gray-300 hover:text-white transition-colors">Accueil</Link>
-        <Link to="/explore" className="text-gray-300 hover:text-white transition-colors">Explorer</Link>
-        <Link to="/forum" className="text-gray-300 hover:text-white transition-colors">Forums</Link>
-        <Link to="/artist" className="text-gray-300 hover:text-white transition-colors">Artistes</Link>
-        <div className="h-4 w-[1px] bg-white/10" />
-        <Link to="/shop" className="text-gray-300 hover:text-white transition-colors">Boutique</Link>
+      <div className="hidden md:flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.15em]">
+        <Link to="/" className="text-gray-400 hover:text-white transition-colors">Accueil</Link>
+        <Link to="/explore" className="text-gray-400 hover:text-white transition-colors">Explorer</Link>
+        <Link to="/forum" className="text-gray-400 hover:text-white transition-colors">Forums</Link>
+        <Link to="/library" className="text-gray-400 hover:text-white transition-colors">Ma Biblio</Link>
+        <Link to="/collaboration" className="text-gray-400 hover:text-white transition-colors">Collabs</Link>
+        <div className="h-4 w-[1px] bg-white/10 mx-2" />
+        <Link to="/shop" className="text-gray-400 hover:text-white transition-colors">Boutique</Link>
       </div>
 
       <div className="flex items-center gap-4">
@@ -76,13 +77,14 @@ export const Navbar = () => {
             </Link>
             <div className="hidden lg:flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 px-3 py-1.5 rounded-full">
               <span className="text-[10px] font-black text-brand-gold uppercase tracking-widest">Nexus-Coins</span>
-              <span className="text-sm font-display font-bold text-white">{profile?.afriCoins || 0}</span>
+              <span className="text-sm font-display font-bold text-white">{profile?.nexusCoins || 0}</span>
             </div>
             
             <div className="relative group">
               <button 
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={() => navigate('/notifications')}
                 className="relative p-2 text-gray-400 hover:text-white transition-colors"
+                onMouseEnter={() => setShowNotifications(true)}
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -91,7 +93,9 @@ export const Navbar = () => {
               </button>
               
               {/* Notification Dropdown */}
-              <div className={`absolute right-0 top-full mt-2 w-80 glass-card p-4 transition-all z-50 ${showNotifications ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
+              <div 
+                onMouseLeave={() => setShowNotifications(false)}
+                className={`absolute right-0 top-full mt-2 w-80 glass-card p-4 transition-all z-50 ${showNotifications ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
                 <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
                    <h4 className="font-display font-bold">Notifications</h4>
                    {unreadCount > 0 && (

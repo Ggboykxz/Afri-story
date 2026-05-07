@@ -15,6 +15,11 @@ import { Rankings } from './pages/Rankings';
 import { Settings } from './pages/Settings';
 import { Explore } from './pages/Explore';
 import { Library } from './pages/Library';
+import { ForumHome } from './pages/ForumHome';
+import { ForumCategory } from './pages/ForumCategory';
+import { ThreadDetail } from './pages/ThreadDetail';
+import { NotificationsPage } from './pages/NotificationsPage';
+import { CollaborationHub } from './pages/CollaborationHub';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { AuthProvider } from './context/AuthContext';
@@ -28,6 +33,11 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/library" element={<Library />} />
+            <Route path="/forum" element={<ForumHome />} />
+            <Route path="/forum/category/:categoryId" element={<ForumCategory />} />
+            <Route path="/forum/thread/:threadId" element={<ThreadDetail />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/collaboration" element={<CollaborationHub />} />
             <Route path="/work/:id" element={<WorkDetail />} />
             <Route path="/read/:workId/:chapterId" element={<Reader />} />
             <Route path="/artist" element={<ArtistDashboard />} />
