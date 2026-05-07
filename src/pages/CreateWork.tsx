@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { workService } from '../lib/workService';
 import { useAuth } from '../context/AuthContext';
 import { ArrowLeft, Image as ImageIcon, Upload, Loader2, X, CloudUpload } from 'lucide-react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import cloudinaryService from '../lib/cloudinaryService';
 import { Skeleton } from '../components/Skeleton';
-import { storage } from '../lib/firebase';
 
 export const CreateWork = () => {
   const navigate = useNavigate();
@@ -54,9 +53,7 @@ export const CreateWork = () => {
     
     setUploadingCover(true);
     try {
-      const storageRef = ref(storage, `covers/${workId}/cover_${Date.now()}`);
-      await uploadBytes(storageRef, coverFile);
-      const url = await getDownloadURL(storageRef);
+      const url = await cloudinaryService.uploadCover(workId, coverFile);
       return url;
     } catch (error) {
       console.error('Error uploading cover:', error);
