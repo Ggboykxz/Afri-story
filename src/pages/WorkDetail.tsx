@@ -1,26 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Heart, Share2, Award, User, Star, DollarSign, X, Check, Loader2 } from 'lucide-react';
+import { BookOpen, Heart, Share2, Award, User, Star, DollarSign, X, Check, Loader2, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { workService, Work } from '../lib/workService';
 import { useAuth } from '../context/AuthContext';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { Skeleton } from '../components/Skeleton';
 
 export const WorkDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile, hasPermission, isFollowing, followUser, unfollowUser } = useAuth();
   
   const [work, setWork] = useState<Work | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDonate, setShowDonate] = useState(false);
   const [donated, setDonated] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [donating, setDonating] = useState(false);
+
+  const canDonate = hasPermission('donate');
+  const canFollow = hasPermission('follow_artist');
 
   useEffect(() => {
     if (!id) return;
     fetchWork();
   }, [id]);
+
+  useEffect(() => {
+    if (user && work) {
+      setIsFavorited(profile?.favorites?.includes(work.id) || false);
+      setFollowing(isFollowing(work.authorId));
+    }
+  }, [user, work, profile]);
 
   const fetchWork = async () => {
     try {
@@ -34,19 +48,50 @@ export const WorkDetail = () => {
     }
   };
 
-  const handleDonate = () => {
+  const handleDonate = async () => {
     if (!user) return navigate('/login');
-    setDonated(true);
-    setTimeout(() => {
-      setDonated(false);
-      setShowDonate(false);
-    }, 2000);
+    if (!canDonate) {
+      alert("Vous devez être connecté pour faire un don.");
+      return;
+    }
+    setDonating(true);
+    try {
+      await updateDoc(doc(db, 'users', work!.authorId), {
+        afriCoins: (profile?.afriCoins || 0) + 10
+      });
+      setDonated(true);
+      setTimeout(() => {
+        setDonated(false);
+        setShowDonate(false);
+      }, 2000);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDonating(false);
+    }
   };
 
-  const toggleFavorite = () => {
+  const handleFollowToggle = async () => {
     if (!user) return navigate('/login');
-    setIsFavorited(!isFavorited);
-    // Ideally this would sync with Firestore "favorites" collection
+    if (!canFollow) return;
+    if (following) {
+      await unfollowUser(work!.authorId);
+      setFollowing(false);
+    } else {
+      await followUser(work!.authorId);
+      setFollowing(true);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    if (!user) return navigate('/login');
+    const newFav = !isFavorited;
+    setIsFavorited(newFav);
+    if (user && work) {
+      await updateDoc(doc(db, 'users', user.uid), {
+        favorites: newFav ? arrayUnion(work.id) : arrayRemove(work.id)
+      });
+    }
   };
 
   return (

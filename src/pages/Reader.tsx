@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, Loader2, Heart, Star, X, ChevronLeft, ChevronRight, Bookmark, Settings } from 'lucide-react';
+import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, Loader2, Heart, Star, X, ChevronLeft, ChevronRight, Bookmark, Settings, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { workService } from '../lib/workService';
@@ -8,7 +8,7 @@ import { Skeleton } from '../components/Skeleton';
 
 export const Reader = () => {
   const { workId, chapterId } = useParams();
-  const { user, profile } = useAuth();
+  const { user, profile, hasPermission } = useAuth();
   const navigate = useNavigate();
   const [showControls, setShowControls] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -33,9 +33,18 @@ export const Reader = () => {
   const [isLocked, setIsLocked] = useState(true); 
   const [unlocking, setUnlocking] = useState(false);
 
+  const canReadPremium = hasPermission('read_premium_chapters');
+  const canEarlyAccess = hasPermission('early_access');
+  const canComment = hasPermission('comment');
+  const canLike = hasPermission('like');
+
   const handleUnlock = async () => {
-    if (!user || !workId || !chapterId) return alert("Veuillez vous connecter.");
-    if ((profile?.afriCoins || 0) < 50) return alert("AfriCoins insuffisants.");
+    if (!user) return navigate('/login');
+    if (!canReadPremium && (profile?.afriCoins || 0) < 50) {
+      alert("AfriCoins insuffisants. Souscrivez à un abonnement ou achetez des AfriCoins.");
+      navigate('/subscription');
+      return;
+    }
     
     setUnlocking(true);
     try {
@@ -73,6 +82,11 @@ export const Reader = () => {
 
   const handleAddComment = async () => {
     if (!user || !newComment.trim() || !workId || !chapterId) return;
+    if (!canComment) {
+      alert("Vous devez être connecté pour commenter.");
+      navigate('/login');
+      return;
+    }
     await workService.addComment(
       workId, 
       chapterId, 
