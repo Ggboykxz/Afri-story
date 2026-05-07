@@ -3,11 +3,32 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Award, ShieldCheck, Zap, Star, ChevronRight, CheckCircle, Info, Rocket, Send, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
+import { Skeleton } from '../components/Skeleton';
 
 export function BecomePro() {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+
+  if (authLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-12 space-y-12 pb-24">
+         <div className="space-y-4">
+            <Skeleton className="w-32 h-6 rounded-full" />
+            <Skeleton variant="text" className="w-1/2 h-16" />
+            <Skeleton variant="text" className="w-3/4 h-8" />
+         </div>
+         <div className="grid lg:grid-cols-5 gap-12">
+            <div className="lg:col-span-3 space-y-8">
+               <Skeleton className="w-full h-96 rounded-3xl" />
+            </div>
+            <div className="lg:col-span-2">
+               <Skeleton className="w-full h-64 rounded-3xl" />
+            </div>
+         </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (

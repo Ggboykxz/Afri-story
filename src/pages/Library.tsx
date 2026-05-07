@@ -4,6 +4,7 @@ import { BookOpen, Bookmark, Clock, Zap, Award, Search, Loader2 } from 'lucide-r
 import { useAuth } from '../context/AuthContext';
 import { workService, Work } from '../lib/workService';
 import { Link, useNavigate } from 'react-router-dom';
+import { WorkCardSkeleton } from '../components/Skeleton';
 
 export function Library() {
   const { user } = useAuth();
@@ -74,8 +75,8 @@ export function Library() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-10 h-10 text-brand-gold animate-spin" />
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+           {Array(5).fill(0).map((_, i) => <WorkCardSkeleton key={i} />)}
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">

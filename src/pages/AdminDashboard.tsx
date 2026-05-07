@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { workService } from '../lib/workService';
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { Skeleton } from '../components/Skeleton';
 
 export function AdminDashboard() {
   const { user, profile } = useAuth();
@@ -129,7 +130,23 @@ export function AdminDashboard() {
         {activeTab === 'pro_requests' && (
           <div className="space-y-6">
              {loading ? (
-               <div className="py-20 text-center text-gray-500 animate-pulse font-black uppercase tracking-widest text-xs italic">Chargement des dossiers en attente...</div>
+                Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="glass-card p-8 flex items-center gap-8">
+                    <Skeleton variant="circle" className="w-20 h-20" />
+                    <div className="flex-1 space-y-3">
+                      <Skeleton variant="text" className="w-48 h-6" />
+                      <Skeleton variant="text" className="w-32 h-4" />
+                      <div className="flex gap-2">
+                        <Skeleton className="w-16 h-4 rounded-full" />
+                        <Skeleton className="w-24 h-4 rounded-full" />
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <Skeleton className="w-12 h-12 rounded-xl" />
+                      <Skeleton className="w-12 h-12 rounded-xl" />
+                    </div>
+                  </div>
+                ))
              ) : requests.length === 0 ? (
                <div className="glass-card p-12 text-center border-white/5 opacity-50 space-y-4">
                   <CheckCircle className="w-12 h-12 text-gray-600 mx-auto" />

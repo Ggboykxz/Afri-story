@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { MessageCircle, TrendingUp, Users, Plus, Hash, ChevronRight, Zap, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { forumService, Thread } from '../lib/forumService';
+import { ForumThreadSkeleton, Skeleton } from '../components/Skeleton';
 
 const CATEGORIES = [
   { id: 'webtoons', name: 'Webtoons & BD', description: 'Discutez de vos oeuvres préférées et des dernières sorties.', icon: MessageCircle, count: '1.2K', color: 'text-brand-gold' },
@@ -84,7 +85,7 @@ export function ForumHome() {
 
           <div className="space-y-4">
             {loading ? (
-              <div className="py-12 flex justify-center"><Loader2 className="w-8 h-8 text-brand-gold animate-spin" /></div>
+              Array(5).fill(0).map((_, i) => <ForumThreadSkeleton key={i} />)
             ) : popularThreads.length > 0 ? (
               popularThreads.map(thread => (
                 <Link key={thread.id} to={`/forum/thread/${thread.id}`} className="block">

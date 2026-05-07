@@ -4,6 +4,7 @@ import { MessageCircle, Plus, Search, Filter, Hash, User, Clock, ChevronRight, B
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { forumService, Thread } from '../lib/forumService';
+import { ForumThreadSkeleton } from '../components/Skeleton';
 
 export function ForumCategory() {
   const { categoryId } = useParams();
@@ -112,7 +113,7 @@ export function ForumCategory() {
            {/* Thread List */}
            <div className="space-y-4">
              {loading ? (
-               <div className="py-24 flex justify-center"><Loader2 className="w-12 h-12 text-brand-gold animate-spin" /></div>
+               Array(6).fill(0).map((_, i) => <ForumThreadSkeleton key={i} />)
              ) : threads.length > 0 ? (
                threads.map(thread => (
                 <Link key={thread.id} to={`/forum/thread/${thread.id}`}>

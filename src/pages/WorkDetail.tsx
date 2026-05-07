@@ -4,6 +4,7 @@ import { BookOpen, Heart, Share2, Award, User, Star, DollarSign, X, Check, Loade
 import { motion, AnimatePresence } from 'motion/react';
 import { workService, Work } from '../lib/workService';
 import { useAuth } from '../context/AuthContext';
+import { Skeleton } from '../components/Skeleton';
 
 export const WorkDetail = () => {
   const { id } = useParams();
@@ -48,84 +49,87 @@ export const WorkDetail = () => {
     // Ideally this would sync with Firestore "favorites" collection
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-brand-gold animate-spin" />
-      </div>
-    );
-  }
-
-  if (!work) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
-        <h2 className="text-2xl font-display font-bold">Œuvre introuvable</h2>
-        <Link to="/" className="text-brand-gold hover:underline font-bold uppercase tracking-widest text-xs">Retour à l'accueil</Link>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen">
       {/* Header / Cover */}
-      <div className="relative h-[50vh] overflow-hidden">
+      <div className="relative h-[50vh] overflow-hidden text-white/90">
         <div className="absolute inset-0 bg-brand-brown opacity-20" />
         <div className="absolute inset-0 bg-linear-to-t from-brand-black via-brand-black/40 to-transparent" />
         
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 max-w-7xl mx-auto flex flex-col md:flex-row items-end gap-8">
           <div className="w-48 aspect-[3/4] rounded-2xl overflow-hidden glass-card shadow-2xl flex-shrink-0 -mb-24 relative z-10">
-             {work.coverURL ? (
-               <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />
+             {loading ? (
+                <Skeleton className="w-full h-full" />
+             ) : work?.coverURL ? (
+                <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />
              ) : (
-               <div className="w-full h-full bg-brand-brown/40" />
+                <div className="w-full h-full bg-brand-brown/40" />
              )}
           </div>
           
           <div className="flex-1 space-y-4 mb-4">
             <div className="flex flex-wrap gap-2">
-              <span className="bg-brand-gold text-brand-black text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">{work.type}</span>
-              <span className="bg-white/10 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">{work.status || 'EN COURS'}</span>
-              {work.isPro && <span className="bg-brand-gold/20 text-brand-gold text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider border border-brand-gold/30">ARTISTE PRO</span>}
+              {loading ? (
+                 <>
+                   <Skeleton className="w-16 h-5" />
+                   <Skeleton className="w-20 h-5" />
+                 </>
+              ) : work && (
+                <>
+                  <span className="bg-brand-gold text-brand-black text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">{work.type}</span>
+                  <span className="bg-white/10 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">{work.status || 'EN COURS'}</span>
+                  {work.isPro && <span className="bg-brand-gold/20 text-brand-gold text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider border border-brand-gold/30">ARTISTE PRO</span>}
+                </>
+              )}
             </div>
-            <h1 className="text-4xl md:text-6xl font-display font-black leading-[0.9]">{work.title}</h1>
+            {loading ? (
+               <Skeleton variant="text" className="w-3/4 h-12" />
+            ) : (
+               <h1 className="text-4xl md:text-6xl font-display font-black leading-[0.9]">{work?.title}</h1>
+            )}
             <div className="flex items-center gap-6 text-sm font-bold text-gray-400">
-              <Link to={`/profile/${work.authorId}`} className="flex items-center gap-2 hover:text-white transition-colors">
-                <User className="w-4 h-4" />
-                {work.author}
-              </Link>
-              <div className="flex items-center gap-2 uppercase tracking-widest text-[10px]">
-                <BookOpen className="w-4 h-4" />
-                {work.category}
-              </div>
+               {loading ? (
+                  <Skeleton variant="text" className="w-48 h-4" />
+               ) : work && (
+                  <>
+                    <Link to={`/profile/${work.authorId}`} className="flex items-center gap-2 hover:text-white transition-colors">
+                      <User className="w-4 h-4" />
+                      {work.author}
+                    </Link>
+                    <div className="flex items-center gap-2 uppercase tracking-widest text-[10px]">
+                      <BookOpen className="w-4 h-4" />
+                      {work.category}
+                    </div>
+                  </>
+               )}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 mb-4">
-            <button 
-              onClick={toggleFavorite}
-              className={`flex items-center gap-2 px-6 py-3 font-black rounded-xl hover:scale-105 transition-all ${
-                isFavorited ? 'bg-white text-brand-black' : 'bg-brand-gold text-brand-black shadow-lg shadow-brand-gold/10'
-              }`}
-            >
-              {isFavorited ? 'ABONNÉ' : "S'ABONNER"}
-            </button>
-            <button 
-              onClick={() => setShowDonate(true)}
-              className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-brand-gold/10 hover:border-brand-gold/50 transition-all font-bold text-sm"
-            >
-              <DollarSign className="w-4 h-4 text-brand-gold" />
-              DONNER
-            </button>
-            <button 
-              onClick={toggleFavorite}
-              className={`p-3 border rounded-xl transition-all ${isFavorited ? 'bg-brand-red/20 border-brand-red text-brand-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
-            >
-              <Heart className={`w-6 h-6 ${isFavorited ? 'fill-current' : ''}`} />
-            </button>
-            <button className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-white">
-              <Share2 className="w-6 h-6" />
-            </button>
-          </div>
+          {!loading && work && (
+            <div className="flex flex-wrap gap-4 mb-4">
+              <button 
+                onClick={toggleFavorite}
+                className={`flex items-center gap-2 px-6 py-3 font-black rounded-xl hover:scale-105 transition-all ${
+                  isFavorited ? 'bg-white text-brand-black' : 'bg-brand-gold text-brand-black shadow-lg shadow-brand-gold/10'
+                }`}
+              >
+                {isFavorited ? 'ABONNÉ' : "S'ABONNER"}
+              </button>
+              <button 
+                onClick={() => setShowDonate(true)}
+                className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-brand-gold/10 hover:border-brand-gold/50 transition-all font-bold text-sm"
+              >
+                <DollarSign className="w-4 h-4 text-brand-gold" />
+                DONNER
+              </button>
+              <button 
+                onClick={toggleFavorite}
+                className={`p-3 border rounded-xl transition-all ${isFavorited ? 'bg-brand-red/20 border-brand-red text-brand-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+              >
+                <Heart className={`w-6 h-6 ${isFavorited ? 'fill-current' : ''}`} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -134,42 +138,65 @@ export const WorkDetail = () => {
         <div className="md:col-span-2 space-y-12">
           <section className="space-y-6">
             <h2 className="text-2xl font-display font-bold">À propos</h2>
-            <p className="text-gray-400 leading-relaxed text-lg">{work.description}</p>
+            {loading ? (
+              <div className="space-y-3">
+                <Skeleton variant="text" className="w-full h-4" />
+                <Skeleton variant="text" className="w-full h-4" />
+                <Skeleton variant="text" className="w-2/3 h-4" />
+              </div>
+            ) : (
+              <p className="text-gray-400 leading-relaxed text-lg">{work?.description}</p>
+            )}
           </section>
 
           <section className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-display font-bold">Chapitres</h2>
-              <span className="text-gray-500 font-bold text-sm uppercase tracking-widest">{work.chapters.length} ÉPISODES</span>
+              {!loading && <span className="text-gray-500 font-bold text-sm uppercase tracking-widest">{work?.chapters?.length} ÉPISODES</span>}
             </div>
             
             <div className="space-y-3">
-              {work.chapters.map((chapter) => (
-                <Link 
-                  key={chapter.id}
-                  to={`/read/${work.id}/${chapter.id}`}
-                  className="flex items-center justify-between p-4 glass-card hover:border-brand-gold/40 transition-all group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center font-display font-bold text-gray-500 group-hover:text-brand-gold transition-colors">
-                      {chapter.number}
+              {loading ? (
+                Array(5).fill(0).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-4 glass-card">
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="w-12 h-12 rounded-lg" />
+                      <div className="space-y-2">
+                        <Skeleton variant="text" className="w-32 h-4" />
+                        <Skeleton variant="text" className="w-20 h-3" />
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-sm">{chapter.title}</h4>
-                      <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">{chapter.date}</p>
-                    </div>
+                    <Skeleton className="w-16 h-6 rounded-full" />
                   </div>
-                  
-                  {chapter.isPremium ? (
-                    <div className="flex items-center gap-2 bg-brand-gold/10 text-brand-gold border border-brand-gold/20 px-3 py-1 rounded-full text-[10px] font-black uppercase">
-                      < Star className="w-3 h-3 fill-current" />
-                      Premium
+                ))
+              ) : (
+                work?.chapters?.map((chapter) => (
+                  <Link 
+                    key={chapter.id}
+                    to={`/read/${work.id}/${chapter.id}`}
+                    className="flex items-center justify-between p-4 glass-card hover:border-brand-gold/40 transition-all group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center font-display font-bold text-gray-500 group-hover:text-brand-gold transition-colors">
+                        {chapter.number}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm">{chapter.title}</h4>
+                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">{chapter.date}</p>
+                      </div>
                     </div>
-                  ) : (
-                    <button className="text-[10px] font-black uppercase text-gray-500 group-hover:text-white transition-colors">LIRE</button>
-                  )}
-                </Link>
-              ))}
+                    
+                    {chapter.isPremium ? (
+                      <div className="flex items-center gap-2 bg-brand-gold/10 text-brand-gold border border-brand-gold/20 px-3 py-1 rounded-full text-[10px] font-black uppercase">
+                        < Star className="w-3 h-3 fill-current" />
+                        Premium
+                      </div>
+                    ) : (
+                      <button className="text-[10px] font-black uppercase text-gray-500 group-hover:text-white transition-colors">LIRE</button>
+                    )}
+                  </Link>
+                ))
+              )}
             </div>
           </section>
         </div>
@@ -179,11 +206,15 @@ export const WorkDetail = () => {
           <div className="glass-card p-6 space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-white/5 rounded-xl">
-                <div className="text-2xl font-display font-black text-white">{work.views}</div>
+                <div className="text-2xl font-display font-black text-white">
+                  {loading ? <Skeleton className="w-12 h-8 mx-auto" /> : work?.views}
+                </div>
                 <div className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Vues</div>
               </div>
               <div className="text-center p-4 bg-white/5 rounded-xl">
-                <div className="text-2xl font-display font-black text-white">{work.likes}</div>
+                <div className="text-2xl font-display font-black text-white">
+                  {loading ? <Skeleton className="w-12 h-8 mx-auto" /> : work?.likes}
+                </div>
                 <div className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Likes</div>
               </div>
             </div>
@@ -192,16 +223,24 @@ export const WorkDetail = () => {
           <div className="glass-card p-6 space-y-4">
             <h3 className="text-sm font-black uppercase tracking-widest text-gray-500">L'Artiste</h3>
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-brand-brown rounded-full border-2 border-brand-gold/30" />
+              <div className="w-16 h-16 bg-brand-brown rounded-full border-2 border-brand-gold/30 flex items-center justify-center overflow-hidden">
+                {loading ? <Skeleton className="w-full h-full" /> : <User className="w-8 h-8 text-white/20" />}
+              </div>
               <div>
-                <Link to={`/profile/${work.authorId}`} className="font-display font-bold text-lg hover:text-brand-gold transition-colors underline decoration-brand-gold/30 underline-offset-4">{work.author}</Link>
-                <div className="flex items-center gap-1 text-xs text-brand-gold font-bold">
-                  <Award className="w-3 h-3" />
-                  Artiste Certifié
-                </div>
+                {loading ? (
+                  <Skeleton variant="text" className="w-32 h-6" />
+                ) : (
+                  <>
+                    <Link to={`/profile/${work?.authorId}`} className="font-display font-bold text-lg hover:text-brand-gold transition-colors underline decoration-brand-gold/30 underline-offset-4">{work?.author}</Link>
+                    <div className="flex items-center gap-1 text-xs text-brand-gold font-bold">
+                      <Award className="w-3 h-3" />
+                      Artiste Certifié
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-            <p className="text-sm text-gray-400">Dessinateur et illustrateur passionné par les récits mythologiques nigérians.</p>
+            {loading ? <Skeleton variant="text" className="w-full h-12" /> : <p className="text-sm text-gray-400">Dessinateur et illustrateur passionné par les récits mythologiques nigérians.</p>}
           </div>
         </div>
       </div>

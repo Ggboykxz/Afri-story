@@ -3,16 +3,20 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Bell, Check, Trash2, Clock, Info, MessageSquare, Book, Heart, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { notificationService, Notification } from '../lib/notificationService';
+import { Skeleton } from '../components/Skeleton';
 
 export function NotificationsPage() {
   const { user } = useAuth();
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [activeFilter, setActiveFilter] = React.useState<'all' | 'unread'>('all');
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     if (!user) return;
+    setLoading(true);
     const unsubscribe = notificationService.subscribe(user.uid, (data) => {
       setNotifications(data);
+      setLoading(false);
     });
     return () => unsubscribe();
   }, [user]);
@@ -68,8 +72,23 @@ export function NotificationsPage() {
       </div>
 
       <div className="space-y-4">
-        <AnimatePresence mode="popLayout">
-          {filtered.length > 0 ? (
+        {loading ? (
+           Array(5).fill(0).map((_, i) => (
+             <div key={i} className="glass-card p-6 flex gap-6 items-start">
+               <Skeleton variant="circle" className="w-12 h-12 flex-shrink-0" />
+               <div className="flex-1 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <Skeleton variant="text" className="w-48 h-6" />
+                    <Skeleton variant="text" className="w-20 h-3" />
+                  </div>
+                  <Skeleton variant="text" className="w-full h-4" />
+                  <Skeleton variant="text" className="w-3/4 h-4" />
+               </div>
+             </div>
+           ))
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {filtered.length > 0 ? (
             filtered.map((notif) => (
               <motion.div
                 key={notif.id}
@@ -120,7 +139,8 @@ export function NotificationsPage() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      )}
+    </div>
     </div>
   );
 }

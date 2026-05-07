@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, User, Clock, ChevronRight, Hash, Send, Flag, ThumbsUp, MessageSquare, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { forumService, Thread, Reply } from '../lib/forumService';
+import { Skeleton } from '../components/Skeleton';
 
 export function ThreadDetail() {
   const { threadId } = useParams();
@@ -54,27 +55,9 @@ export function ThreadDetail() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-brand-gold animate-spin" />
-      </div>
-    );
-  }
-
-  if (!thread) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
-        <AlertCircle className="w-16 h-16 text-gray-700" />
-        <h2 className="text-xl font-bold uppercase tracking-widest text-gray-500">Discussion Introuvable</h2>
-        <Link to="/forum" className="text-brand-gold font-black uppercase text-xs hover:underline">Retour au forum</Link>
-      </div>
-    );
-  }
-
-  const categoryName = thread.categoryId === 'webtoons' ? 'Webtoons & BD' : 
-                      thread.categoryId === 'artists' ? 'Espace Artistes' : 
-                      thread.categoryId === 'theories' ? 'Théories & Lore' : 'Général';
+  const categoryName = thread?.categoryId === 'webtoons' ? 'Webtoons & BD' : 
+                      thread?.categoryId === 'artists' ? 'Espace Artistes' : 
+                      thread?.categoryId === 'theories' ? 'Théories & Lore' : 'Général';
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 space-y-8">
@@ -82,53 +65,90 @@ export function ThreadDetail() {
       <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
         <Link to="/forum" className="hover:text-brand-gold transition-colors">Forums</Link>
         <ChevronRight className="w-3 h-3" />
-        <Link to={`/forum/category/${thread.categoryId}`} className="hover:text-brand-gold transition-colors">{categoryName}</Link>
+        {loading ? (
+          <Skeleton variant="text" className="w-24 h-3" />
+        ) : (
+          <Link to={`/forum/category/${thread?.categoryId}`} className="hover:text-brand-gold transition-colors">{categoryName}</Link>
+        )}
         <ChevronRight className="w-3 h-3" />
-        <span className="text-white truncate">Discussion #{threadId?.slice(0, 8)}</span>
+        <Skeleton variant="text" className={`w-32 h-3 ${!loading && 'hidden'}`} />
+        {!loading && <span className="text-white truncate">Discussion #{threadId?.slice(0, 8)}</span>}
       </div>
 
       {/* Main Post */}
-      <div className="glass-card p-8 space-y-6 border border-white/10 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-5">
-           <Hash className="w-24 h-24" />
+      {loading ? (
+        <div className="glass-card p-8 space-y-6 border border-white/10">
+          <div className="flex items-center gap-4">
+            <Skeleton variant="circle" className="w-12 h-12" />
+            <div className="space-y-2">
+              <Skeleton variant="text" className="w-32" />
+              <Skeleton variant="text" className="w-24 h-3" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <Skeleton variant="text" className="w-3/4 h-8" />
+            <Skeleton variant="text" className="w-full h-24" />
+          </div>
         </div>
-        <div className="flex items-center justify-between">
-           <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-brand-brown/40 flex items-center justify-center font-display font-black text-brand-gold">
-                {thread.authorName?.[0]}
-              </div>
-              <div>
-                <h4 className="font-bold text-lg">{thread.authorName}</h4>
-                <p className="text-[10px] text-gray-500 font-bold uppercase">Publié le {thread.createdAt instanceof Date ? thread.createdAt.toLocaleDateString() : 'il y a peu'}</p>
-              </div>
-           </div>
-           <button className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 hover:text-brand-red transition-colors">
-              <Flag className="w-3 h-3" /> Signaler
-           </button>
+      ) : !thread ? (
+        <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
+          <AlertCircle className="w-16 h-16 text-gray-700" />
+          <h2 className="text-xl font-bold uppercase tracking-widest text-gray-500">Discussion Introuvable</h2>
+          <Link to="/forum" className="text-brand-gold font-black uppercase text-xs hover:underline">Retour au forum</Link>
         </div>
-        
-        <div className="space-y-4 relative z-10">
-          <h1 className="text-2xl md:text-3xl font-display font-black uppercase leading-tight">{thread.title}</h1>
-          <p className="text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">
-            {thread.content}
-          </p>
-        </div>
+      ) : (
+        <div className="glass-card p-8 space-y-6 border border-white/10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5">
+             <Hash className="w-24 h-24" />
+          </div>
+          <div className="flex items-center justify-between">
+             <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-brand-brown/40 flex items-center justify-center font-display font-black text-brand-gold">
+                  {thread.authorName?.[0]}
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg">{thread.authorName}</h4>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase">Publié le {thread.createdAt instanceof Date ? thread.createdAt.toLocaleDateString() : 'il y a peu'}</p>
+                </div>
+             </div>
+             <button className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-500 hover:text-brand-red transition-colors">
+                <Flag className="w-3 h-3" /> Signaler
+             </button>
+          </div>
+          
+          <div className="space-y-4 relative z-10">
+            <h1 className="text-2xl md:text-3xl font-display font-black uppercase leading-tight">{thread.title}</h1>
+            <p className="text-gray-300 leading-relaxed text-lg whitespace-pre-wrap">
+              {thread.content}
+            </p>
+          </div>
 
-        <div className="flex items-center gap-6 pt-6 border-t border-white/5">
-           <button className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-gold transition-colors">
-              <ThumbsUp className="w-4 h-4" /> {thread.views} Vues
-           </button>
-           <button className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-gold transition-colors">
-              <MessageSquare className="w-4 h-4" /> {thread.repliesCount} Réponses
-           </button>
+          <div className="flex items-center gap-6 pt-6 border-t border-white/5">
+             <button className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-gold transition-colors">
+                <ThumbsUp className="w-4 h-4" /> {thread.views} Vues
+             </button>
+             <button className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-gold transition-colors">
+                <MessageSquare className="w-4 h-4" /> {thread.repliesCount} Réponses
+             </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Replies List */}
       <div className="space-y-6">
         <h3 className="text-xs font-black uppercase tracking-widest text-brand-gold border-b border-brand-gold/20 pb-2">Réponses</h3>
         
-        {replies.length > 0 ? (
+        {loading ? (
+          Array(3).fill(0).map((_, i) => (
+            <div key={i} className="p-6 rounded-2xl border border-white/5 flex gap-6 items-start">
+              <Skeleton variant="circle" className="w-10 h-10 flex-shrink-0" />
+              <div className="flex-1 space-y-3">
+                <Skeleton variant="text" className="w-32" />
+                <Skeleton variant="text" className="w-full h-12" />
+              </div>
+            </div>
+          ))
+        ) : replies.length > 0 ? (
           replies.map((r, i) => (
             <motion.div 
               key={r.id}

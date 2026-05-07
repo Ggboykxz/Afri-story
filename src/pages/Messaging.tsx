@@ -2,10 +2,18 @@ import React, { useState } from 'react';
 import { Send, User, Search, MessageCircle, Lock, Layout } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import { Skeleton } from '../components/Skeleton';
 
 export const Messaging = () => {
   const { user, profile } = useAuth();
   const [selectedChat, setSelectedChat] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    // Simulate loading conversations
+    const timer = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const chats: any[] = [];
 
@@ -26,7 +34,17 @@ export const Messaging = () => {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-white/5">
-            {chats.map(chat => (
+            {loading ? (
+               Array(6).fill(0).map((_, i) => (
+                 <div key={i} className="p-6 flex items-center gap-4">
+                    <Skeleton variant="circle" className="w-12 h-12 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                       <Skeleton variant="text" className="w-24 h-4" />
+                       <Skeleton variant="text" className="w-full h-3" />
+                    </div>
+                 </div>
+               ))
+            ) : chats.map(chat => (
               <div 
                 key={chat.id} 
                 onClick={() => setSelectedChat(chat)}

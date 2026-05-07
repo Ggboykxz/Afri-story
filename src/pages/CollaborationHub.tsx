@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Briefcase, MapPin, Clock, Search, Filter, Plus, ChevronRight, UserPlus, Info } from 'lucide-react';
 import { collaborationService, Ad } from '../lib/collaborationService';
 import { useAuth } from '../context/AuthContext';
+import { Skeleton } from '../components/Skeleton';
 
 export function CollaborationHub() {
   const { user, profile } = useAuth();
@@ -77,8 +78,33 @@ export function CollaborationHub() {
       {/* Ads Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          [1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="glass-card p-8 h-64 animate-pulse bg-white/5" />
+          Array(6).fill(0).map((_, i) => (
+            <div key={i} className="glass-card p-6 border border-white/5 space-y-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                   <Skeleton className="w-16 h-4 rounded-md" />
+                   <Skeleton className="w-12 h-3" />
+                </div>
+                <div className="space-y-2">
+                   <Skeleton variant="text" className="w-3/4 h-6" />
+                   <div className="space-y-1">
+                     <Skeleton variant="text" className="w-full h-3" />
+                     <Skeleton variant="text" className="w-full h-3" />
+                     <Skeleton variant="text" className="w-2/3 h-3" />
+                   </div>
+                </div>
+              </div>
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <div className="flex items-center gap-3">
+                   <Skeleton variant="circle" className="w-8 h-8" />
+                   <div className="space-y-1">
+                      <Skeleton variant="text" className="w-24 h-3" />
+                      <Skeleton variant="text" className="w-16 h-2" />
+                   </div>
+                </div>
+                <Skeleton className="w-full h-12 rounded-xl" />
+              </div>
+            </div>
           ))
         ) : filteredAds.length > 0 ? (
           filteredAds.map((ad) => (

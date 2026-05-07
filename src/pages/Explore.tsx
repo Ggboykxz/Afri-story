@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, Filter, BookOpen, Clock, Zap, Award, ChevronDown } from 'lucide-react';
 import { workService, Work } from '../lib/workService';
 import { Link } from 'react-router-dom';
+import { WorkCardSkeleton } from '../components/Skeleton';
 
 export function Explore() {
   const [works, setWorks] = useState<Work[]>([]);
@@ -139,13 +140,7 @@ export function Explore() {
       <section className="min-h-[400px]">
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
-              <div key={i} className="space-y-3 animate-pulse">
-                <div className="aspect-[3/4] bg-white/5 rounded-2xl" />
-                <div className="h-4 bg-white/5 rounded w-3/4" />
-                <div className="h-3 bg-white/5 rounded w-1/2" />
-              </div>
-            ))}
+            {Array(10).fill(0).map((_, i) => <WorkCardSkeleton key={i} />)}
           </div>
         ) : filteredWorks.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">

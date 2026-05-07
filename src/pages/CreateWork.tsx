@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { workService } from '../lib/workService';
 import { useAuth } from '../context/AuthContext';
 import { ArrowLeft, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { Skeleton } from '../components/Skeleton';
 
 export const CreateWork = () => {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -15,6 +16,26 @@ export const CreateWork = () => {
     category: 'Fantaisie',
     isPro: profile?.role === 'artist_pro',
   });
+
+  if (authLoading) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-12 space-y-8">
+         <Skeleton className="w-24 h-6 rounded-lg" />
+         <div className="space-y-4">
+            <Skeleton variant="text" className="w-3/4 h-12" />
+            <Skeleton variant="text" className="w-1/2 h-6" />
+         </div>
+         <div className="space-y-6">
+            <Skeleton className="w-full h-16 rounded-xl" />
+            <div className="grid grid-cols-2 gap-4">
+               <Skeleton className="w-full h-16 rounded-xl" />
+               <Skeleton className="w-full h-16 rounded-xl" />
+            </div>
+            <Skeleton className="w-full h-64 rounded-xl" />
+         </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -4,6 +4,7 @@ import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, L
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { workService } from '../lib/workService';
+import { Skeleton } from '../components/Skeleton';
 
 export const Reader = () => {
   const { workId, chapterId } = useParams();
@@ -136,7 +137,13 @@ export const Reader = () => {
 
       {/* Content */}
       <div className={`max-w-3xl mx-auto pt-4 flex flex-col items-center min-h-screen ${readerMode === 'bd' ? 'px-6' : ''}`}>
-        {isLocked ? (
+        {loading ? (
+          <div className="w-full space-y-4">
+             {Array(3).fill(0).map((_, i) => (
+                <Skeleton key={i} className="w-full aspect-[2/3]" />
+             ))}
+          </div>
+        ) : isLocked ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-8 bg-linear-to-b from-brand-black/0 via-brand-black to-brand-black py-40">
              <div className="w-24 h-24 bg-brand-gold/10 rounded-[2.5rem] flex items-center justify-center text-brand-gold relative">
                 <Lock className="w-10 h-10" />

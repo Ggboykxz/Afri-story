@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { TrendingUp, Award, Zap, Heart, Eye, Loader2, ChevronRight } from 'lucide-react';
 import { workService, Work } from '../lib/workService';
 import { Link } from 'react-router-dom';
+import { Skeleton } from '../components/Skeleton';
 
 export function Rankings() {
   const [activeType, setActiveType] = useState('PRO');
@@ -58,8 +59,21 @@ export function Rankings() {
 
       <div className="space-y-6">
         {loading ? (
-          <div className="py-24 flex justify-center">
-            <Loader2 className="w-12 h-12 text-brand-gold animate-spin" />
+          <div className="grid gap-4">
+            {Array(10).fill(0).map((_, i) => (
+              <div key={i} className="glass-card p-6 flex items-center gap-6">
+                <Skeleton className="w-12 h-12" />
+                <Skeleton className="w-16 h-20 flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton variant="text" className="w-48 h-6" />
+                  <Skeleton variant="text" className="w-24 h-3" />
+                </div>
+                <div className="hidden md:flex gap-8 px-8">
+                   <Skeleton className="w-12 h-8" />
+                   <Skeleton className="w-12 h-8" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : works.length > 0 ? (
           <div className="grid gap-4">

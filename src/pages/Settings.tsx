@@ -2,11 +2,30 @@ import React, { useState } from 'react';
 import { User, Bell, Shield, Eye, Palette, CreditCard, ChevronRight, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import { Skeleton } from '../components/Skeleton';
 
 export const Settings = () => {
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
   const [activeSection, setActiveSection] = useState('profile');
   const [saved, setSaved] = useState(false);
+
+  if (authLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
+         <div className="flex flex-col md:flex-row gap-12">
+            <aside className="w-full md:w-72 space-y-6">
+               <Skeleton variant="text" className="w-3/2 h-10" />
+               <div className="space-y-2">
+                  {Array(5).fill(0).map((_, i) => <Skeleton key={i} className="w-full h-16 rounded-xl" />)}
+               </div>
+            </aside>
+            <main className="flex-1 max-w-2xl space-y-12">
+               <Skeleton className="w-full h-96 rounded-3xl" />
+            </main>
+         </div>
+      </div>
+    );
+  }
 
   const handleSave = () => {
     setSaved(true);

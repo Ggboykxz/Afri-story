@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ChefHat, TrendingUp, Sparkles, BookOpen, Search, Loader2 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { workService, Work } from '../lib/workService';
+import { WorkCardSkeleton, Skeleton } from '../components/Skeleton';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -36,14 +37,6 @@ export const Home = () => {
       w.category.toLowerCase().includes(searchQuery)
     );
   }, [searchQuery, works]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-brand-gold animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="pb-24">
@@ -111,9 +104,22 @@ export const Home = () => {
               </h2>
             </div>
             <div className="grid sm:grid-cols-2 gap-6">
-              {works.slice(0, 4).map((work, i) => (
-                <TrendingWorkCard key={work.id} work={work} index={i + 1} />
-              ))}
+              {loading ? (
+                Array(4).fill(0).map((_, i) => (
+                  <div key={i} className="flex items-center gap-6 glass-card p-4">
+                    <Skeleton className="w-20 h-28 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                       <Skeleton variant="text" className="w-1/3" />
+                       <Skeleton variant="text" className="w-full h-6" />
+                       <Skeleton variant="text" className="w-2/3" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                works.slice(0, 4).map((work, i) => (
+                  <TrendingWorkCard key={work.id} work={work} index={i + 1} />
+                ))
+              )}
             </div>
           </div>
 
@@ -123,22 +129,35 @@ export const Home = () => {
               <Link to="/rankings" className="text-brand-gold text-[10px] font-black uppercase tracking-widest hover:underline">Voir Tout</Link>
             </div>
             <div className="space-y-6">
-              {works.slice(0, 5).map((work, i) => (
-                <div key={work.id} className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate(`/work/${work.id}`)}>
-                  <span className="text-4xl font-display font-black text-white/10 group-hover:text-brand-gold transition-colors">{i + 1}</span>
-                  <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0 relative overflow-hidden">
-                    {work.coverURL && <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />}
+              {loading ? (
+                Array(5).fill(0).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <Skeleton variant="text" className="w-6 h-10" />
+                    <Skeleton className="w-12 h-16 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton variant="text" className="w-3/4" />
+                      <Skeleton variant="text" className="w-1/2" />
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-sm line-clamp-1">{work.title}</h4>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase">{work.author}</p>
+                ))
+              ) : (
+                works.slice(0, 5).map((work, i) => (
+                  <div key={work.id} className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate(`/work/${work.id}`)}>
+                    <span className="text-4xl font-display font-black text-white/10 group-hover:text-brand-gold transition-colors">{i + 1}</span>
+                    <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0 relative overflow-hidden">
+                      {work.coverURL && <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-sm line-clamp-1">{work.title}</h4>
+                      <p className="text-[10px] text-gray-500 font-bold uppercase">{work.author}</p>
+                    </div>
+                    <div className="text-right">
+                       <div className="text-xs font-black text-brand-gold">{work.views}</div>
+                       <div className="text-[8px] text-gray-600 font-bold uppercase">Vues</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                     <div className="text-xs font-black text-brand-gold">{work.views}</div>
-                     <div className="text-[8px] text-gray-600 font-bold uppercase">Vues</div>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </section>
@@ -155,9 +174,13 @@ export const Home = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {filteredWorks.filter(w => w.isPro).slice(0, 10).map((work) => (
-            <WorkCard key={work.id} work={work} />
-          ))}
+          {loading ? (
+             Array(5).fill(0).map((_, i) => <WorkCardSkeleton key={i} />)
+          ) : (
+            filteredWorks.filter(w => w.isPro).slice(0, 10).map((work) => (
+              <WorkCard key={work.id} work={work} />
+            ))
+          )}
         </div>
       </section>
 
@@ -175,9 +198,13 @@ export const Home = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {filteredWorks.filter(w => !w.isPro).slice(0, 10).map((work) => (
-            <WorkCard key={work.id} work={work} />
-          ))}
+          {loading ? (
+             Array(5).fill(0).map((_, i) => <WorkCardSkeleton key={i} />)
+          ) : (
+            filteredWorks.filter(w => !w.isPro).slice(0, 10).map((work) => (
+              <WorkCard key={work.id} work={work} />
+            ))
+          )}
         </div>
       </section>
 

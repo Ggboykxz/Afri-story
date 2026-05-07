@@ -3,11 +3,19 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Award, Zap, Book, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Skeleton } from '../components/Skeleton';
 
 export const Profile = () => {
   const { userId } = useParams();
   const { user, profile } = useAuth();
   const [showProModal, setShowProModal] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Simulate loading/checking profile
+    const timer = setTimeout(() => setLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, [userId]);
   
   const isOwnProfile = user?.uid === userId;
   const displayProfile = isOwnProfile ? profile : null; 
@@ -87,7 +95,9 @@ export const Profile = () => {
          <div className="h-64 rounded-3xl bg-linear-to-tr from-brand-brown to-brand-black border border-white/10" />
          <div className="absolute -bottom-16 left-8 flex flex-col md:flex-row items-end gap-6">
             <div className="w-32 h-32 rounded-3xl bg-brand-black border-4 border-brand-black shadow-2xl relative overflow-hidden">
-               {displayProfile?.photoURL ? (
+               {loading ? (
+                 <Skeleton className="w-full h-full" />
+               ) : displayProfile?.photoURL ? (
                  <img src={displayProfile.photoURL} alt="Avatar" className="w-full h-full object-cover" />
                ) : (
                  <div className="w-full h-full bg-brand-brown flex items-center justify-center">
@@ -96,27 +106,39 @@ export const Profile = () => {
                )}
             </div>
             <div className="pb-4 space-y-1">
-               <h1 className="text-4xl font-display font-black inline-flex items-center gap-3">
-                  {displayProfile?.displayName || 'Utilisateur Nexus-Hub'}
-                  {displayProfile?.role === 'artist_pro' && <Award className="w-6 h-6 text-brand-gold" />}
-               </h1>
-               <div className="flex flex-wrap gap-2">
-                  {badges.map((badge, i) => (
-                    <div key={i} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white ${badge.color}`}>
-                       {badge.icon}
-                       {badge.label}
+               {loading ? (
+                 <div className="space-y-2">
+                    <Skeleton variant="text" className="w-64 h-10" />
+                    <div className="flex gap-2">
+                       <Skeleton className="w-24 h-6 rounded-full" />
+                       <Skeleton className="w-32 h-6 rounded-full" />
                     </div>
-                  ))}
-                  {displayProfile?.role !== 'reader' && (
-                    <button 
-                      onClick={() => setShowProModal(true)}
-                      className="flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-wider text-white hover:bg-brand-gold hover:text-brand-black transition-all"
-                    >
-                       <MessageCircle className="w-4 h-4" />
-                       Demande Professionnelle
-                    </button>
-                  )}
-               </div>
+                 </div>
+               ) : (
+                 <>
+                   <h1 className="text-4xl font-display font-black inline-flex items-center gap-3">
+                      {displayProfile?.displayName || 'Utilisateur Nexus-Hub'}
+                      {displayProfile?.role === 'artist_pro' && <Award className="w-6 h-6 text-brand-gold" />}
+                   </h1>
+                   <div className="flex flex-wrap gap-2">
+                      {badges.map((badge, i) => (
+                        <div key={i} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white ${badge.color}`}>
+                           {badge.icon}
+                           {badge.label}
+                        </div>
+                      ))}
+                      {displayProfile?.role !== 'reader' && (
+                        <button 
+                          onClick={() => setShowProModal(true)}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-wider text-white hover:bg-brand-gold hover:text-brand-black transition-all"
+                        >
+                           <MessageCircle className="w-4 h-4" />
+                           Demande Professionnelle
+                        </button>
+                      )}
+                   </div>
+                 </>
+               )}
             </div>
          </div>
       </div>
@@ -193,31 +215,43 @@ export const Profile = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-               {[1, 2, 3].map(i => (
-                 <motion.div 
-                   key={i} 
-                   whileHover={{ y: -8 }}
-                   className="space-y-3 group cursor-pointer"
-                 >
-                    <div className="aspect-[3/4] bg-brand-brown rounded-2xl border border-white/10 overflow-hidden relative">
-                       <div className="absolute inset-0 bg-linear-to-t from-brand-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                          <div className="text-[10px] font-bold text-white uppercase tracking-widest">Chapitre 12 / 24</div>
-                       </div>
-                    </div>
-                    <div>
-                       <h4 className="font-bold text-sm">L'Esprit du Fleuve</h4>
-                       <div className="h-1 w-full bg-white/10 rounded-full mt-2 overflow-hidden">
-                          <div className="h-full bg-brand-gold w-1/2" />
-                       </div>
-                    </div>
-                 </motion.div>
-               ))}
-               <div className="aspect-[3/4] border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center p-6 text-center gap-4 hover:border-brand-gold/30 transition-all cursor-pointer group">
-                  <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-gray-500 group-hover:text-brand-gold">
-                     <Grid className="w-6 h-6" />
-                  </div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Explorer plus d'œuvres</p>
-               </div>
+               {loading ? (
+                 Array(4).fill(0).map((_, i) => (
+                   <div key={i} className="space-y-3">
+                     <Skeleton className="aspect-[3/4] rounded-2xl" />
+                     <Skeleton variant="text" className="w-3/4 h-4" />
+                     <Skeleton className="w-full h-1 rounded-full" />
+                   </div>
+                 ))
+               ) : (
+                 <>
+                   {[1, 2, 3].map(i => (
+                     <motion.div 
+                       key={i} 
+                       whileHover={{ y: -8 }}
+                       className="space-y-3 group cursor-pointer"
+                     >
+                        <div className="aspect-[3/4] bg-brand-brown rounded-2xl border border-white/10 overflow-hidden relative">
+                           <div className="absolute inset-0 bg-linear-to-t from-brand-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                              <div className="text-[10px] font-bold text-white uppercase tracking-widest">Chapitre 12 / 24</div>
+                           </div>
+                        </div>
+                        <div>
+                           <h4 className="font-bold text-sm">L'Esprit du Fleuve</h4>
+                           <div className="h-1 w-full bg-white/10 rounded-full mt-2 overflow-hidden">
+                              <div className="h-full bg-brand-gold w-1/2" />
+                           </div>
+                        </div>
+                     </motion.div>
+                   ))}
+                   <div className="aspect-[3/4] border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center p-6 text-center gap-4 hover:border-brand-gold/30 transition-all cursor-pointer group">
+                      <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-gray-500 group-hover:text-brand-gold">
+                         <Grid className="w-6 h-6" />
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Explorer plus d'œuvres</p>
+                   </div>
+                 </>
+               )}
             </div>
          </div>
       </div>

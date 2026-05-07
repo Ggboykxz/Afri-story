@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { workService, Work } from '../lib/workService';
+import { Skeleton } from '../components/Skeleton';
 
 export const ArtistDashboard = () => {
   const { user, profile } = useAuth();
@@ -217,7 +218,21 @@ export const ArtistDashboard = () => {
              </div>
              <div className="divide-y divide-white/5">
                 {loading ? (
-                   <div className="py-12 flex justify-center"><Loader2 className="w-8 h-8 text-brand-gold animate-spin" /></div>
+                   Array(3).fill(0).map((_, i) => (
+                     <div key={i} className="p-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                           <Skeleton className="w-12 h-16" />
+                           <div className="space-y-2">
+                             <Skeleton variant="text" className="w-24" />
+                             <Skeleton variant="text" className="w-16 h-3" />
+                           </div>
+                        </div>
+                        <div className="flex gap-4">
+                           <Skeleton className="w-12 h-4" />
+                           <Skeleton className="w-20 h-4" />
+                        </div>
+                     </div>
+                   ))
                 ) : works.length > 0 ? (
                    works.slice(0, 3).map(work => (
                      <div key={work.id} className="p-6 flex items-center justify-between group hover:bg-white/5 transition-all">
