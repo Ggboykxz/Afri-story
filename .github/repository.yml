@@ -1,17 +1,26 @@
-name: AfriStory
+name: afristory
+version: 1.0.0
+title: AfriStory
 description: Plateforme panafricaine de Webtoons, BDs et Romans Illustrés
 homepage: https://afristory.com
 language: TypeScript
 topics:
   - react
   - typescript
-  - firebase
-  - framer-motion
-  - tailwind
   - webtoon
-  - comics
   - manga
   - bd
+  - comic
+  - firebase
+  - framer-motion
+  - tailwind-css
+  - tailwind
   - african
   - creative-platform
-license: Proprietal
+  - digital-platform
+  - publishing
+  - comics-reader
+license: Proprietary
+author: AfriStory Team <contact@afristory.com>
+funding:
+  url: https://afristory.com/subscription
