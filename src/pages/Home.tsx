@@ -1,22 +1,49 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ChefHat, TrendingUp, Sparkles, BookOpen, Search } from 'lucide-react';
+import { ChefHat, TrendingUp, Sparkles, BookOpen, Search, Loader2 } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { workService, Work } from '../lib/workService';
 
 export const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('search')?.toLowerCase() || "";
+  
+  const [works, setWorks] = useState<Work[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWorks = async () => {
+      setLoading(true);
+      try {
+        const popular = await workService.getPopularWorks();
+        setWorks(popular);
+      } catch (err) {
+        console.error("Error fetching works", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWorks();
+  }, []);
 
   const filteredWorks = useMemo(() => {
-    if (!searchQuery) return mockWorks;
-    return mockWorks.filter(w => 
+    if (!searchQuery) return works;
+    return works.filter(w => 
       w.title.toLowerCase().includes(searchQuery) || 
       w.author.toLowerCase().includes(searchQuery) ||
       w.category.toLowerCase().includes(searchQuery)
     );
-  }, [searchQuery]);
+  }, [searchQuery, works]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-brand-gold animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="pb-24">
@@ -84,7 +111,7 @@ export const Home = () => {
               </h2>
             </div>
             <div className="grid sm:grid-cols-2 gap-6">
-              {mockWorks.slice(0, 4).map((work, i) => (
+              {works.slice(0, 4).map((work, i) => (
                 <TrendingWorkCard key={work.id} work={work} index={i + 1} />
               ))}
             </div>
@@ -96,10 +123,12 @@ export const Home = () => {
               <Link to="/rankings" className="text-brand-gold text-[10px] font-black uppercase tracking-widest hover:underline">Voir Tout</Link>
             </div>
             <div className="space-y-6">
-              {mockWorks.map((work, i) => (
-                <div key={work.id} className="flex items-center gap-4 group cursor-pointer">
+              {works.slice(0, 5).map((work, i) => (
+                <div key={work.id} className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate(`/work/${work.id}`)}>
                   <span className="text-4xl font-display font-black text-white/10 group-hover:text-brand-gold transition-colors">{i + 1}</span>
-                  <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0" />
+                  <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0 relative overflow-hidden">
+                    {work.coverURL && <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />}
+                  </div>
                   <div className="flex-1">
                     <h4 className="font-bold text-sm line-clamp-1">{work.title}</h4>
                     <p className="text-[10px] text-gray-500 font-bold uppercase">{work.author}</p>
@@ -126,7 +155,7 @@ export const Home = () => {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {filteredWorks.filter(w => w.isPro).map((work) => (
+          {filteredWorks.filter(w => w.isPro).slice(0, 10).map((work) => (
             <WorkCard key={work.id} work={work} />
           ))}
         </div>
@@ -142,11 +171,11 @@ export const Home = () => {
                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Les pépites de demain — Espace communautaire</p>
             </div>
           </div>
-          <Link to="/draft" className="text-brand-green text-sm font-bold hover:underline">Explorer le Draft</Link>
+          <Link to="/explore?format=Tous&genre=Tous&type=Draft" className="text-brand-green text-sm font-bold hover:underline">Explorer le Draft</Link>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {filteredWorks.filter(w => !w.isPro).map((work) => (
+          {filteredWorks.filter(w => !w.isPro).slice(0, 10).map((work) => (
             <WorkCard key={work.id} work={work} />
           ))}
         </div>
@@ -187,6 +216,7 @@ const TrendingWorkCard = ({ work, index }: { work: any, index: number }) => {
       className="flex items-center gap-6 group cursor-pointer glass-card p-4 hover:border-brand-gold/30 transition-all"
     >
       <div className="w-20 h-28 bg-brand-brown rounded-xl flex-shrink-0 relative overflow-hidden">
+         {work.coverURL && <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />}
          <div className="absolute top-0 right-0 bg-brand-gold text-brand-black text-[10px] font-black px-2 py-0.5">#{index}</div>
       </div>
       <div className="space-y-2">
@@ -224,7 +254,11 @@ const WorkCard = ({ work }: { work: any }) => {
         <div className="absolute inset-0 bg-linear-to-t from-brand-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
           <button className="w-full py-2 bg-brand-gold text-brand-black text-xs font-black rounded-lg">LIRE MAINTENANT</button>
         </div>
-        <div className="w-full h-full bg-brand-brown" />
+        {work.coverURL ? (
+          <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+        ) : (
+          <div className="w-full h-full bg-brand-brown" />
+        )}
       </div>
       <div className="space-y-1">
         <h4 className="font-display font-bold leading-tight line-clamp-1">{work.title}</h4>
@@ -238,5 +272,3 @@ const WorkCard = ({ work }: { work: any }) => {
     </motion.div>
   );
 };
-
-const mockWorks: any[] = [];

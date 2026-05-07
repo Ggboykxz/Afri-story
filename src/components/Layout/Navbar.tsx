@@ -1,13 +1,31 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, User as UserIcon, Menu, LogIn, LayoutDashboard, MessageCircle } from 'lucide-react';
+import { Search, Bell, User as UserIcon, Menu, LogIn, LayoutDashboard, MessageCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { signInWithGoogle, auth } from '../../lib/firebase';
 import { motion } from 'motion/react';
+import { notificationService, Notification } from '../../lib/notificationService';
 
 export const Navbar = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const [notifications, setNotifications] = React.useState<Notification[]>([]);
+  const [showNotifications, setShowNotifications] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user) return;
+    const unsubscribe = notificationService.subscribe(user.uid, (data) => {
+      setNotifications(data);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const handleMarkAllRead = async () => {
+    if (!user) return;
+    await notificationService.markAllAsRead(user.uid);
+  };
 
   const handleLogin = async () => {
     try {
@@ -28,6 +46,7 @@ export const Navbar = () => {
 
       <div className="hidden md:flex items-center gap-6 text-sm font-medium">
         <Link to="/" className="text-gray-300 hover:text-white transition-colors">Accueil</Link>
+        <Link to="/explore" className="text-gray-300 hover:text-white transition-colors">Explorer</Link>
         <Link to="/forum" className="text-gray-300 hover:text-white transition-colors">Forums</Link>
         <Link to="/artist" className="text-gray-300 hover:text-white transition-colors">Artistes</Link>
         <div className="h-4 w-[1px] bg-white/10" />
@@ -61,32 +80,56 @@ export const Navbar = () => {
             </div>
             
             <div className="relative group">
-              <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 text-gray-400 hover:text-white transition-colors"
+              >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-brand-red rounded-full animate-pulse" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-brand-red rounded-full animate-pulse" />
+                )}
               </button>
               
               {/* Notification Dropdown */}
-              <div className="absolute right-0 top-full mt-2 w-80 glass-card p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 translate-y-2 group-hover:translate-y-0">
+              <div className={`absolute right-0 top-full mt-2 w-80 glass-card p-4 transition-all z-50 ${showNotifications ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
                 <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
                    <h4 className="font-display font-bold">Notifications</h4>
-                   <button className="text-[8px] font-black uppercase text-brand-gold">Tout marquer comme lu</button>
+                   {unreadCount > 0 && (
+                     <button 
+                       onClick={handleMarkAllRead}
+                       className="text-[8px] font-black uppercase text-brand-gold hover:underline"
+                     >
+                       Tout marquer comme lu
+                     </button>
+                   )}
                 </div>
-                <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                   <div className="flex gap-3 text-left">
-                      <div className="w-2 h-2 rounded-full bg-brand-gold mt-1.5 flex-shrink-0" />
-                      <div>
-                         <p className="text-xs text-white">Nouveau chapitre disponible : <span className="font-bold">Légendes d'Oyo #24</span></p>
-                         <span className="text-[8px] font-bold text-gray-500 uppercase">Il y a 10 minutes</span>
-                      </div>
-                   </div>
-                   <div className="flex gap-3 text-left">
-                      <div className="w-2 h-2 rounded-full bg-brand-gold mt-1.5 flex-shrink-0" />
-                      <div>
-                         <p className="text-xs text-white"><span className="font-bold">Aurore_K</span> a répondu à votre commentaire dans le forum.</p>
-                         <span className="text-[8px] font-bold text-gray-500 uppercase">Il y a 2 heures</span>
-                      </div>
-                   </div>
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                   {notifications.length > 0 ? (
+                     notifications.map((notif) => (
+                       <div 
+                         key={notif.id} 
+                         className={`flex gap-3 text-left p-2 rounded-lg transition-colors ${notif.isRead ? 'opacity-50' : 'bg-white/5'}`}
+                         onClick={() => {
+                           notificationService.markAsRead(notif.id);
+                           if (notif.link) navigate(notif.link);
+                           setShowNotifications(false);
+                         }}
+                       >
+                         {!notif.isRead && <div className="w-2 h-2 rounded-full bg-brand-gold mt-1.5 flex-shrink-0" />}
+                         <div className="flex-1">
+                            <p className="text-xs text-white leading-relaxed">{notif.message}</p>
+                            <span className="text-[8px] font-bold text-gray-500 uppercase mt-1 block">
+                              {notif.createdAt?.toDate?.() ? notif.createdAt.toDate().toLocaleDateString() : 'Récemment'}
+                            </span>
+                         </div>
+                       </div>
+                     ))
+                   ) : (
+                     <div className="py-8 text-center space-y-2">
+                       <Bell className="w-8 h-8 text-white/10 mx-auto" />
+                       <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Aucune notification</p>
+                     </div>
+                   )}
                 </div>
               </div>
             </div>

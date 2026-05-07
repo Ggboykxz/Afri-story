@@ -105,7 +105,7 @@ export const Shop = () => {
                         <Coins className="w-10 h-10" />
                      </div>
                      <div>
-                        <h2 className="text-2xl font-display font-black uppercase tracking-tighter">Votre solde : <span className="text-brand-gold">{profile?.afriCoins || 0} Nexus-Coins</span></h2>
+                        <h2 className="text-2xl font-display font-black uppercase tracking-tighter">Votre solde : <span className="text-brand-gold">{profile?.nexusCoins || 0} Nexus-Coins</span></h2>
                         <p className="text-sm text-gray-500">Utilisez vos crédits pour débloquer des chapitres premium.</p>
                      </div>
                   </div>

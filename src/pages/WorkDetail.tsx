@@ -1,41 +1,69 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { BookOpen, Heart, Share2, Award, User, Star, DollarSign, X, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { BookOpen, Heart, Share2, Award, User, Star, DollarSign, X, Check, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { workService, Work } from '../lib/workService';
+import { useAuth } from '../context/AuthContext';
 
 export const WorkDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const [work, setWork] = useState<Work | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showDonate, setShowDonate] = useState(false);
   const [donated, setDonated] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
-  // Mock data for the work
-  const work = {
-    id,
-    title: "Légendes d'Oyo",
-    author: "Sola Adeyemi",
-    authorId: "auth123",
-    description: "Dans un monde où les anciens dieux du panthéon Yoruba marchent parmi les hommes, un jeune guerrier doit retrouver le sceptre de Shango pour sauver son royaume d'une obscurité éternelle. Une épopée mêlant tradition et action frénétique.",
-    type: "WEBTOON",
-    category: "Fantaisie / Action",
-    status: "EN COURS",
-    isPro: true,
-    views: "24.5K",
-    likes: "1.2K",
-    chapters: [
-      { id: 'c1', number: 1, title: 'L\'Éveil du Guerrier', date: '20 Mai 2024', isPremium: false },
-      { id: 'c2', number: 2, title: 'Les Plains de Savane', date: '27 Mai 2024', isPremium: false },
-      { id: 'c3', number: 3, title: 'L\'Oracle d\'Ifa', date: '03 Juin 2024', isPremium: true },
-      { id: 'c4', number: 4, title: 'La Colère de Shango', date: '10 Juin 2024', isPremium: true },
-    ]
+  useEffect(() => {
+    if (!id) return;
+    fetchWork();
+  }, [id]);
+
+  const fetchWork = async () => {
+    try {
+      setLoading(true);
+      const data = await workService.getWork(id!);
+      setWork(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDonate = () => {
+    if (!user) return navigate('/login');
     setDonated(true);
     setTimeout(() => {
       setDonated(false);
       setShowDonate(false);
     }, 2000);
   };
+
+  const toggleFavorite = () => {
+    if (!user) return navigate('/login');
+    setIsFavorited(!isFavorited);
+    // Ideally this would sync with Firestore "favorites" collection
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-brand-gold animate-spin" />
+      </div>
+    );
+  }
+
+  if (!work) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
+        <h2 className="text-2xl font-display font-bold">Œuvre introuvable</h2>
+        <Link to="/" className="text-brand-gold hover:underline font-bold uppercase tracking-widest text-xs">Retour à l'accueil</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -46,13 +74,17 @@ export const WorkDetail = () => {
         
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 max-w-7xl mx-auto flex flex-col md:flex-row items-end gap-8">
           <div className="w-48 aspect-[3/4] rounded-2xl overflow-hidden glass-card shadow-2xl flex-shrink-0 -mb-24 relative z-10">
-             <div className="w-full h-full bg-brand-brown/40" />
+             {work.coverURL ? (
+               <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />
+             ) : (
+               <div className="w-full h-full bg-brand-brown/40" />
+             )}
           </div>
           
           <div className="flex-1 space-y-4 mb-4">
             <div className="flex flex-wrap gap-2">
               <span className="bg-brand-gold text-brand-black text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">{work.type}</span>
-              <span className="bg-white/10 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">{work.status}</span>
+              <span className="bg-white/10 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">{work.status || 'EN COURS'}</span>
               {work.isPro && <span className="bg-brand-gold/20 text-brand-gold text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider border border-brand-gold/30">ARTISTE PRO</span>}
             </div>
             <h1 className="text-4xl md:text-6xl font-display font-black leading-[0.9]">{work.title}</h1>
@@ -61,7 +93,7 @@ export const WorkDetail = () => {
                 <User className="w-4 h-4" />
                 {work.author}
               </Link>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 uppercase tracking-widest text-[10px]">
                 <BookOpen className="w-4 h-4" />
                 {work.category}
               </div>
@@ -69,8 +101,13 @@ export const WorkDetail = () => {
           </div>
 
           <div className="flex flex-wrap gap-4 mb-4">
-            <button className="flex items-center gap-2 px-6 py-3 bg-brand-gold text-brand-black font-black rounded-xl hover:scale-105 transition-transform">
-              S'ABONNER
+            <button 
+              onClick={toggleFavorite}
+              className={`flex items-center gap-2 px-6 py-3 font-black rounded-xl hover:scale-105 transition-all ${
+                isFavorited ? 'bg-white text-brand-black' : 'bg-brand-gold text-brand-black shadow-lg shadow-brand-gold/10'
+              }`}
+            >
+              {isFavorited ? 'ABONNÉ' : "S'ABONNER"}
             </button>
             <button 
               onClick={() => setShowDonate(true)}
@@ -79,10 +116,13 @@ export const WorkDetail = () => {
               <DollarSign className="w-4 h-4 text-brand-gold" />
               DONNER
             </button>
-            <button className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">
-              <Heart className="w-6 h-6" />
+            <button 
+              onClick={toggleFavorite}
+              className={`p-3 border rounded-xl transition-all ${isFavorited ? 'bg-brand-red/20 border-brand-red text-brand-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+            >
+              <Heart className={`w-6 h-6 ${isFavorited ? 'fill-current' : ''}`} />
             </button>
-            <button className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">
+            <button className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-white">
               <Share2 className="w-6 h-6" />
             </button>
           </div>

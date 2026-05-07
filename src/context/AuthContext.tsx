@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             displayName: user.displayName,
             photoURL: user.photoURL,
             role: 'reader',
-            afriCoins: 0,
+            nexusCoins: 0,
             badges: [],
             createdAt: new Date().toISOString()
           };

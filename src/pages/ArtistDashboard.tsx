@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users, Award, Sparkles, X, Briefcase, UserPlus } from 'lucide-react';
+import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users, Award, Sparkles, X, Briefcase, UserPlus, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
@@ -11,8 +11,21 @@ export const ArtistDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showRecruitModal, setShowRecruitModal] = useState(false);
 
-  const recruits: any[] = [];
-  const statsData: any[] = [];
+  const recruits = [
+    { name: "Mariama K.", role: "Coloriste", exp: "5 ans exp." },
+    { name: "Kofi B.", role: "Scénariste", exp: "2 ans exp." },
+    { name: "Amara S.", role: "Illustratrice", exp: "4 ans exp." },
+  ];
+
+  const statsData = [
+    { name: 'Lun', views: 4000, revenue: 2400 },
+    { name: 'Mar', views: 3000, revenue: 1398 },
+    { name: 'Mer', views: 2000, revenue: 9800 },
+    { name: 'Jeu', views: 2780, revenue: 3908 },
+    { name: 'Ven', views: 1890, revenue: 4800 },
+    { name: 'Sam', views: 2390, revenue: 3800 },
+    { name: 'Dim', views: 3490, revenue: 4300 },
+  ];
 
   if (profile?.role === 'reader') {
     return (
@@ -234,12 +247,36 @@ export const ArtistDashboard = () => {
                     </div>
                     <div className="space-y-4">
                        <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest border-b border-white/10 pb-2">Publier une annonce</h4>
-                       <div className="p-6 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-4 hover:border-brand-gold/30 transition-all cursor-pointer group">
-                          <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-gray-500 group-hover:text-brand-gold transition-colors">
-                             <Plus className="w-6 h-6" />
+                       {profile?.role === 'artist_pro' ? (
+                          <div 
+                            onClick={async () => {
+                              const title = prompt("Titre de l'annonce ? (ex: Recherche Coloriste)");
+                              const desc = prompt("Description du projet ?");
+                              const role = prompt("Rôle requis ?");
+                              if (title && desc && role && user) {
+                                 const { collaborationService } = await import('../lib/collaborationService');
+                                 await collaborationService.createAd(user.uid, profile?.displayName || "Anonyme", {
+                                   title,
+                                   description: desc,
+                                   roleRequired: role
+                                 });
+                                 alert("Annonce publiée !");
+                              }
+                            }}
+                            className="p-6 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-4 hover:border-brand-gold/30 transition-all cursor-pointer group"
+                          >
+                             <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-gray-500 group-hover:text-brand-gold transition-colors">
+                                <Plus className="w-6 h-6" />
+                             </div>
+                             <p className="text-xs font-bold text-gray-400 text-center">Besoin d'un scénariste ou d'un coloriste spécifique ? <br /> <span className="text-brand-gold">Créez un appel d'offre</span></p>
                           </div>
-                          <p className="text-xs font-bold text-gray-400 text-center">Besoin d'un scénariste ou d'un coloriste spécifique ? <br /> <span className="text-brand-gold">Créez un appel d'offre</span></p>
-                       </div>
+                       ) : (
+                          <div className="p-6 bg-brand-red/5 border border-brand-red/20 rounded-2xl text-center space-y-3 opacity-60">
+                             <ShieldAlert className="w-8 h-8 text-brand-red mx-auto" />
+                             <p className="text-[10px] font-black uppercase text-brand-red tracking-widest">Réservé aux Artistes Pro</p>
+                             <p className="text-[8px] text-gray-500 font-bold">Passez en statut Pro pour publier des appels d'offres communautaires.</p>
+                          </div>
+                       )}
                     </div>
                  </div>
 

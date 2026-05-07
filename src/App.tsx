@@ -13,6 +13,8 @@ import { Messaging } from './pages/Messaging';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { Rankings } from './pages/Rankings';
 import { Settings } from './pages/Settings';
+import { Explore } from './pages/Explore';
+import { Library } from './pages/Library';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { AuthProvider } from './context/AuthContext';
@@ -24,6 +26,8 @@ export default function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/library" element={<Library />} />
             <Route path="/work/:id" element={<WorkDetail />} />
             <Route path="/read/:workId/:chapterId" element={<Reader />} />
             <Route path="/artist" element={<ArtistDashboard />} />

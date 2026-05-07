@@ -15,6 +15,23 @@ import {
 import { db, auth } from './firebase';
 import { handleFirestoreError, OperationType } from './firestore-errors';
 
+export interface Work {
+  id: string;
+  title: string;
+  description: string;
+  author: string;
+  authorId: string;
+  type: string;
+  category: string;
+  status?: string;
+  isPro: boolean;
+  coverURL?: string;
+  views: number;
+  likes: number;
+  chapters?: any[];
+  createdAt: any;
+}
+
 export const workService = {
   // Create a new work
   createWork: async (workData: any) => {
@@ -24,6 +41,7 @@ export const workService = {
         ...workData,
         authorId: auth.currentUser?.uid,
         authorName: auth.currentUser?.displayName,
+        author: auth.currentUser?.displayName, // Compatibility fix
         createdAt: serverTimestamp(),
         views: 0,
         likes: 0,
@@ -31,6 +49,51 @@ export const workService = {
       return docRef.id;
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, path);
+    }
+  },
+
+  // Get a single work
+  getWork: async (id: string): Promise<Work | null> => {
+    const path = `works/${id}`;
+    try {
+      const docSnap = await getDoc(doc(db, 'works', id));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Fetch chapters subcollection
+        const chapSnap = await getDocs(query(collection(db, 'works', id, 'chapters'), orderBy('publishedAt', 'asc')));
+        const chapters = chapSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        return { 
+          id: docSnap.id, 
+          ...data,
+          chapters,
+          author: data.authorName || data.author // Fallback
+        } as Work;
+      }
+      return null;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.GET, path);
+      return null;
+    }
+  },
+
+  // Get popular works
+  getPopularWorks: async (limitCount: number = 10): Promise<Work[]> => {
+    const path = 'works';
+    try {
+      const q = query(
+        collection(db, path), 
+        orderBy('views', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.slice(0, limitCount).map(doc => ({ 
+        id: doc.id, 
+        ...doc.data(),
+        author: doc.data().authorName || doc.data().author
+      })) as Work[];
+    } catch (error) {
+      handleFirestoreError(error, OperationType.LIST, path);
+      return [];
     }
   },
 
@@ -96,12 +159,12 @@ export const workService = {
     
     try {
       const userDoc = await getDoc(userRef);
-      const coins = userDoc.data()?.afriCoins || 0;
+      const coins = userDoc.data()?.nexusCoins || 0;
       
       if (coins < price) throw new Error("Nexus-Coins insuffisants");
 
       // Transaction-like update (simplified for brevity)
-      await updateDoc(userRef, { afriCoins: increment(-price) });
+      await updateDoc(userRef, { nexusCoins: increment(-price) });
       await setDoc(unlockRef, {
         workId,
         chapterId,
@@ -133,7 +196,7 @@ export const workService = {
     try {
       const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
-        afriCoins: increment(amount)
+        nexusCoins: increment(amount)
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);

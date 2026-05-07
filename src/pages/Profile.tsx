@@ -136,7 +136,7 @@ export const Profile = () => {
                      <div className="text-[10px] text-gray-500 font-bold uppercase">Favoris</div>
                   </div>
                   <div className="space-y-1">
-                     <div className="text-sm font-black text-white">1,240</div>
+                     <div className="text-sm font-black text-white">{displayProfile?.nexusCoins || 0}</div>
                      <div className="text-[10px] text-gray-500 font-bold uppercase">Nexus-Coins</div>
                   </div>
                   <div className="space-y-1">
