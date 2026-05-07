@@ -52,11 +52,36 @@ export const Reader = () => {
 
   const [chapterContent, setChapterContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const comments: any[] = [];
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [newComment, setNewComment] = useState('');
 
   useEffect(() => {
     fetchChapter();
   }, [workId, chapterId]);
+
+  useEffect(() => {
+    if (workId && chapterId) {
+      setCommentsLoading(true);
+      const unsubscribe = workService.subscribeToComments(workId, chapterId, (data) => {
+        setComments(data);
+        setCommentsLoading(false);
+      });
+      return () => unsubscribe();
+    }
+  }, [workId, chapterId]);
+
+  const handleAddComment = async () => {
+    if (!user || !newComment.trim() || !workId || !chapterId) return;
+    await workService.addComment(
+      workId, 
+      chapterId, 
+      user.uid, 
+      profile?.displayName || 'Anonyme', 
+      newComment
+    );
+    setNewComment('');
+  };
 
   const fetchChapter = async () => {
     if (!workId || !chapterId) return;
@@ -304,35 +329,55 @@ export const Reader = () => {
                   <h3 className="text-xl font-display font-black uppercase tracking-tighter">Commentaires</h3>
                   <button onClick={() => setShowComments(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X className="w-6 h-6" /></button>
                </div>
-               <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  {comments.map(comment => (
-                    <div key={comment.id} className="space-y-2">
-                       <div className="flex items-center justify-between">
-                          <span className="font-black text-xs uppercase tracking-widest">{comment.user}</span>
-                          <span className="text-[10px] text-gray-500 font-bold uppercase">{comment.time}</span>
+<div className="flex-1 overflow-y-auto p-6 space-y-6">
+                   {commentsLoading ? (
+                     <div className="text-center text-gray-500">Chargement...</div>
+                   ) : comments.length > 0 ? (
+                     comments.map((comment: any) => (
+                       <div key={comment.id} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                             <span className="font-black text-xs uppercase tracking-widest">{comment.authorName}</span>
+                             <span className="text-[10px] text-gray-500 font-bold uppercase">
+                               {comment.createdAt?.toDate?.() ? comment.createdAt.toDate().toLocaleDateString() : 'Maintenant'}
+                             </span>
+                          </div>
+                          <p className="text-sm text-gray-300 leading-relaxed font-medium bg-white/5 p-4 rounded-xl border border-white/5">{comment.content}</p>
+                          <div className="flex items-center gap-4 text-[10px] font-black uppercase text-gray-500">
+                             <button className="hover:text-white" onClick={() => user && workService.likeComment(workId!, chapterId!, comment.id)}>
+                               <Heart className="w-3 h-3 inline mr-1" /> {comment.likes || 0}
+                             </button>
+                          </div>
                        </div>
-                       <p className="text-sm text-gray-300 leading-relaxed font-medium bg-white/5 p-4 rounded-xl border border-white/5">{comment.text}</p>
-                    </div>
-                  ))}
-               </div>
-               <div className="p-6 border-t border-white/10 bg-white/5">
-                  <div className="relative">
-                     <textarea 
-                       placeholder="Votre commentaire..." 
-                       className="w-full bg-brand-black border border-white/10 rounded-xl p-4 pr-12 text-sm outline-none focus:border-brand-gold transition-colors resize-none"
-                       rows={3}
-                     />
-                     <button className="absolute bottom-4 right-4 p-2 text-brand-gold hover:scale-110 transition-transform">
+                     ))
+                   ) : (
+                     <div className="text-center text-gray-500 py-8">Aucun commentaire. Soyez le premier !</div>
+                   )}
+                </div>
+                <div className="p-6 border-t border-white/10 bg-white/5">
+                   <div className="relative">
+                      <textarea 
+                        value={newComment}
+                        onChange={e => setNewComment(e.target.value)}
+                        placeholder={user ? "Votre commentaire..." : "Connectez-vous pour commenter"}
+                        disabled={!user}
+                        className="w-full bg-brand-black border border-white/10 rounded-xl p-4 pr-12 text-sm outline-none focus:border-brand-gold transition-colors resize-none"
+                        rows={3}
+                      />
+                      <button 
+                        onClick={handleAddComment}
+                        disabled={!user || !newComment.trim()}
+                        className="absolute bottom-4 right-4 p-2 text-brand-gold hover:scale-110 transition-transform disabled:opacity-30"
+                      >
                         <ArrowLeft className="w-5 h-5 rotate-180" />
-                     </button>
-                  </div>
-               </div>
+                      </button>
+                   </div>
+                </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Share Modal */}
+{/* Share Modal */}
       <AnimatePresence>
         {showShare && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
@@ -348,19 +393,51 @@ export const Reader = () => {
                animate={{ scale: 1, opacity: 1 }}
                exit={{ scale: 0.9, opacity: 0 }}
                className="glass-card max-w-sm w-full p-8 relative z-10 text-center space-y-6"
-            >
-               <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Partager l'œuvre</h3>
-               <div className="grid grid-cols-2 gap-4">
-                  {['WhatsApp', 'Facebook', 'Twitter', 'Copier Lien'].map(platform => (
-                    <button key={platform} className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-brand-gold hover:text-brand-gold transition-all text-[10px] font-black uppercase tracking-widest">
-                       {platform}
-                    </button>
-                  ))}
-               </div>
-               <button onClick={() => setShowShare(false)} className="text-xs font-black text-gray-500 uppercase hover:text-white transition-colors">Fermer</button>
-            </motion.div>
-          </div>
-        )}
+           >
+              <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Partager l'œuvre</h3>
+              <div className="grid grid-cols-2 gap-4">
+                 <button 
+                   onClick={() => {
+                     const url = `${window.location.origin}/read/${workId}/${chapterId}`;
+                     window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank');
+                   }}
+                   className="p-4 bg-green-500/20 border border-green-500/30 rounded-2xl hover:bg-green-500/30 transition-all text-[10px] font-black uppercase tracking-widest text-green-400"
+                 >
+                   WhatsApp
+                 </button>
+                 <button 
+                   onClick={() => {
+                     const url = `${window.location.origin}/read/${workId}/${chapterId}`;
+                     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+                   }}
+                   className="p-4 bg-blue-500/20 border border-blue-500/30 rounded-2xl hover:bg-blue-500/30 transition-all text-[10px] font-black uppercase tracking-widest text-blue-400"
+                 >
+                   Facebook
+                 </button>
+                 <button 
+                   onClick={() => {
+                     const url = `${window.location.origin}/read/${workId}/${chapterId}`;
+                     window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`, '_blank');
+                   }}
+                   className="p-4 bg-sky-500/20 border border-sky-500/30 rounded-2xl hover:bg-sky-500/30 transition-all text-[10px] font-black uppercase tracking-widest text-sky-400"
+                 >
+                   Twitter/X
+                 </button>
+                 <button 
+                   onClick={() => {
+                     const url = `${window.location.origin}/read/${workId}/${chapterId}`;
+                     navigator.clipboard.writeText(url);
+                     setShowShare(false);
+                   }}
+                   className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-brand-gold hover:text-brand-gold transition-all text-[10px] font-black uppercase tracking-widest"
+                 >
+                   Copier Lien
+                 </button>
+              </div>
+              <button onClick={() => setShowShare(false)} className="text-xs font-black text-gray-500 uppercase hover:text-white transition-colors">Fermer</button>
+           </motion.div>
+         </div>
+       )}
       </AnimatePresence>
 
       {/* Floating Buttons */}

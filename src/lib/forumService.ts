@@ -1,4 +1,4 @@
-import { collection, query, where, orderBy, limit, addDoc, getDocs, doc, getDoc, updateDoc, increment, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, addDoc, getDocs, doc, getDoc, updateDoc, increment, serverTimestamp, Timestamp, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 export interface Thread {
@@ -90,5 +90,42 @@ export const forumService = {
     });
     
     return newReply;
+  },
+
+  subscribeToThreads: (categoryId: string | undefined, callback: (threads: Thread[]) => void) => {
+    let q;
+    if (categoryId) {
+      q = query(collection(db, 'forum_threads'), where('categoryId', '==', categoryId), orderBy('createdAt', 'desc'), limit(50));
+    } else {
+      q = query(collection(db, 'forum_threads'), orderBy('createdAt', 'desc'), limit(50));
+    }
+    return onSnapshot(q, (snapshot) => {
+      const threads = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Thread[];
+      callback(threads);
+    });
+  },
+
+  subscribeToReplies: (threadId: string, callback: (replies: Reply[]) => void) => {
+    const q = query(collection(db, 'forum_replies'), where('threadId', '==', threadId), orderBy('createdAt', 'asc'));
+    return onSnapshot(q, (snapshot) => {
+      const replies = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Reply[];
+      callback(replies);
+    });
+  },
+
+  deleteThread: async (threadId: string) => {
+    try {
+      await deleteDoc(doc(db, 'forum_threads', threadId));
+    } catch (error) {
+      console.error('Error deleting thread:', error);
+    }
+  },
+
+  incrementView: async (threadId: string) => {
+    try {
+      await updateDoc(doc(db, 'forum_threads', threadId), { views: increment(1) });
+    } catch (error) {
+      console.error('Error incrementing views:', error);
+    }
   }
 };

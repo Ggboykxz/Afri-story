@@ -1,21 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { workService } from '../lib/workService';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Upload, Loader2, X, CloudUpload } from 'lucide-react';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Skeleton } from '../components/Skeleton';
+import { storage } from '../lib/firebase';
 
 export const CreateWork = () => {
   const navigate = useNavigate();
   const { profile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    type: 'webtoon',
+    type: 'WEBTOON',
     category: 'Fantaisie',
     isPro: profile?.role === 'artist_pro',
   });
+
+  const handleCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner une image');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('L\'image ne doit pas dépasser 5MB');
+      return;
+    }
+
+    setCoverFile(file);
+    const preview = URL.createObjectURL(file);
+    setCoverPreview(preview);
+  };
+
+  const handleRemoveCover = () => {
+    setCoverFile(null);
+    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    setCoverPreview(null);
+  };
+
+  async function uploadCoverImage(workId: string): Promise<string | null> {
+    if (!coverFile) return null;
+    
+    setUploadingCover(true);
+    try {
+      const storageRef = ref(storage, `covers/${workId}/cover_${Date.now()}`);
+      await uploadBytes(storageRef, coverFile);
+      const url = await getDownloadURL(storageRef);
+      return url;
+    } catch (error) {
+      console.error('Error uploading cover:', error);
+      return null;
+    } finally {
+      setUploadingCover(false);
+    }
+  };
 
   if (authLoading) {
     return (
@@ -42,6 +91,11 @@ export const CreateWork = () => {
     setLoading(true);
     try {
       const workId = await workService.createWork(formData);
+      
+      if (workId && coverFile) {
+        await uploadCoverImage(workId);
+      }
+      
       navigate(`/work/${workId}`);
     } catch (error) {
       console.error(error);
@@ -49,6 +103,11 @@ export const CreateWork = () => {
       setLoading(false);
     }
   };
+
+  const categories = [
+    'Fantaisie', 'Action', 'Sci-Fi', 'Romance', 'Mystère', 
+    'Drame', 'Historique', 'Comédie', 'Slice of Life', 'Horreur'
+  ];
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
@@ -83,9 +142,9 @@ export const CreateWork = () => {
                 value={formData.type}
                 onChange={e => setFormData({ ...formData, type: e.target.value })}
               >
-                <option value="webtoon">Webtoon (Scroll vertical)</option>
-                <option value="bd">Bande Dessinée (Pages fixes)</option>
-                <option value="novel">Roman Illustré</option>
+                <option value="WEBTOON">Webtoon (Scroll vertical)</option>
+                <option value="BD">Bande Dessinée (Pages fixes)</option>
+                <option value="NOVEL">Roman Illustré</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -95,11 +154,9 @@ export const CreateWork = () => {
                 value={formData.category}
                 onChange={e => setFormData({ ...formData, category: e.target.value })}
               >
-                <option value="Fantaisie">Fantaisie</option>
-                <option value="Action">Action</option>
-                <option value="Sci-Fi">Sci-Fi</option>
-                <option value="Drame">Drame</option>
-                <option value="Slice of Life">Slice of Life</option>
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -115,11 +172,42 @@ export const CreateWork = () => {
             />
           </div>
 
-          <div className="p-12 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-brand-gold/30 transition-all cursor-pointer group">
-             <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-gray-500 group-hover:text-brand-gold transition-colors">
-                <ImageIcon className="w-8 h-8" />
-             </div>
-             <p className="text-sm font-bold text-gray-500 uppercase tracking-widest text-center">Glissez la couverture ici <br /><span className="text-[10px] opacity-50">JPG/PNG • 3:4 Ratio conseillé</span></p>
+          <div className="space-y-2">
+            <label className="text-sm font-black uppercase tracking-widest text-gray-500">Couverture</label>
+            <input 
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleCoverSelect}
+              className="hidden"
+            />
+            {!coverPreview ? (
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="p-12 border-2 border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center gap-4 hover:border-brand-gold/30 transition-all cursor-pointer group"
+              >
+                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-gray-500 group-hover:text-brand-gold transition-colors">
+                  <CloudUpload className="w-8 h-8" />
+                </div>
+                <p className="text-sm font-bold text-gray-500 uppercase tracking-widest text-center">Cliquez pour télécharger <br /><span className="text-[10px] opacity-50">JPG/PNG • 3:4 Ratio • Max 5MB</span></p>
+              </div>
+            ) : (
+              <div className="relative w-48 aspect-[3/4] rounded-2xl overflow-hidden">
+                <img src={coverPreview} alt="Cover preview" className="w-full h-full object-cover" />
+                <button 
+                  type="button"
+                  onClick={handleRemoveCover}
+                  className="absolute top-2 right-2 p-2 bg-brand-black/80 rounded-full hover:bg-brand-red transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                {uploadingCover && (
+                  <div className="absolute inset-0 bg-brand-black/60 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-brand-gold" />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4 p-4 bg-brand-gold/10 border border-brand-gold/20 rounded-2xl">
@@ -136,10 +224,10 @@ export const CreateWork = () => {
 
           <button 
             type="submit"
-            disabled={loading}
+            disabled={loading || uploadingCover}
             className="w-full py-5 bg-brand-gold text-brand-black font-black rounded-2xl text-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "PUBLIER L'ŒUVRE"}
+            {loading || uploadingCover ? <Loader2 className="w-6 h-6 animate-spin" /> : "PUBLIER L'ŒUVRE"}
           </button>
         </form>
       </div>

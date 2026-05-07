@@ -30,6 +30,7 @@ import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { SubscriptionPage } from './pages/Subscription';
 import { NotFound } from './pages/NotFound';
+import { SearchPage } from './pages/SearchPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
@@ -111,6 +112,7 @@ export default function App() {
               <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explore />} />
+            <Route path="/search" element={<SearchPage />} />
             <Route path="/library" element={
               <ProtectedRoute requireAuth={true} allowedRoles={['reader', 'reader_premium', 'reader_supporter', 'artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
                 <Library />

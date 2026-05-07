@@ -8,10 +8,12 @@ import {
   query, 
   where, 
   orderBy, 
+  limit,
   serverTimestamp,
   increment,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  onSnapshot
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { handleFirestoreError, OperationType } from './firestore-errors';
@@ -262,6 +264,75 @@ export const workService = {
       return snap.docs.map(d => d.data()) as any[];
     } catch (error) {
       console.error('Error getting history:', error);
+      return [];
+    }
+  },
+
+  // Comments on chapters
+  addComment: async (workId: string, chapterId: string, userId: string, authorName: string, content: string, isSpoiler: boolean = false) => {
+    try {
+      await addDoc(collection(db, 'works', workId, 'chapters', chapterId, 'comments'), {
+        userId,
+        authorName,
+        content,
+        isSpoiler,
+        likes: 0,
+        createdAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  },
+
+  subscribeToComments: (workId: string, chapterId: string, callback: (comments: any[]) => void) => {
+    const q = query(
+      collection(db, 'works', workId, 'chapters', chapterId, 'comments'),
+      orderBy('createdAt', 'desc')
+    );
+    return onSnapshot(q, (snapshot) => {
+      const comments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      callback(comments);
+    });
+  },
+
+  likeComment: async (workId: string, chapterId: string, commentId: string) => {
+    try {
+      await updateDoc(doc(db, 'works', workId, 'chapters', chapterId, 'comments', commentId), {
+        likes: increment(1)
+      });
+    } catch (error) {
+      console.error('Error liking comment:', error);
+    }
+  },
+
+  // Upload chapter images
+  uploadChapterImages: async (workId: string, chapterId: string, images: File[]): Promise<string[]> => {
+    const urls: string[] = [];
+    const { storage } = await import('./firebase');
+    const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+    
+    for (let i = 0; i < images.length; i++) {
+      const imageRef = ref(storage, `works/${workId}/${chapterId}/page_${i}_${Date.now()}`);
+      await uploadBytes(imageRef, images[i]);
+      const url = await getDownloadURL(imageRef);
+      urls.push(url);
+    }
+    return urls;
+  },
+
+  // Search works
+  searchWorks: async (searchTerm: string): Promise<Work[]> => {
+    try {
+      const q = query(
+        collection(db, 'works'),
+        where('title', '>=', searchTerm),
+        where('title', '<=', searchTerm + '\uf8ff'),
+        limit(20)
+      );
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() })) as Work[];
+    } catch (error) {
+      console.error('Error searching:', error);
       return [];
     }
   }
