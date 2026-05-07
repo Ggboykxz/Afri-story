@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Award, ShieldCheck, Zap, Star, ChevronRight, CheckCircle, Info, Rocket, Send, AlertCircle } from 'lucide-react';
+import { Award, ShieldCheck, Zap, Star, ChevronRight, CheckCircle, Info, Rocket, Send, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Skeleton } from '../components/Skeleton';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 export function BecomePro() {
   const { user, profile, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: profile?.displayName || '',
+    location: '',
+    portfolioUrl: '',
+    reason: '',
+    agreeToCharter: false
+  });
 
   if (authLoading) {
     return (
@@ -55,7 +64,7 @@ export function BecomePro() {
          </div>
          <div className="space-y-2">
            <h2 className="text-3xl font-display font-black uppercase text-brand-gold">Félicitations, vous êtes Pro !</h2>
-           <p className="text-gray-400 font-medium">Vous bénéficiez déjà de tous les avantages d'AfriStory pour les créateurs certifiés.</p>
+           <p className="text-gray-400 font-medium">Vous bénéficiéz déjà de tous les avantages d'AfriStory pour les créateurs certifiés.</p>
          </div>
          <Link to="/artist" className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black rounded-xl uppercase tracking-widest text-[10px] hover:bg-white hover:text-brand-black transition-all">
            ACCÉDER AU DASHBOARD
@@ -64,15 +73,50 @@ export function BecomePro() {
     );
   }
 
+  if (profile?.role === 'artist_draft') {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-6 text-center px-6">
+         <div className="w-20 h-20 bg-brand-gold/20 rounded-full flex items-center justify-center">
+            <Award className="w-10 h-10 text-brand-gold" />
+         </div>
+         <div className="space-y-2">
+           <h2 className="text-3xl font-display font-black uppercase">Vous êtes déjà Créateur !</h2>
+           <p className="text-gray-400 font-medium max-w-md">Vous avez le statut Artiste Draft. Passez à Pro pour monétiser vos œuvres et accéder à tous les avantages.</p>
+         </div>
+         <Link to="/artist" className="px-8 py-3 bg-brand-gold text-brand-black font-black rounded-xl uppercase tracking-widest text-[10px] hover:scale-105 transition-all">
+           VOIR MON DASHBOARD
+         </Link>
+      </div>
+    );
+  }
+
+  const checkExistingApplication = async () => {
+    if (!user) return false;
+    const docRef = doc(db, 'pro_applications', user.uid);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() && docSnap.data()?.status === 'pending';
+  };
+
+  React.useEffect(() => {
+    checkExistingApplication().then(exists => {
+      if (exists) setSubmitted(true);
+    });
+  }, [user]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !formData.agreeToCharter || submitting) return;
+    
+    setSubmitting(true);
     try {
-      // We'll store requests in a 'pro_applications' collection
       await setDoc(doc(db, 'pro_applications', user.uid), {
         userId: user.uid,
-        userName: profile?.displayName || 'Anonyme',
+        userName: formData.fullName || profile?.displayName || 'Anonyme',
         email: user.email,
+        location: formData.location,
+        portfolioUrl: formData.portfolioUrl,
+        reason: formData.reason,
+        currentRole: profile?.role || 'reader',
         status: 'pending',
         createdAt: new Date(),
         updatedAt: new Date()
@@ -82,6 +126,8 @@ export function BecomePro() {
     } catch (err) {
       console.error(err);
       alert("Une erreur est survenue lors de l'envoi de votre candidature.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -116,7 +162,7 @@ export function BecomePro() {
                ))}
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8 glass-card p-8 border-white/10 shadow-2xl">
+<form onSubmit={handleSubmit} className="space-y-8 glass-card p-8 border-white/10 shadow-2xl">
                <AnimatePresence mode="wait">
                  {step === 1 && (
                    <motion.div 
@@ -129,11 +175,25 @@ export function BecomePro() {
                      <div className="grid gap-6">
                         <div className="space-y-2">
                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Nom complet / Studio</label>
-                           <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-gold/50" placeholder="Ex: Studio Oyo" required />
+                           <input 
+                             type="text" 
+                             value={formData.fullName}
+                             onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-gold/50" 
+                             placeholder="Ex: Studio Oyo" 
+                             required 
+                           />
                         </div>
                         <div className="space-y-2">
                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Ville / Pays de résidence</label>
-                           <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-gold/50" placeholder="Lagos, Nigeria" required />
+                           <input 
+                             type="text" 
+                             value={formData.location}
+                             onChange={(e) => setFormData({...formData, location: e.target.value})}
+                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-gold/50" 
+                             placeholder="Lagos, Nigeria" 
+                             required 
+                           />
                         </div>
                      </div>
                      <button type="button" onClick={() => setStep(2)} className="w-full py-4 bg-brand-gold text-brand-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:scale-105 transition-transform">
@@ -151,15 +211,24 @@ export function BecomePro() {
                    >
                      <h3 className="text-xl font-display font-black uppercase tracking-tight">Votre Portfolio</h3>
                      <div className="space-y-6">
-                        <div className="p-8 border-2 border-dashed border-white/10 rounded-2xl text-center space-y-4 hover:border-brand-gold/30 transition-all cursor-pointer">
-                           <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto text-gray-500">
-                              <Rocket className="w-6 h-6" />
-                           </div>
-                           <p className="text-gray-400 text-xs font-bold">Téléchargez un extrait de votre œuvre la plus aboutie (PDF ou images)</p>
-                        </div>
                         <div className="space-y-2">
                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Lien vers vos travaux (Instagram, ArtStation, Behance...)</label>
-                           <input type="url" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-gold/50" placeholder="https://..." />
+                           <input 
+                             type="url" 
+                             value={formData.portfolioUrl}
+                             onChange={(e) => setFormData({...formData, portfolioUrl: e.target.value})}
+                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-gold/50" 
+                             placeholder="https://..." 
+                           />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Pourquoi souhaitez-vous devenir Pro ?</label>
+                           <textarea 
+                             value={formData.reason}
+                             onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-gold/50 h-24 resize-none" 
+                             placeholder="Décrivez votre projet artistique..."
+                           />
                         </div>
                      </div>
                      <div className="flex gap-4">
@@ -178,26 +247,36 @@ export function BecomePro() {
                    >
                      <h3 className="text-xl font-display font-black uppercase tracking-tight">Charte de Qualité</h3>
                      <div className="bg-brand-gold/5 border border-brand-gold/20 p-6 rounded-2xl space-y-4">
+                        <label className="flex gap-3 text-sm font-medium text-gray-300 cursor-pointer">
+                           <input 
+                             type="checkbox" 
+                             checked={formData.agreeToCharter}
+                             onChange={(e) => setFormData({...formData, agreeToCharter: e.target.checked})}
+                             className="w-5 h-5 rounded border-gray-600 bg-white/5 text-brand-gold focus:ring-brand-gold" 
+                           />
+                           <span>Je m'engage à respecter la Charte de la communauté AfriStory.</span>
+                        </label>
                         <div className="flex gap-3 text-sm font-medium text-gray-300">
                            <CheckCircle className="w-5 h-5 text-brand-gold flex-shrink-0" />
                            <p>Je m'engage à publier des contenus originaux dont je détiens les droits.</p>
                         </div>
                         <div className="flex gap-3 text-sm font-medium text-gray-300">
                            <CheckCircle className="w-5 h-5 text-brand-gold flex-shrink-0" />
-                           <p>Je m'engage à respecter les délais de publication annoncés à ma communauté.</p>
-                        </div>
-                        <div className="flex gap-3 text-sm font-medium text-gray-300">
-                           <CheckCircle className="w-5 h-5 text-brand-gold flex-shrink-0" />
-                           <p>Je m'engage à respecter la Charte de la communauté AfriStory.</p>
+                           <p>Je m'engage à respecter les délais de publication annoncés.</p>
                         </div>
                      </div>
-                     <button type="submit" className="w-full py-4 bg-brand-gold text-brand-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:shadow-xl hover:shadow-brand-gold/20 flex items-center justify-center gap-3 transition-all">
-                       <Send className="w-4 h-4" /> ENVOYER MA CANDIDATURE
+                     <button 
+                       type="submit" 
+                       disabled={!formData.agreeToCharter || submitting}
+                       className="w-full py-4 bg-brand-gold text-brand-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:shadow-xl hover:shadow-brand-gold/20 flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                     >
+                       {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                       {submitting ? 'ENVOI EN COURS...' : 'ENVOYER MA CANDIDATURE'}
                      </button>
                    </motion.div>
                  )}
                </AnimatePresence>
-            </form>
+             </form>
           </div>
 
           {/* Perks Sidebar */}
