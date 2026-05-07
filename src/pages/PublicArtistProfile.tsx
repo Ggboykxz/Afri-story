@@ -15,6 +15,10 @@ export function PublicArtistProfile() {
   const [loading, setLoading] = useState(true);
   const [following, setFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
+  const totals = works.reduce((acc, w) => ({
+    views: acc.views + (w.views || 0),
+    likes: acc.likes + (w.likes || 0),
+  }), { views: 0, likes: 0 });
 
   useEffect(() => {
     fetchArtistData();
@@ -100,7 +104,7 @@ export function PublicArtistProfile() {
               </p>
 <div className="flex flex-wrap gap-6 text-[10px] font-black uppercase tracking-widest text-gray-500 italic">
                  <div className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-brand-gold" /> {works.length} Œuvres</div>
-                 <div className="flex items-center gap-2"><Zap className="w-4 h-4 text-brand-gold" /> 25.4K Vues Totales</div>
+                 <div className="flex items-center gap-2"><Zap className="w-4 h-4 text-brand-gold" /> {totals.views.toLocaleString()} Vues Totales</div>
                  <div className="flex items-center gap-2"><Heart className="w-4 h-4 text-brand-gold" /> {followerCount.toLocaleString()} Abonnés</div>
                </div>
              </div>
@@ -184,24 +188,24 @@ export function PublicArtistProfile() {
            </div>
         </section>
 
-        {/* Collaboration / Artist News */}
-        <section className="grid md:grid-cols-2 gap-8">
-           <div className="glass-card p-8 space-y-4 border border-white/10">
-              <h3 className="text-xl font-display font-black uppercase flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-brand-gold" />
-                Dernières Nouvelles
-              </h3>
-              <div className="space-y-4">
-                 <div className="p-4 bg-white/5 rounded-xl space-y-2">
-                    <p className="text-sm font-bold">Le chapitre 25 d'Oyo arrive bientôt ! Préparez-vous...</p>
-                    <span className="text-[10px] text-gray-500 uppercase font-black">Il y a 2 jours</span>
+{/* Collaboration / Artist News */}
+         <section className="grid md:grid-cols-2 gap-8">
+            <div className="glass-card p-8 space-y-4 border border-white/10">
+               <h3 className="text-xl font-display font-black uppercase flex items-center gap-2">
+                 <MessageCircle className="w-5 h-5 text-brand-gold" />
+                 Dernières Nouvelles
+               </h3>
+               {works.length > 0 ? (
+                 <div className="space-y-4">
+                    <div className="p-4 bg-white/5 rounded-xl space-y-2">
+                       <p className="text-sm font-bold">{works[0].title} - Nouvelles activités</p>
+                       <span className="text-[10px] text-gray-500 uppercase font-black">Maintenant</span>
+                    </div>
                  </div>
-                 <div className="p-4 bg-white/5 rounded-xl space-y-2">
-                    <p className="text-sm font-bold">Petit sketch en attendant la sortie officielle.</p>
-                    <span className="text-[10px] text-gray-500 uppercase font-black">Il y a 1 semaine</span>
-                 </div>
-              </div>
-           </div>
+               ) : (
+                 <p className="text-sm text-gray-500">Aucune actualité pour le moment.</p>
+               )}
+            </div>
 
            <div className="glass-card p-8 bg-brand-gold/5 border border-brand-gold/20 flex flex-col justify-center items-center text-center space-y-6">
               <div className="w-16 h-16 rounded-full bg-brand-gold flex items-center justify-center text-brand-black">

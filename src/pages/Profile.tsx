@@ -21,10 +21,10 @@ export const Profile = () => {
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
-    // Simulate loading/checking profile
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, [userId]);
+    if (user) {
+      setLoading(false);
+    }
+  }, [userId, user]);
   
   const isOwnProfile = user?.uid === userId;
   const displayProfile = isOwnProfile ? profile : null; 
@@ -178,24 +178,24 @@ export const Profile = () => {
          <div className="space-y-6">
             <div className="glass-card p-8 space-y-6">
                <h3 className="font-display font-bold text-sm uppercase tracking-widest text-gray-500">Statistiques</h3>
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                     <div className="text-sm font-black text-white">42</div>
-                     <div className="text-[10px] text-gray-500 font-bold uppercase">Lectures</div>
-                  </div>
-                  <div className="space-y-1">
-                     <div className="text-sm font-black text-white">12</div>
-                     <div className="text-[10px] text-gray-500 font-bold uppercase">Favoris</div>
-                  </div>
-                  <div className="space-y-1">
-                     <div className="text-sm font-black text-white">{displayProfile?.afriCoins || 0}</div>
-                     <div className="text-[10px] text-gray-500 font-bold uppercase">AfriCoins</div>
-                  </div>
-                  <div className="space-y-1">
-                     <div className="text-sm font-black text-white">324</div>
-                     <div className="text-[10px] text-gray-500 font-bold uppercase">Points</div>
-                  </div>
-               </div>
+<div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-1">
+                      <div className="text-sm font-black text-white">{displayProfile?.statistics?.totalReads || 0}</div>
+                      <div className="text-[10px] text-gray-500 font-bold uppercase">Lectures</div>
+                   </div>
+                   <div className="space-y-1">
+                      <div className="text-sm font-black text-white">{displayProfile?.favorites?.length || 0}</div>
+                      <div className="text-[10px] text-gray-500 font-bold uppercase">Favoris</div>
+                   </div>
+                   <div className="space-y-1">
+                      <div className="text-sm font-black text-white">{displayProfile?.afriCoins || 0}</div>
+                      <div className="text-[10px] text-gray-500 font-bold uppercase">AfriCoins</div>
+                   </div>
+                   <div className="space-y-1">
+                      <div className="text-sm font-black text-white">{displayProfile?.following?.length || 0}</div>
+                      <div className="text-[10px] text-gray-500 font-bold uppercase">Abonnements</div>
+                   </div>
+                </div>
             </div>
 
             <div className="glass-card p-8 space-y-4">
