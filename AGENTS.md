@@ -44,7 +44,7 @@ src/
 │   ├── Library.tsx         # Bibliothèque (favoris/historique)
 │   ├── WorkDetail.tsx      # Page œuvre avec chapitres
 │   ├── Reader.tsx          # Lecteur avec comments temps réel
-│   ├── Profile.tsx         # Profil utilisateur
+│   ├── Profile.tsx         # Profil utilisateur (éditable)
 │   ├── PublicArtistProfile.tsx # Profil artiste public
 │   ├── ArtistDashboard.tsx  # Dashboard créateur
 │   ├── AdminDashboard.tsx   # Dashboard admin
@@ -130,7 +130,7 @@ npm run lint      # TypeScript check
 /forum                  → Forums
 /forum/public           → Forum public
 /forum/premium          → Forum Premium (abonné)
-/notifications           → Centre notifications
+/notifications         → Centre notifications
 /collaboration          → Hub collaborations
 /rankings               → Classements
 /rankings/:type         → Classements (pro/draft)
@@ -144,7 +144,7 @@ npm run lint      # TypeScript check
 /artist/new-work        → Créer œuvre
 /artist-profile/:id     → Profil artiste public
 /profile/:id            → Profil utilisateur
-/profile                → Mon profil
+/profile                → Mon profil (éditable)
 /messages               → Messages (entreprise/artistes)
 /admin                  → Dashboard admin
 /become-pro             → Devenir artiste pro
@@ -153,6 +153,24 @@ npm run lint      # TypeScript check
 /login / signup         → Auth
 /*                      → 404 NotFound
 ```
+
+## Firestore Schema
+
+Voir `FIRESTORE_SCHEMA.md` pour la documentation complète des collections.
+
+### Collections principales
+
+- `users` - Profils avec rôle, abonnements, badges, statistiques
+- `works` - Œuvres avec chapters, comments, reviews
+- `forums` + `forum_threads` + `forum_replies`
+- `notifications`
+- `conversations` + messages
+- `collections`, `book_clubs`, `contests`
+- `ama_sessions`, `scheduled_chapters`
+- `recruitment_ads`, `team_members`
+- `reports`, `moderation_actions`
+- `verification_requests`
+- `africoins_transactions`
 
 ## Conventions Code
 
@@ -163,6 +181,7 @@ npm run lint      # TypeScript check
 - **Polices**: Space Grotesk (display), Outfit (sans)
 - **Images**: Firebase Storage pour uploads
 - **Temps réel**: Firestore onSnapshot pour comments/forum/notifications
+- **State**: useState pour UI local, context pour auth global
 
 ## Dépendances Clés
 
@@ -182,12 +201,35 @@ npm run lint      # TypeScript check
 - `firebase-applet-config.json`: Config Firebase (NE PAS COMMITTER credentials)
 - `.env.example`: Template variables d'environnement
 
+## Flux Utilisateur
+
+### Inscription
+1. Choix: Lecteur ou Artiste
+2. Email/password ou Google Auth
+3. Rôle: `reader` ou `artist_draft`
+
+### Création d'œuvre (artist_draft)
+1. Upload cover + titre + description
+2. Ajout chapitres (images)
+3. Publication
+
+### Devenir Pro
+1. Portfolio 1000+ vues
+2. Demande vérification
+3. Modération approve → `artist_pro`
+
+### Monetisation
+- Abonnements: 70% revenus artistes
+- AfriCoins: 80% revenus artistes  
+- Dons: 90% revenus artistes
+
 ## Notes
 
 - Mobile-first design avec BottomNav
 - Protection anti-clic droit sur images
 - Filigrane invisible sur chapitres
-- 70% revenus aux artistes (abonnements), 80% (AfriCoins), 90% (dons)
 - Toast notifications pour feedback utilisateur
 - ErrorBoundary pour gestion erreurs globale
 - Real-time comments, forum, notifications via Firestore
+- Profil utilisateur editable (nom + bio)
+- Menu hamburger mobile avec drawer noir opaque
