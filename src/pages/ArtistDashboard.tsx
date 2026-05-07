@@ -176,7 +176,7 @@ export const ArtistDashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <StatCard title="Vues Totales" value={totals.views.toLocaleString()} trend="+12%" />
               <StatCard title="Abonnés" value={totals.likes.toLocaleString()} trend="+5%" />
-              <StatCard title="AfriCoins" value={profile?.afriCoins || 0} trend="Revenu" />
+              <StatCard title="AfriCoins" value={String(profile?.afriCoins || 0)} trend="Revenu" />
           </div>
 
           {/* Analytics Chart - Section 4.1 */}

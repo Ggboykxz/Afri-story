@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout/Layout';
 import { Home } from './pages/Home';
 import { WorkDetail } from './pages/WorkDetail';
@@ -28,22 +28,69 @@ import { About } from './pages/About';
 import { BecomePro } from './pages/BecomePro';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
+import { SubscriptionPage } from './pages/Subscription';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ScrollToTop } from './components/ScrollToTop';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
+import { UserRole } from './lib/roles';
 
-const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) => {
-  const { profile, loading } = useAuth();
+const ProtectedRoute = ({ 
+  children, 
+  allowedRoles,
+  requireAuth = true,
+  fallbackTo = '/login'
+}: { 
+  children: React.ReactNode, 
+  allowedRoles?: string[],
+  requireAuth?: boolean,
+  fallbackTo?: string
+}) => {
+  const { user, profile, loading, hasPermission } = useAuth();
 
-  if (loading) return null;
-  if (!profile || !allowedRoles.includes(profile.role)) {
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-brand-gold border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (requireAuth && !user) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6 px-6 text-center">
         <h2 className="text-4xl font-display font-black uppercase tracking-tighter">Accès Restreint</h2>
-        <p className="text-gray-500 max-w-md">Vous n'avez pas les permissions nécessaires pour accéder à cette section. Elle est réservée aux comptes de type : {allowedRoles.join(', ')}.</p>
+        <p className="text-gray-500 max-w-md">Veuillez vous connecter pour accéder à cette section.</p>
+        <Link to={fallbackTo} className="bg-brand-gold text-brand-black px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px]">Se connecter</Link>
+      </div>
+    );
+  }
+
+  if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6 px-6 text-center">
+        <h2 className="text-4xl font-display font-black uppercase tracking-tighter">Accès Restreint</h2>
+        <p className="text-gray-500 max-w-md">Cette section est réservée aux comptes : {allowedRoles.join(', ')}.</p>
         <Link to="/" className="bg-brand-gold text-brand-black px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px]">Retour à l'accueil</Link>
       </div>
     );
+  }
+
+  return <>{children}</>;
+};
+
+const GuestRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-brand-gold border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -59,22 +106,52 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explore />} />
-            <Route path="/library" element={<Library />} />
+            <Route path="/library" element={
+              <ProtectedRoute requireAuth={true} allowedRoles={['reader', 'reader_premium', 'reader_supporter', 'artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
+                <Library />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/forum" element={<ForumHome />} />
+            <Route path="/forum/public" element={<ForumHome />} />
+            <Route path="/forum/premium" element={
+              <ProtectedRoute requireAuth={true} allowedRoles={['reader_premium', 'reader_supporter', 'artist_pro', 'artist_mentor', 'moderator', 'supervisor', 'admin']}>
+                <ForumHome />
+              </ProtectedRoute>
+            } />
             <Route path="/forum/category/:categoryId" element={<ForumCategory />} />
             <Route path="/forum/thread/:threadId" element={<ThreadDetail />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/forum/work/:workId" element={<Forum />} />
+
+            <Route path="/notifications" element={
+              <ProtectedRoute requireAuth={true}>
+                <NotificationsPage />
+              </ProtectedRoute>
+            } />
             <Route path="/collaboration" element={<CollaborationHub />} />
             <Route path="/rankings" element={<Rankings />} />
+            <Route path="/rankings/pro" element={<Rankings />} />
+            <Route path="/rankings/draft" element={<Rankings />} />
+
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/artist-profile/:artistId" element={<PublicArtistProfile />} />
-            <Route path="/about" element={<About />} />
             <Route path="/faq" element={<FAQ />} />
-            <Route path="/become-pro" element={<BecomePro />} />
+            <Route path="/about" element={<About />} />
+
+            <Route path="/artist-profile/:artistId" element={<PublicArtistProfile />} />
             <Route path="/work/:id" element={<WorkDetail />} />
+            <Route path="/work/:id/chapter/:chapterId" element={<Reader />} />
             <Route path="/read/:workId/:chapterId" element={<Reader />} />
-            
+
+            <Route path="/subscription" element={<SubscriptionPage />} />
+            <Route path="/africoins" element={<SubscriptionPage />} />
+
+            <Route path="/become-pro" element={<BecomePro />} />
+            <Route path="/become-artist" element={<BecomePro />} />
+
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/:productId" element={<Shop />} />
+
             <Route path="/artist" element={
               <ProtectedRoute allowedRoles={['artist_pro', 'artist_draft', 'artist_mentor']}>
                 <ArtistDashboard />
@@ -85,24 +162,90 @@ export default function App() {
                 <CreateWork />
               </ProtectedRoute>
             } />
+            <Route path="/artist/team" element={
+              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor']}>
+                <ArtistDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/artist/stats" element={
+              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor']}>
+                <ArtistDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/artist/revenue" element={
+              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor']}>
+                <ArtistDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/artist/shop" element={
+              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor']}>
+                <ArtistDashboard />
+              </ProtectedRoute>
+            } />
 
             <Route path="/profile/:userId" element={<Profile />} />
-            <Route path="/shop" element={<Shop />} />
+            <Route path="/profile" element={
+              <ProtectedRoute requireAuth={true}>
+                <Profile />
+              </ProtectedRoute>
+            } />
+
             <Route path="/messages" element={
               <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor', 'admin', 'moderator', 'enterprise']}>
                 <Messaging />
               </ProtectedRoute>
             } />
-            
+
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['admin', 'moderator', 'supervisor']}>
                 <AdminDashboard />
               </ProtectedRoute>
             } />
-            
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/admin/users" element={
+              <ProtectedRoute allowedRoles={['admin', 'supervisor']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/moderation" element={
+              <ProtectedRoute allowedRoles={['admin', 'moderator', 'supervisor']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <ProtectedRoute allowedRoles={['admin', 'moderator', 'supervisor']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/stats" element={
+              <ProtectedRoute allowedRoles={['admin', 'supervisor']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/settings" element={
+              <ProtectedRoute requireAuth={true}>
+                <Settings />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/login" element={
+              <GuestRoute>
+                <Login />
+              </GuestRoute>
+            } />
+            <Route path="/signup" element={
+              <GuestRoute>
+                <Signup />
+              </GuestRoute>
+            } />
+
+            <Route path="*" element={
+              <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6">
+                <h1 className="text-6xl font-display font-black text-brand-gold">404</h1>
+                <p className="text-gray-500">Cette page n'existe pas.</p>
+                <Link to="/" className="bg-brand-gold text-brand-black px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px]">Retour à l'accueil</Link>
+              </div>
+            } />
           </Routes>
         </Layout>
       </BrowserRouter>
