@@ -31,12 +31,14 @@ export const Shop = () => {
     setTimeout(() => setPurchaseSuccess(false), 3000);
   };
 
-  const products = [
-    { id: 1, name: "T-Shirt 'Légendes d'Oyo'", price: "12,000 FCFA", category: "Vêtements", tag: "Best-seller" },
-    { id: 2, name: "Art Book Vol. 1 - Edition Limitée", price: "25,000 FCFA", category: "Livres", tag: "Nouveauté" },
-    { id: 3, name: "Stickers Pack 'Cyber-Dakar'", price: "3,500 FCFA", category: "Goodies", tag: "" },
-    { id: 4, name: "Affiche 'Justice de Fer' (A2)", price: "8,000 FCFA", category: "Décoration", tag: "" },
-  ];
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    // Simulate fetching products added by artists
+    // In a real app, this would be a Firestore query on 'shop_items'
+    setLoading(false);
+  }, []);
 
   const transactions: any[] = [];
 
@@ -129,40 +131,61 @@ export const Shop = () => {
                </div>
             </section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-               {products.map(product => (
-                 <motion.div 
-                   key={product.id}
-                   whileHover={{ y: -10 }}
-                   className="group p-4 glass-card space-y-4 cursor-pointer"
-                 >
-                    <div className="aspect-square bg-brand-brown rounded-xl relative overflow-hidden">
-                       {product.tag && (
-                         <div className="absolute top-2 left-2 px-2 py-1 bg-brand-gold text-brand-black text-[8px] font-black uppercase tracking-widest rounded">
-                            {product.tag}
-                         </div>
-                       )}
-                       <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform">
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleBuyMerch();
-                            }}
-                            className="w-full py-3 bg-white text-black font-black text-xs rounded-lg flex items-center justify-center gap-2"
-                          >
-                             AJOUTER AU PANIER
-                             <ShoppingBag className="w-4 h-4" />
-                          </button>
-                       </div>
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {Array(6).fill(0).map((_, i) => (
+                  <div key={i} className="glass-card p-4 space-y-4">
+                    <Skeleton className="aspect-square rounded-xl" />
+                    <div className="space-y-2">
+                       <Skeleton variant="text" className="w-1/2 h-3" />
+                       <Skeleton variant="text" className="w-3/4 h-5" />
+                       <Skeleton variant="text" className="w-1/3 h-6" />
                     </div>
-                    <div className="space-y-1">
-                       <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{product.category}</div>
-                       <h4 className="font-bold group-hover:text-brand-gold transition-colors">{product.name}</h4>
-                       <div className="text-brand-gold font-display font-black text-lg">{product.price}</div>
-                    </div>
-                 </motion.div>
-               ))}
-            </div>
+                  </div>
+                ))}
+              </div>
+            ) : products.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {products.map(product => (
+                  <motion.div 
+                    key={product.id}
+                    whileHover={{ y: -10 }}
+                    className="group p-4 glass-card space-y-4 cursor-pointer"
+                  >
+                     <div className="aspect-square bg-brand-brown rounded-xl relative overflow-hidden">
+                        {product.tag && (
+                          <div className="absolute top-2 left-2 px-2 py-1 bg-brand-gold text-brand-black text-[8px] font-black uppercase tracking-widest rounded">
+                             {product.tag}
+                          </div>
+                        )}
+                        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform">
+                           <button 
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               handleBuyMerch();
+                             }}
+                             className="w-full py-3 bg-white text-black font-black text-xs rounded-lg flex items-center justify-center gap-2"
+                           >
+                              AJOUTER AU PANIER
+                              <ShoppingBag className="w-4 h-4" />
+                           </button>
+                        </div>
+                     </div>
+                     <div className="space-y-1">
+                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{product.category}</div>
+                        <h4 className="font-bold group-hover:text-brand-gold transition-colors">{product.name}</h4>
+                        <div className="text-brand-gold font-display font-black text-lg">{product.price}</div>
+                     </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-24 text-center glass-card border-dashed border-white/10 opacity-50 space-y-4">
+                 <ShoppingBag className="w-12 h-12 text-gray-600 mx-auto" />
+                 <h3 className="text-xl font-display font-bold uppercase tracking-tighter text-gray-400">Aucun produit disponible</h3>
+                 <p className="text-sm font-bold uppercase tracking-widest text-gray-600">Revenez bientôt pour découvrir les articles de nos artistes.</p>
+              </div>
+            )}
 
             {/* Featured Artist Merch */}
             <section className="mt-24 p-12 rounded-3xl bg-linear-to-br from-brand-black to-brand-brown border border-white/10 flex flex-col md:flex-row items-center gap-12 overflow-hidden relative">

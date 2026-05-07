@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ChefHat, TrendingUp, Sparkles, BookOpen, Search, Loader2 } from 'lucide-react';
+import { ChefHat, TrendingUp, Sparkles, BookOpen, Search, Loader2, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { workService, Work } from '../lib/workService';
 import { WorkCardSkeleton, Skeleton } from '../components/Skeleton';
@@ -51,46 +51,104 @@ export const Home = () => {
 
       {/* Hero Section */}
       {!searchQuery && (
-        <section className="relative h-[80vh] flex items-center justify-center overflow-hidden px-6">
+        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-6 pt-12 pb-24">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-linear-to-b from-brand-gold/10 via-brand-black/70 to-brand-black z-10" />
-          <div className="grid grid-cols-4 gap-4 rotate-12 scale-150 opacity-10">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-[3/4] bg-brand-brown rounded-xl h-[400px] shadow-2xl" />
+          <div className="absolute inset-0 bg-linear-to-b from-brand-gold/20 via-brand-black/80 to-brand-black z-10" />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.1, 1],
+              rotate: [12, 10, 12]
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="grid grid-cols-4 gap-4 rotate-12 scale-150 opacity-10"
+          >
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="aspect-[3/4] bg-brand-brown rounded-2xl h-[500px] shadow-2xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-linear-to-t from-brand-black to-transparent opacity-60" />
+              </div>
             ))}
-          </div>
+          </motion.div>
         </div>
 
-        <div className="relative z-20 max-w-4xl text-center space-y-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 px-4 py-2 rounded-full text-brand-gold text-sm font-medium"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Nouveauté : Découvrez Nexus-Hub Draft</span>
-          </motion.div>
-          
-          <h1 className="text-6xl md:text-8xl font-display font-black tracking-tighter leading-[0.9]">
-            RACONTÉ PAR <br />
-            <span className="gradient-text">L'AFRIQUE</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-medium">
-            La destination ultime pour les webtoons, BD et romans illustrés panafricains. 
-            Donnez vie à vos histoires.
-          </p>
+        <div className="relative z-20 max-w-5xl text-center space-y-10">
+          <div className="flex flex-col items-center gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-3 bg-brand-gold/10 border border-brand-gold/20 px-5 py-2.5 rounded-full text-brand-gold text-[10px] font-black uppercase tracking-[0.2em]"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Nouveauté : Découvrez AfriStory Draft</span>
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-7xl md:text-9xl font-display font-black tracking-tighter leading-[0.85]"
+            >
+              L'HISTOIRE <br />
+              <span className="gradient-text">IMMERSIVE</span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed"
+            >
+              La destination ultime pour les webtoons, BD et romans illustrés panafricains. 
+              Découvrez des récits authentiques portés par une nouvelle génération de créateurs.
+            </motion.p>
+          </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="w-full sm:w-auto px-8 py-4 bg-brand-gold text-brand-black font-black rounded-2xl hover:bg-white transition-all transform hover:-translate-y-1 shadow-lg shadow-brand-gold/10">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <button 
+              onClick={() => navigate('/explore')}
+              className="w-full sm:w-auto px-10 py-5 bg-brand-gold text-brand-black font-black rounded-2xl hover:bg-white transition-all transform hover:-translate-y-1 shadow-2xl shadow-brand-gold/20 uppercase tracking-widest text-xs"
+            >
               COMMENCER À LIRE
             </button>
-            <button className="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl hover:bg-white/10 transition-all">
+            <button 
+              onClick={() => navigate('/become-pro')}
+              className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 text-white font-black rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
+            >
               DEVENIR CRÉATEUR
             </button>
-          </div>
+          </motion.div>
         </div>
       </section>
+      )}
+
+      {/* Promotional Banner 1 */}
+      {!searchQuery && (
+        <section className="px-6 md:px-12 mb-24">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden group cursor-pointer"
+          >
+            <div className="absolute inset-0 bg-linear-to-r from-brand-black via-brand-black/60 to-transparent z-10" />
+            <img src="https://images.unsplash.com/photo-1541873676-d18283b9a5ca?auto=format&fit=crop&q=80" alt="Promo" className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-700" />
+            <div className="relative z-20 h-full flex flex-col justify-center p-12 space-y-4 max-w-2xl">
+              <div className="flex items-center gap-2 text-brand-gold font-black uppercase tracking-[0.3em] text-[10px]">
+                <ChefHat className="w-4 h-4" />
+                Exclusivité AfriStory
+              </div>
+              <h2 className="text-4xl md:text-5xl font-display font-black leading-tight uppercase tracking-tighter">Abonnez-vous au <span className="text-brand-gold">Pass Premium</span></h2>
+              <p className="text-gray-300 font-medium">Lisez vos chapitres préférés 1 semaine à l'avance et débloquez des contenus exclusifs d'artistes certifiés.</p>
+              <Link to="/become-pro" className="inline-flex items-center gap-3 text-white font-black uppercase tracking-widest text-[10px] group-hover:gap-5 transition-all mt-4">
+                DÉCOUVRIR LES OFFRES <TrendingUp className="w-4 h-4 text-brand-gold" />
+              </Link>
+            </div>
+          </motion.div>
+        </section>
       )}
 
       {/* Trending & Rankings Section */}
@@ -183,6 +241,26 @@ export const Home = () => {
           )}
         </div>
       </section>
+
+      {/* Promotional Banner 2 */}
+      {!searchQuery && (
+        <section className="px-6 md:px-12 mt-32">
+          <div className="bg-brand-brown rounded-[3rem] p-12 md:p-20 relative overflow-hidden flex flex-col md:flex-row items-center gap-12 border border-white/5 shadow-2xl">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-gold/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="w-32 h-32 md:w-56 md:h-56 bg-brand-black rounded-[2.5rem] flex items-center justify-center flex-shrink-0 shadow-2xl relative z-10">
+               <ShieldCheck className="w-16 h-16 md:w-24 md:h-24 text-brand-gold opacity-40" />
+            </div>
+            <div className="flex-1 space-y-6 relative z-10 text-center md:text-left">
+              <h2 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter leading-none">Protection <br /> des <span className="text-brand-gold">Droits d'Auteurs</span></h2>
+              <p className="text-gray-400 font-medium max-w-xl">Chaque œuvre publiée sur AfriStory bénéficie d'un horodatage numérique certifiant votre propriété intellectuelle dès la mise en ligne.</p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                 <button className="px-8 py-3 bg-white text-brand-black font-black rounded-xl text-xs uppercase tracking-widest hover:bg-brand-gold transition-all duration-300">En savoir plus</button>
+                 <button className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black rounded-xl text-xs uppercase tracking-widest hover:bg-white/10 transition-all duration-300">Consulter la charte</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Draft Spotlight */}
       <section className="px-6 md:px-12 mt-24 space-y-12">
