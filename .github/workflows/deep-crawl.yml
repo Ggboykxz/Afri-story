@@ -1,0 +1,214 @@
+name: 🔍 Deep Site Crawler
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Website URL to test'
+        required: true
+        default: 'https://afri-story.vercel.app'
+      test-auth:
+        description: 'Test authenticated routes'
+        required: false
+        default: 'false'
+
+jobs:
+  crawl-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright
+        run: npx playwright install chromium
+
+      - name: Deep crawl website
+        id: crawl
+        run: |
+          cat > deep-crawl.js << 'EOF'
+          const { chromium } = require('playwright');
+
+          const BASE_URL = process.env.INPUT_URL || 'https://afri-story.vercel.app';
+          const TEST_AUTH = process.env.INPUT_TEST_AUTH === 'true';
+
+          const results = {
+            url: BASE_URL,
+            timestamp: new Date().toISOString(),
+            pages: [],
+            links: [],
+            errors: [],
+            performance: []
+          };
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({
+              userAgent: 'Mozilla/5.0 (compatible; AfriStory-Bot/1.0)'
+            });
+            const page = await context.newPage();
+
+            // Track console errors
+            page.on('console', msg => {
+              if (msg.type() === 'error') {
+                results.errors.push({
+                  page: page.url(),
+                  type: 'console',
+                  message: msg.text(),
+                  timestamp: Date.now()
+                });
+              }
+            });
+
+            page.on('pageerror', error => {
+              results.errors.push({
+                page: page.url(),
+                type: 'pageerror',
+                message: error.message,
+                timestamp: Date.now()
+              });
+            });
+
+            // Track failed requests
+            page.on('requestfailed', request => {
+              results.errors.push({
+                page: page.url(),
+                type: 'requestfailed',
+                url: request.url(),
+                failure: request.failure()?.errorText,
+                timestamp: Date.now()
+              });
+            });
+
+            const pagesToVisit = new Set([BASE_URL]);
+            const visited = new Set();
+            let pageCount = 0;
+            const maxPages = 50;
+
+            while (pagesToVisit.size > 0 && pageCount < maxPages) {
+              const url = pagesToVisit.values().next().value;
+              pagesToVisit.delete(url);
+
+              if (visited.has(url) || !url.startsWith(BASE_URL)) continue;
+              visited.add(url);
+
+              try {
+                const startTime = Date.now();
+                const response = await page.goto(url, {
+                  waitUntil: 'networkidle',
+                  timeout: 30000
+                });
+
+                const loadTime = Date.now() - startTime;
+
+                results.pages.push({
+                  url,
+                  status: response?.status() || 0,
+                  loadTime,
+                  title: await page.title(),
+                  links: []
+                });
+
+                // Collect links from page
+                const links = await page.$$eval('a[href]', anchors => 
+                  anchors.map(a => a.href).filter(h => h.startsWith('http'))
+                );
+
+                links.slice(0, 20).forEach(link => {
+                  if (!visited.has(link)) {
+                    pagesToVisit.add(link);
+                  }
+                });
+
+                results.links.push(...links.slice(0, 10));
+                pageCount++;
+
+                console.log(`✓ ${pageCount}. ${url} (${response?.status()} - ${loadTime}ms)`);
+
+              } catch (e) {
+                results.errors.push({
+                  url,
+                  type: 'navigation',
+                  message: e.message,
+                  timestamp: Date.now()
+                });
+                console.log(`✗ ${url}: ${e.message}`);
+              }
+            }
+
+            await browser.close();
+
+            // Generate summary
+            results.summary = {
+              totalPages: results.pages.length,
+              totalLinks: results.links.length,
+              totalErrors: results.errors.length,
+              averageLoadTime: results.pages.length > 0 
+                ? Math.round(results.pages.reduce((a, b) => a + b.loadTime, 0) / results.pages.length)
+                : 0,
+              errorRate: results.errors.length / results.pages.length
+            };
+
+            // Write results
+            const fs = require('fs');
+            fs.writeFileSync('crawl-results.json', JSON.stringify(results, null, 2));
+
+            console.log('\n--- CRAWL SUMMARY ---');
+            console.log('Pages visited:', results.summary.totalPages);
+            console.log('Links found:', results.summary.totalLinks);
+            console.log('Errors:', results.summary.totalErrors);
+            console.log('Avg load time:', results.summary.averageLoadTime, 'ms');
+
+            if (results.summary.errorRate > 0.3) {
+              process.exit(1);
+            }
+          })();
+          EOF
+          node deep-crawl.js
+
+      - name: Upload crawl results
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawl-results
+          path: crawl-results.json
+
+      - name: Create issue for critical errors
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let results = { summary: {}, errors: [] };
+            try {
+              results = JSON.parse(fs.readFileSync('crawl-results.json', 'utf8'));
+            } catch (e) {}
+
+            const criticalErrors = results.errors?.filter(e => 
+              e.type === 'pageerror' || e.type === 'requestfailed'
+            ) || [];
+
+            if (criticalErrors.length > 0) {
+              const issueBody = '## 🔍 Deep Crawl Report - Issues Found\n\n**Date:** ' + new Date().toISOString().split('T')[0] + '\n**URL:** ' + results.url + '\n\n### Summary\n- Pages tested: ' + (results.summary.totalPages || 0) + '\n- Errors found: ' + (results.summary.totalErrors || 0) + '\n- Average load time: ' + (results.summary.averageLoadTime || 0) + 'ms\n\n### Critical Errors\n' + criticalErrors.slice(0, 10).map(e => '- **' + e.type + '** on `' + (e.url || e.page) + '`: ' + (e.message || (e.failure && e.failure.substring(0, 100)))).join('\n') + '\n\n---\n*Auto-generated by AfriStory Crawler Bot*';
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '[CRAWL] Critical Errors Found',
+                body: issueBody,
+                labels: ['bug', 'automated', 'crawler']
+              });
+            }
+
+      - name: Report success
+        run: |
+          echo "✅ Crawl completed!"
+          cat crawl-results.json | head -20

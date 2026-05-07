@@ -20,13 +20,15 @@ export const Profile = () => {
   const [editBio, setEditBio] = React.useState('');
   const [saving, setSaving] = React.useState(false);
 
+  const currentUserId = userId || user?.uid;
+
   React.useEffect(() => {
     if (user) {
       setLoading(false);
     }
-  }, [userId, user]);
+  }, [currentUserId, user]);
   
-  const isOwnProfile = user?.uid === userId;
+  const isOwnProfile = user?.uid === currentUserId;
   const displayProfile = isOwnProfile ? profile : null; 
 
   const handleSaveProfile = async () => {

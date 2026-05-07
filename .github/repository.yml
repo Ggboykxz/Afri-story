@@ -2,7 +2,7 @@ name: afristory
 version: 1.0.0
 title: AfriStory
 description: Plateforme panafricaine de Webtoons, BDs et Romans Illustrés
-homepage: https://afristory.com
+homepage: https://afri-story.vercel.app
 language: TypeScript
 topics:
   - react

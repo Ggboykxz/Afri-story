@@ -1,0 +1,188 @@
+name: 🌐 Website Auto-Tester
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+
+jobs:
+  test-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Start preview server
+        run: |
+          npm run preview -- --port 4173 &
+          sleep 10
+
+      - name: Install Playwright
+        run: npx playwright install chromium
+
+      - name: Test website with Playwright
+        id: test-results
+        run: |
+          cat > test-site.js << 'EOF'
+          const { chromium } = require('playwright');
+
+          const routes = [
+            { path: '/', name: 'Home' },
+            { path: '/explore', name: 'Explore' },
+            { path: '/library', name: 'Library' },
+            { path: '/forum', name: 'Forum' },
+            { path: '/rankings', name: 'Rankings' },
+            { path: '/shop', name: 'Shop' },
+            { path: '/login', name: 'Login' },
+            { path: '/signup', name: 'Signup' },
+            { path: '/subscription', name: 'Subscription' },
+            { path: '/terms', name: 'Terms' },
+            { path: '/privacy', name: 'Privacy' },
+            { path: '/faq', name: 'FAQ' },
+            { path: '/about', name: 'About' },
+          ];
+
+          const errors = [];
+          const failedRoutes = [];
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext();
+            const page = await context.newPage();
+
+            // Listen for console errors
+            page.on('console', msg => {
+              if (msg.type() === 'error') {
+                errors.push({ type: 'console', text: msg.text() });
+              }
+            });
+
+            // Listen for page errors
+            page.on('pageerror', error => {
+              errors.push({ type: 'pageerror', text: error.message });
+            });
+
+            for (const route of routes) {
+              try {
+                const response = await page.goto('http://localhost:4173' + route.path, {
+                  waitUntil: 'domcontentloaded',
+                  timeout: 15000
+                });
+
+                if (!response || response.status() >= 400) {
+                  failedRoutes.push({
+                    name: route.name,
+                    path: route.path,
+                    status: response ? response.status() : 'No response'
+                  });
+                } else {
+                  console.log('✓ ' + route.name + ' (' + route.path + ') - OK');
+                }
+              } catch (e) {
+                failedRoutes.push({
+                  name: route.name,
+                  path: route.path,
+                  error: e.message
+                });
+              }
+            }
+
+            await browser.close();
+
+            // Output results
+            console.log('\n--- TEST RESULTS ---');
+            console.log('Total routes tested:', routes.length);
+            console.log('Failed routes:', failedRoutes.length);
+            console.log('Errors found:', errors.length);
+
+            if (failedRoutes.length > 0) {
+              console.log('\nFailed routes:');
+              failedRoutes.forEach(r => console.log('  - ' + r.name + ': ' + r.path + ' - ' + (r.error || 'HTTP ' + r.status)));
+            }
+
+            if (errors.length > 0) {
+              console.log('\nConsole errors:');
+              errors.slice(0, 5).forEach(e => console.log('  - ' + e.type + ': ' + e.text.substring(0, 100)));
+            }
+
+            // Set output for GitHub
+            const fs = require('fs');
+            fs.writeFileSync('test-results.json', JSON.stringify({
+              total: routes.length,
+              failed: failedRoutes.length,
+              errors: errors.length,
+              failedRoutes,
+              errors: errors.slice(0, 10)
+            }, null, 2));
+
+            if (failedRoutes.length > 0 || errors.length > 5) {
+              process.exit(1);
+            }
+          })();
+          EOF
+          node test-site.js || true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.json
+
+      - name: Create issue if tests fail
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let results = { failedRoutes: [], errors: [] };
+            try {
+              results = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
+            } catch (e) {}
+
+            const issueBody = '## ⚠️ Website Test Failed\n\n**Date:** ' + new Date().toISOString().split('T')[0] + '\n\n### Summary\n- Routes tested: ' + (results.total || 0) + '\n- Failed: ' + (results.failed || 0) + '\n- Errors: ' + (results.errors || 0) + '\n\n### Failed Routes\n' + (results.failedRoutes?.map(r => '- `' + r.path + '` - ' + r.name).join('\n') || 'None') + '\n\n### Console Errors (first 5)\n' + (results.errors?.slice(0, 5).map(e => '- `' + e.type + '`: ' + e.text.substring(0, 150)).join('\n') || 'None') + '\n\n---\n*Auto-generated by AfriStory Tester Bot*';
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            const existingIssue = issues.find(i => i.title.includes('[TEST FAILED]'));
+
+            if (existingIssue) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: issueBody
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '[TEST FAILED] Website Test Failed',
+                body: issueBody,
+                labels: ['bug', 'automated-test']
+              });
+            }
+
+      - name: Success notification
+        if: success()
+        run: echo "✅ All tests passed!"

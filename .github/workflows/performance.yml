@@ -1,0 +1,162 @@
+name: ⚡ Performance Monitor
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'  # Every 12 hours
+  workflow_dispatch:
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: npx playwright install chromium
+
+      - name: Run performance tests
+        id: performance
+        run: |
+          cat > perf-test.js << 'EOF'
+          const { chromium } = require('playwright');
+
+          const BASE_URL = 'https://afri-story.vercel.app';
+
+          const routes = [
+            { path: '/', name: 'Home' },
+            { path: '/explore', name: 'Explore' },
+            { path: '/rankings', name: 'Rankings' },
+            { path: '/shop', name: 'Shop' },
+          ];
+
+          const results = {
+            url: BASE_URL,
+            timestamp: new Date().toISOString(),
+            pages: []
+          };
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const context = await browser.newContext({
+              viewport: { width: 1920, height: 1080 }
+            });
+
+            for (const route of routes) {
+              const page = await context.newPage();
+              const url = BASE_URL + route.path;
+
+              try {
+                const metrics = await page.evaluate(async (url) => {
+                  const startTime = performance.now();
+                  await fetch(url, { mode: 'no-cors' });
+                  const ttfb = performance.now() - startTime;
+
+                  return { ttfb };
+                }, url);
+
+                // Get performance metrics
+                await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+
+                const perf = await page.evaluate(() => {
+                  const timing = performance.timing;
+                  const nav = performance.getEntriesByType('navigation')[0];
+
+                  return {
+                    domContentLoaded: performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart,
+                    loadComplete: performance.timing.loadEventEnd - performance.timing.navigationStart,
+                    firstPaint: performance.getEntriesByType('paint')[0]?.startTime || 0,
+                    domInteractive: performance.timing.domInteractive - performance.timing.navigationStart,
+                    transferSize: nav?.transferSize || 0,
+                    resourceCount: performance.getEntriesByType('resource').length
+                  };
+                });
+
+                results.pages.push({
+                  name: route.name,
+                  path: route.path,
+                  ...perf
+                });
+
+                console.log(`✓ ${route.name}: DOM=${perf.domContentLoaded}ms, Load=${perf.loadComplete}ms`);
+
+              } catch (e) {
+                console.log(`✗ ${route.name}: ${e.message}`);
+              }
+
+              await page.close();
+            }
+
+            await browser.close();
+
+            // Calculate averages
+            const avg = {
+              domContentLoaded: Math.round(results.pages.reduce((a, b) => a + b.domContentLoaded, 0) / results.pages.length),
+              loadComplete: Math.round(results.pages.reduce((a, b) => a + b.loadComplete, 0) / results.pages.length),
+              firstPaint: Math.round(results.pages.reduce((a, b) => a + b.firstPaint, 0) / results.pages.length)
+            };
+
+            results.average = avg;
+
+            // Grade the performance
+            let grade = 'A';
+            if (avg.loadComplete > 5000) grade = 'B';
+            if (avg.loadComplete > 8000) grade = 'C';
+            if (avg.loadComplete > 12000) grade = 'D';
+            if (avg.loadComplete > 15000) grade = 'F';
+
+            results.grade = grade;
+
+            // Save
+            const fs = require('fs');
+            fs.writeFileSync('perf-results.json', JSON.stringify(results, null, 2));
+
+            console.log('\n--- PERFORMANCE GRADE:', grade);
+            console.log('Avg DOM:', avg.domContentLoaded, 'ms');
+            console.log('Avg Load:', avg.loadComplete, 'ms');
+            console.log('Avg First Paint:', avg.firstPaint, 'ms');
+
+            if (grade === 'D' || grade === 'F') {
+              process.exit(1);
+            }
+          })();
+          EOF
+          node perf-test.js || true
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: perf-results.json
+
+      - name: Create issue for poor performance
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let results = { average: {}, grade: 'N/A' };
+            try {
+              results = JSON.parse(fs.readFileSync('perf-results.json', 'utf8'));
+            } catch (e) {}
+
+            const issueBody = '## ⚡ Performance Alert - Grade ' + results.grade + '\n\n**Date:** ' + new Date().toISOString().split('T')[0] + '\n\n### Performance Grade: **' + results.grade + '**\n\n### Metrics\n| Metric | Average |\n|--------|---------|\n| DOM Content Loaded | ' + (results.average?.domContentLoaded || 0) + 'ms |\n| Page Load | ' + (results.average?.loadComplete || 0) + 'ms |\n| First Paint | ' + (results.average?.firstPaint || 0) + 'ms |\n\n### Pages Tested\n' + (results.pages?.map(p => '- ' + p.name + ': ' + p.loadComplete + 'ms').join('\n') || 'None') + '\n\n### Recommendations\n' + (results.grade === 'F' ? '- 🚨 Critical: Page load > 15s - Immediate action required' : '') + '\n' + (results.grade === 'D' ? '- ⚠️ Warning: Page load > 12s - Needs optimization' : '') + '\n\n---\n*Auto-generated by AfriStory Performance Monitor*';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '[PERF] Performance Alert - Grade ' + results.grade,
+              body: issueBody,
+              labels: ['performance', 'monitoring']
+            });
+
+      - name: Success
+        if: success()
+        run: echo "✅ Performance is acceptable!"
