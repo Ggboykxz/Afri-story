@@ -17,15 +17,45 @@ export const ArtistDashboard = () => {
     { name: "Amara S.", role: "Illustratrice", exp: "4 ans exp." },
   ];
 
-  const statsData = [
-    { name: 'Lun', views: 4000, revenue: 2400 },
-    { name: 'Mar', views: 3000, revenue: 1398 },
-    { name: 'Mer', views: 2000, revenue: 9800 },
-    { name: 'Jeu', views: 2780, revenue: 3908 },
-    { name: 'Ven', views: 1890, revenue: 4800 },
-    { name: 'Sam', views: 2390, revenue: 3800 },
-    { name: 'Dim', views: 3490, revenue: 4300 },
-  ];
+  const handleCreateWork = async () => {
+    const title = prompt("Titre de l'oeuvre ?");
+    if (!title || !user) return;
+    
+    try {
+      await workService.createWork({
+        title,
+        description: "Nouvelle oeuvre en cours de création.",
+        type: "WEBTOON",
+        category: "Action",
+        isPro: profile?.role === 'artist_pro',
+        views: 0,
+        likes: 0
+      });
+      alert("Oeuvre créée avec succès !");
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddChapter = async (workId: string) => {
+    const num = prompt("Numéro du chapitre ?");
+    const title = prompt("Titre du chapitre ?");
+    if (!num || !title) return;
+
+    try {
+      await workService.addChapter(workId, {
+        number: parseInt(num),
+        title,
+        isPremium: false,
+        price: 0,
+        content: "Contenu du chapitre ici..."
+      });
+      alert("Chapitre ajouté !");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   if (profile?.role === 'reader') {
     return (
@@ -76,7 +106,7 @@ export const ArtistDashboard = () => {
           <p className="text-gray-400">Bienvenue, {profile?.displayName}. Gérez vos créations et analysez vos revenus.</p>
         </div>
         <button 
-          onClick={() => navigate('/artist/new-work')}
+          onClick={handleCreateWork}
           className="flex items-center justify-center gap-2 bg-brand-gold text-brand-black px-6 py-3 rounded-xl font-black hover:scale-105 transition-transform shadow-lg shadow-brand-gold/20"
         >
           <Plus className="w-5 h-5" />

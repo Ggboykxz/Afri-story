@@ -13,10 +13,14 @@ export const Shop = () => {
     if (!user) return alert("Veuillez vous connecter pour acheter des Nexus-Coins");
     setBuyingCoins(true);
     try {
-      await workService.purchaseCoins(user.uid, amount);
+      // Simulate real transaction delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      await workService.topUpNexusCoins(user.uid, amount);
+      alert(`Succès ! ${amount} Nexus-Coins ajoutés à votre compte.`);
       window.location.reload(); 
     } catch (error) {
       console.error(error);
+      alert("Erreur lors de l'achat.");
     } finally {
       setBuyingCoins(false);
     }

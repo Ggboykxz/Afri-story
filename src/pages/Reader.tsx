@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, Loader2, Heart, Star, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
+import { workService } from '../lib/workService';
+
 export const Reader = () => {
   const { workId, chapterId } = useParams();
   const navigate = useNavigate();
@@ -15,41 +17,47 @@ export const Reader = () => {
   const [unlocking, setUnlocking] = useState(false);
 
   const handleUnlock = async () => {
+    if (!user || !workId || !chapterId) return alert("Veuillez vous connecter.");
+    if ((profile?.nexusCoins || 0) < 50) return alert("Nexus-Coins insuffisants.");
+    
     setUnlocking(true);
     try {
-      // Logic would call workService.unlockChapter
-      setTimeout(() => {
-        setIsLocked(false);
-        setUnlocking(false);
-      }, 1500);
+      await workService.unlockChapter(user.uid, workId, chapterId, 50);
+      setIsLocked(false);
+      alert("Chapitre débloqué !");
     } catch (error) {
       console.error(error);
+      alert("Erreur lors du déverrouillage.");
+    } finally {
       setUnlocking(false);
     }
   };
 
-  const comments = [
-    { id: 1, user: "Yao K.", text: "Le dessin est incroyable sur cette planche !", time: "Il y a 5m" },
-    { id: 2, user: "Amina S.", text: "Enfin un webtoon avec ce style graphique, j'adore.", time: "Hier" },
-  ];
+  const [chapterContent, setChapterContent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const winScroll = document.documentElement.scrollTop;
-      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      const scrolled = (winScroll / height) * 100;
-      setScrollProgress(scrolled);
-      
-      if (winScroll > 50) {
-        setShowControls(false);
-      } else {
-        setShowControls(true);
-      }
-    };
+    fetchChapter();
+  }, [workId, chapterId]);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const fetchChapter = async () => {
+    if (!workId || !chapterId) return;
+    try {
+      setLoading(true);
+      const workData = await workService.getWork(workId);
+      // In a real subcollection setup, we'd fetch the specific chapter doc.
+      // Here we simulate finding it in the array or a mock.
+      const found = workData?.chapters?.find((c: any) => c.id === chapterId);
+      if (found) {
+        setChapterContent(found);
+        setIsLocked(found.isPremium && !profile?.unlockedChapters?.includes(chapterId));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Mock content (vertical scroll images)
   const pages = [

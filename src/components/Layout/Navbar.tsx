@@ -22,6 +22,16 @@ export const Navbar = () => {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  const [searchTerm, setSearchTerm] = React.useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/explore?search=${encodeURIComponent(searchTerm)}`);
+      setSearchTerm('');
+    }
+  };
+
   const handleMarkAllRead = async () => {
     if (!user) return;
     await notificationService.markAllAsRead(user.uid);
@@ -55,19 +65,16 @@ export const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="hidden sm:flex items-center bg-white/5 border border-white/10 rounded-full px-3 py-1.5 focus-within:border-brand-gold/50 transition-all">
-          <Search className="w-4 h-4 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Rechercher..." 
-            className="bg-transparent border-none outline-none text-sm px-2 w-32 md:w-48 placeholder:text-gray-600"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                navigate(`/?search=${e.currentTarget.value}`);
-              }
-            }}
-          />
-        </div>
+          <form onSubmit={handleSearch} className="hidden sm:flex items-center bg-white/5 border border-white/10 rounded-full px-3 py-1.5 focus-within:border-brand-gold/50 transition-all">
+            <Search className="w-4 h-4 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Rechercher..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-transparent border-none outline-none text-sm px-2 w-32 md:w-48 placeholder:text-gray-600"
+            />
+          </form>
 
         {user ? (
           <div className="flex items-center gap-4">
