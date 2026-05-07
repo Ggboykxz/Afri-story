@@ -145,9 +145,12 @@ export default function App() {
             <Route path="/faq" element={<FAQ />} />
             <Route path="/about" element={<About />} />
             <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/:productId" element={<Shop />} />
+
+            <Route path="/become-pro" element={<BecomePro />} />
             <Route path="/become-artist" element={<BecomePro />} />
 
-            <Route path="/artist-profile/:artistId" element={<PublicArtistProfile />} />
+            <Route path="/subscription" element={<SubscriptionPage />} />
             <Route path="/work/:id" element={<WorkDetail />} />
             <Route path="/work/:id/chapter/:chapterId" element={<Reader />} />
             <Route path="/read/:workId/:chapterId" element={<Reader />} />
@@ -157,10 +160,6 @@ export default function App() {
             <Route path="/copyright" element={<CopyrightPage />} />
 
             <Route path="/become-pro" element={<BecomePro />} />
-            <Route path="/become-artist" element={<BecomePro />} />
-
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/shop/:productId" element={<Shop />} />
 
             <Route path="/artist" element={
               <ProtectedRoute allowedRoles={['artist_pro', 'artist_draft', 'artist_mentor']}>
