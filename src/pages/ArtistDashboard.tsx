@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users, Award, Sparkles, X, Briefcase, UserPlus, ShieldAlert, Loader2 } from 'lucide-react';
+import { LayoutDashboard, BookOpen, MessageCircle, BarChart3, Plus, Settings, TrendingUp, DollarSign, Users, Award, Sparkles, X, Briefcase, UserPlus, ShieldAlert, Loader2, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { workService, Work } from '../lib/workService';
 import { Skeleton } from '../components/Skeleton';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { collaborationService } from '../lib/collaborationService';
 
 export const ArtistDashboard = () => {
   const { user, profile } = useAuth();
@@ -15,6 +18,7 @@ export const ArtistDashboard = () => {
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const recruits: any[] = [];
+  const isPro = ['artist_pro', 'artist_mentor', 'admin'].includes(profile?.role || '');
 
   useEffect(() => {
     if (user) {
@@ -121,8 +125,6 @@ export const ArtistDashboard = () => {
         <button 
           onClick={async () => {
             if (!user) return alert("Connectez-vous d'abord");
-            const { doc, updateDoc } = await import('firebase/firestore');
-            const { db } = await import('../lib/firebase');
             await updateDoc(doc(db, 'users', user.uid), { role: 'artist_draft' });
             window.location.reload();
           }}
@@ -157,7 +159,12 @@ export const ArtistDashboard = () => {
           <NavItem icon={<BookOpen />} label="Mes Œuvres" active={activeTab === 'works'} onClick={() => setActiveTab('works')} />
           <NavItem icon={<BarChart3 />} label="Statistiques" active={activeTab === 'stats'} onClick={() => setActiveTab('stats')} />
           <NavItem icon={<MessageCircle />} label="Commentaires" active={activeTab === 'comments'} onClick={() => setActiveTab('comments')} />
-          <NavItem icon={<DollarSign />} label="Revenus" active={activeTab === 'revenue'} onClick={() => setActiveTab('revenue')} />
+          {isPro && (
+            <>
+              <NavItem icon={<DollarSign />} label="Revenus" active={activeTab === 'revenue'} onClick={() => setActiveTab('revenue')} />
+              <NavItem icon={<ShoppingBag />} label="Boutique" active={activeTab === 'shop'} onClick={() => setActiveTab('shop')} />
+            </>
+          )}
           <div className="pt-4 border-t border-white/5 mt-4">
              <NavItem icon={<Settings />} label="Paramètres" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
           </div>
@@ -173,131 +180,179 @@ export const ArtistDashboard = () => {
           </div>
 
           {/* Analytics Chart - Section 4.1 */}
-          <div className="glass-card p-8 space-y-6">
-             <div className="flex items-center justify-between">
-                <h3 className="text-xl font-display font-black uppercase tracking-tighter">Performance de la semaine</h3>
-                <div className="flex gap-4">
-                   <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-brand-gold" />
-                      <span className="text-[10px] font-bold text-gray-500 uppercase">Revenus</span>
-                   </div>
-                   <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-brand-green" />
-                      <span className="text-[10px] font-bold text-gray-500 uppercase">Lectures</span>
-                   </div>
-                </div>
-             </div>
-             <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                   <AreaChart data={statsData}>
-                      <defs>
-                         <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#22C55E" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="#22C55E" stopOpacity={0}/>
-                         </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
-                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
-                      <Tooltip 
-                        contentStyle={{backgroundColor: '#1a1816', border: '1px solid #ffffff10', borderRadius: '12px'}}
-                        itemStyle={{fontSize: '12px', fontWeight: '900'}}
-                      />
-                      <Area type="monotone" dataKey="views" stroke="#22C55E" fillOpacity={1} fill="url(#colorViews)" strokeWidth={3} />
-                      <Area type="monotone" dataKey="revenue" stroke="#D4AF37" fill="transparent" strokeWidth={3} />
-                   </AreaChart>
-                </ResponsiveContainer>
-             </div>
-          </div>
-
-          {/* Active Works */}
-          <div className="glass-card overflow-hidden">
-             <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                <h3 className="font-display font-bold text-lg">Œuvres Récentes</h3>
-                <button onClick={() => setActiveTab('works')} className="text-xs font-black uppercase text-brand-gold hover:underline">Tout voir</button>
-             </div>
-             <div className="divide-y divide-white/5">
-                {loading ? (
-                   Array(3).fill(0).map((_, i) => (
-                     <div key={i} className="p-6 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                           <Skeleton className="w-12 h-16" />
-                           <div className="space-y-2">
-                             <Skeleton variant="text" className="w-24" />
-                             <Skeleton variant="text" className="w-16 h-3" />
-                           </div>
-                        </div>
-                        <div className="flex gap-4">
-                           <Skeleton className="w-12 h-4" />
-                           <Skeleton className="w-20 h-4" />
-                        </div>
-                     </div>
-                   ))
-                ) : works.length > 0 ? (
-                   works.slice(0, 3).map(work => (
-                     <div key={work.id} className="p-6 flex items-center justify-between group hover:bg-white/5 transition-all">
-                        <div className="flex items-center gap-4">
-                           <div className="w-12 h-16 rounded-lg bg-brand-brown/40 relative overflow-hidden">
-                              {work.coverURL && <img src={work.coverURL} alt="" className="w-full h-full object-cover" />}
-                           </div>
-                           <div>
-                              <h4 className="font-bold text-sm">{work.title}</h4>
-                              <p className="text-[10px] text-gray-500 font-bold uppercase">{work.category} • {work.views} vues</p>
-                           </div>
-                        </div>
-                        <div className="flex gap-4">
-                           <button onClick={() => navigate(`/work/${work.id}`)} className="text-[10px] font-black uppercase text-gray-400 hover:text-white">Détails</button>
-                           <button onClick={() => handleAddChapter(work.id!)} className="text-[10px] font-black uppercase text-brand-gold hover:underline">Nouv. Chapitre</button>
-                        </div>
-                     </div>
-                   ))
-                ) : (
-                  <div className="p-12 text-center text-gray-600 font-bold uppercase tracking-widest text-xs">
-                    Aucune œuvre publiée pour le moment
+          {activeTab === 'overview' && (
+            <>
+              {!isPro && (
+                <div className="mb-8 p-6 rounded-2xl bg-brand-gold/10 border border-brand-gold/20 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-brand-gold rounded-xl flex items-center justify-center text-brand-black shadow-lg">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-display font-black uppercase tracking-tight">Devenez Artiste Pro</h4>
+                      <p className="text-xs text-brand-gold/70 font-bold uppercase tracking-widest mt-1">Débloquez la monétisation, la boutique et les statistiques avancées</p>
+                    </div>
                   </div>
-                )}
-             </div>
-             <div className="p-6 bg-white/5 text-center">
-                <button onClick={() => setActiveTab('works')} className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Gérer tout le catalogue</button>
-             </div>
-          </div>
+                  <button onClick={() => navigate('/become-pro')} className="px-6 py-2 bg-brand-gold text-brand-black font-black rounded-lg text-[10px] uppercase tracking-widest hover:scale-105 transition-transform">
+                    En savoir plus
+                  </button>
+                </div>
+              )}
+              <div className="glass-card p-8 space-y-6">
+                 <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-display font-black uppercase tracking-tighter">Performance de la semaine</h3>
+                    <div className="flex gap-4">
+                       <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-brand-gold" />
+                          <span className="text-[10px] font-bold text-gray-500 uppercase">Revenus</span>
+                       </div>
+                       <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-brand-green" />
+                          <span className="text-[10px] font-bold text-gray-500 uppercase">Lectures</span>
+                       </div>
+                    </div>
+                 </div>
+                 <div className="h-[300px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                       <AreaChart data={statsData}>
+                          <defs>
+                             <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#22C55E" stopOpacity={0.1}/>
+                                <stop offset="95%" stopColor="#22C55E" stopOpacity={0}/>
+                             </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
+                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 10, fontWeight: 700}} />
+                          <Tooltip 
+                            contentStyle={{backgroundColor: '#1a1816', border: '1px solid #ffffff10', borderRadius: '12px'}}
+                            itemStyle={{fontSize: '12px', fontWeight: '900'}}
+                          />
+                          <Area type="monotone" dataKey="views" stroke="#22C55E" fillOpacity={1} fill="url(#colorViews)" strokeWidth={3} />
+                          <Area type="monotone" dataKey="revenue" stroke="#D4AF37" fill="transparent" strokeWidth={3} />
+                       </AreaChart>
+                    </ResponsiveContainer>
+                 </div>
+              </div>
 
-          {/* Collaborators Section - Section 4.1 */}
-          <div className="glass-card p-8 space-y-8 mt-8">
-             <div className="flex items-center justify-between">
-                <div>
-                   <h2 className="text-2xl font-display font-black flex items-center gap-3">
-                      <Users className="w-6 h-6 text-brand-green" />
-                      Collaborateurs
-                   </h2>
-                   <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Gérez votre équipe créative</p>
-                </div>
-                <button 
-                  onClick={() => setShowRecruitModal(true)}
-                  className="px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-                >
-                   AJOUTER UN COLLAB
-                </button>
-             </div>
+              {/* Active Works */}
+              <div className="glass-card overflow-hidden">
+                 <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                    <h3 className="font-display font-bold text-lg">Œuvres Récentes</h3>
+                    <button onClick={() => setActiveTab('works')} className="text-xs font-black uppercase text-brand-gold hover:underline">Tout voir</button>
+                 </div>
+                 <div className="divide-y divide-white/5">
+                    {loading ? (
+                       Array(3).fill(0).map((_, i) => (
+                         <div key={i} className="p-6 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                               <Skeleton className="w-12 h-16" />
+                               <div className="space-y-2">
+                                 <Skeleton variant="text" className="w-24" />
+                                 <Skeleton variant="text" className="w-16 h-3" />
+                               </div>
+                            </div>
+                            <div className="flex gap-4">
+                               <Skeleton className="w-12 h-4" />
+                               <Skeleton className="w-20 h-4" />
+                            </div>
+                         </div>
+                       ))
+                    ) : works.length > 0 ? (
+                       works.slice(0, 3).map(work => (
+                         <div key={work.id} className="p-6 flex items-center justify-between group hover:bg-white/5 transition-all">
+                            <div className="flex items-center gap-4">
+                               <div className="w-12 h-16 rounded-lg bg-brand-brown/40 relative overflow-hidden">
+                                  {work.coverURL && <img src={work.coverURL} alt="" className="w-full h-full object-cover" />}
+                               </div>
+                               <div>
+                                  <h4 className="font-bold text-sm">{work.title}</h4>
+                                  <p className="text-[10px] text-gray-500 font-bold uppercase">{work.category} • {work.views} vues</p>
+                               </div>
+                            </div>
+                            <div className="flex gap-4">
+                               <button onClick={() => navigate(`/work/${work.id}`)} className="text-[10px] font-black uppercase text-gray-400 hover:text-white">Détails</button>
+                               <button onClick={() => handleAddChapter(work.id!)} className="text-[10px] font-black uppercase text-brand-gold hover:underline">Nouv. Chapitre</button>
+                            </div>
+                         </div>
+                       ))
+                    ) : (
+                      <div className="p-12 text-center text-gray-600 font-bold uppercase tracking-widest text-xs">
+                        Aucune œuvre publiée pour le moment
+                      </div>
+                    )}
+                 </div>
+                 <div className="p-6 bg-white/5 text-center">
+                    <button onClick={() => setActiveTab('works')} className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Gérer tout le catalogue</button>
+                 </div>
+              </div>
 
-             <div className="grid sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
-                   <div className="w-12 h-12 rounded-xl bg-brand-brown flex items-center justify-center font-display font-bold">M</div>
-                   <div className="flex-1">
-                      <h4 className="font-bold text-sm">Mamadou G.</h4>
-                      <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest">Scénariste</p>
-                   </div>
-                   <button className="p-2 text-gray-500 hover:text-brand-red text-xs font-bold uppercase">Retirer</button>
-                </div>
-                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 opacity-50">
-                   <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center font-display font-bold">+</div>
-                   <div className="flex-1">
-                      <h4 className="font-bold text-sm italic text-gray-400">Ajouter Coloriste</h4>
-                      <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Poste vacant</p>
-                   </div>
-                </div>
-             </div>
-          </div>
+              {/* Collaborators Section - Section 4.1 */}
+              <div className="glass-card p-8 space-y-8 mt-8">
+                 <div className="flex items-center justify-between">
+                    <div>
+                       <h2 className="text-2xl font-display font-black flex items-center gap-3">
+                          <Users className="w-6 h-6 text-brand-green" />
+                          Collaborateurs
+                       </h2>
+                       <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Gérez votre équipe créative</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowRecruitModal(true)}
+                      className="px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                    >
+                       AJOUTER UN COLLAB
+                    </button>
+                 </div>
+
+                 <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+                       <div className="w-12 h-12 rounded-xl bg-brand-brown flex items-center justify-center font-display font-bold">M</div>
+                       <div className="flex-1">
+                          <h4 className="font-bold text-sm">Mamadou G.</h4>
+                          <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest">Scénariste</p>
+                       </div>
+                       <button className="p-2 text-gray-500 hover:text-brand-red text-xs font-bold uppercase">Retirer</button>
+                    </div>
+                    <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 opacity-50">
+                       <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center font-display font-bold">+</div>
+                       <div className="flex-1">
+                          <h4 className="font-bold text-sm italic text-gray-400">Ajouter Coloriste</h4>
+                          <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Poste vacant</p>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+            </>
+          )}
+
+          {activeTab === 'shop' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <div className="glass-card p-12 text-center space-y-6">
+                  <div className="w-20 h-20 bg-brand-gold/10 rounded-3xl flex items-center justify-center text-brand-gold mx-auto">
+                     <ShoppingBag className="w-10 h-10" />
+                  </div>
+                  <div className="space-y-2">
+                     <h2 className="text-3xl font-display font-black uppercase tracking-tighter">Votre Boutique Artiste</h2>
+                     <p className="text-gray-400 max-w-md mx-auto">Proposez des t-shirts, posters et goodies exclusifs à votre communauté. 75% des revenus vous reviennent directement.</p>
+                  </div>
+                  <button className="bg-brand-gold text-brand-black px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-transform shadow-xl shadow-brand-gold/20">
+                     CONFIGURER MA BOUTIQUE
+                  </button>
+               </div>
+
+               <div className="grid md:grid-cols-2 gap-8">
+                  <div className="glass-card p-8 border-dashed border-white/10 flex flex-col items-center justify-center py-20 text-center gap-4">
+                     <Plus className="w-10 h-10 text-gray-600" />
+                     <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Ajouter un produit physique</p>
+                  </div>
+                  <div className="glass-card p-8 border-dashed border-white/10 flex flex-col items-center justify-center py-20 text-center gap-4">
+                     <Sparkles className="w-10 h-10 text-gray-600" />
+                     <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Ajouter un produit numérique</p>
+                  </div>
+               </div>
+            </div>
+          )}
        </div>
     </div>
 
@@ -356,7 +411,6 @@ export const ArtistDashboard = () => {
                               const desc = prompt("Description du projet ?");
                               const role = prompt("Rôle requis ?");
                               if (title && desc && role && user) {
-                                 const { collaborationService } = await import('../lib/collaborationService');
                                  await collaborationService.createAd(user.uid, profile?.displayName || "Anonyme", {
                                    title,
                                    description: desc,

@@ -30,6 +30,7 @@ import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ScrollToTop } from './components/ScrollToTop';
+import { ScrollToTopButton } from './components/ScrollToTopButton';
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) => {
   const { profile, loading } = useAuth();
@@ -53,6 +54,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <ScrollToTop />
+        <ScrollToTopButton />
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -86,7 +88,11 @@ export default function App() {
 
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/shop" element={<Shop />} />
-            <Route path="/messages" element={<Messaging />} />
+            <Route path="/messages" element={
+              <ProtectedRoute allowedRoles={['artist_pro', 'artist_mentor', 'admin', 'moderator', 'enterprise']}>
+                <Messaging />
+              </ProtectedRoute>
+            } />
             
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['admin', 'moderator', 'supervisor']}>

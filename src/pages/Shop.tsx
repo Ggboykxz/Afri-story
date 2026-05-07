@@ -3,6 +3,7 @@ import { ShoppingBag, Box, Truck, Star, Filter, ArrowRight, Loader2, Coins, X, C
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { workService } from '../lib/workService';
+import { Skeleton } from '../components/Skeleton';
 
 export const Shop = () => {
   const { user, profile } = useAuth();
@@ -127,6 +128,19 @@ export const Shop = () => {
                          <span className="opacity-50 text-[8px]">({amount === 500 ? '599 FCFA' : amount === 1000 ? '1199 FCFA' : '2499 FCFA'})</span>
                        </button>
                      ))}
+                  </div>
+               </div>
+            </section>
+
+            {/* Shop Promotion Banner */}
+            <section className="mb-12">
+               <div className="relative h-48 rounded-2xl overflow-hidden group cursor-pointer border border-white/5">
+                  <div className="absolute inset-0 bg-linear-to-r from-brand-black via-brand-black/60 to-transparent z-10" />
+                  <img src="https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&q=80" alt="Merch" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="relative z-20 h-full flex flex-col justify-center p-8 max-w-lg">
+                     <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Collection <span className="text-brand-gold">Artiste du Mois</span></h3>
+                     <p className="text-gray-400 text-xs font-medium">Découvrez les créations physiques uniques de nos créateurs les plus populaires.</p>
+                     <button className="flex items-center gap-2 text-brand-gold text-[10px] font-black uppercase tracking-widest mt-4">Voir la collection <ArrowRight className="w-4 h-4" /></button>
                   </div>
                </div>
             </section>

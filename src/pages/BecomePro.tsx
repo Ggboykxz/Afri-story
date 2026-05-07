@@ -4,6 +4,8 @@ import { Award, ShieldCheck, Zap, Star, ChevronRight, CheckCircle, Info, Rocket,
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '../components/Skeleton';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export function BecomePro() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -66,9 +68,6 @@ export function BecomePro() {
     e.preventDefault();
     if (!user) return;
     try {
-      const { doc, setDoc } = await import('firebase/firestore');
-      const { db } = await import('../lib/firebase');
-      
       // We'll store requests in a 'pro_applications' collection
       await setDoc(doc(db, 'pro_applications', user.uid), {
         userId: user.uid,
