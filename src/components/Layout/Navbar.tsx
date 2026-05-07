@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, User as UserIcon, Menu, LogIn, LayoutDashboard, MessageCircle, Shield, Loader2 } from 'lucide-react';
+import { Search, Bell, User as UserIcon, Menu, LogIn, LayoutDashboard, MessageCircle, Shield, Loader2, Home, Library, Users, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { signInWithGoogle, auth } from '../../lib/firebase';
 import { motion } from 'motion/react';
@@ -11,6 +11,7 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!user) return;
@@ -209,10 +210,71 @@ export const Navbar = () => {
           </div>
         )}
         
-        <button className="md:hidden p-2 text-gray-400">
+        <button className="md:hidden p-2 text-gray-400" onClick={() => setMobileMenuOpen(true)}>
           <Menu className="w-6 h-6" />
         </button>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      {mobileMenuOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/60 z-50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed top-0 right-0 bottom-0 w-72 bg-brand-black border-l border-white/10 z-50 md:hidden"
+          >
+            <div className="p-4 flex items-center justify-between border-b border-white/10">
+              <span className="font-display font-bold text-white">Menu</span>
+              <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-gray-400">
+                ✕
+              </button>
+            </div>
+            <div className="p-4 space-y-2">
+              <Link to="/" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+                <Home className="w-5 h-5" /> Accueil
+              </Link>
+              <Link to="/explore" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+                <Search className="w-5 h-5" /> Explorer
+              </Link>
+              <Link to="/forum" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+                <MessageCircle className="w-5 h-5" /> Forums
+              </Link>
+              <Link to="/library" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+                <Library className="w-5 h-5" /> Ma Biblio
+              </Link>
+              <Link to="/collaboration" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+                <Users className="w-5 h-5" /> Collabs
+              </Link>
+              <div className="h-px bg-white/10 my-4" />
+              <Link to="/shop" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+                <ShoppingBag className="w-5 h-5" /> Boutique
+              </Link>
+              {user ? (
+                <>
+                  <Link to="/messages" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+                    <MessageCircle className="w-5 h-5" /> Messages
+                  </Link>
+                  <Link to="/notifications" className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+                    <Bell className="w-5 h-5" /> Notifications {unreadCount > 0 && <span className="ml-auto bg-brand-red text-xs px-2 rounded-full">{unreadCount}</span>}
+                  </Link>
+                </>
+              ) : (
+                <div className="pt-4 space-y-2">
+                  <Link to="/login" className="flex items-center justify-center p-3 border border-white/10 rounded-lg text-gray-300" onClick={() => setMobileMenuOpen(false)}>
+                    Connexion
+                  </Link>
+                  <Link to="/signup" className="flex items-center justify-center p-3 bg-brand-gold rounded-lg text-brand-black font-bold" onClick={() => setMobileMenuOpen(false)}>
+                    S'inscrire
+                  </Link>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
     </nav>
   );
 };
