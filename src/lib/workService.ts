@@ -32,6 +32,22 @@ export interface Work {
   views: number;
   likes: number;
   chapters?: any[];
+  ratings?: {
+    average: number;
+    count: number;
+    userRating?: number;
+  };
+  createdAt: any;
+}
+
+export interface Review {
+  id: string;
+  workId: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  comment?: string;
+  containsSpoiler: boolean;
   createdAt: any;
 }
 
@@ -179,21 +195,6 @@ export const workService = {
     }
   },
 
-  // Rate a work (1-5 stars)
-  rateWork: async (workId: string, rating: number) => {
-    const path = `works/${workId}/ratings`;
-    try {
-      await setDoc(doc(db, 'works', workId, 'ratings', auth.currentUser!.uid), {
-        rating,
-        userId: auth.currentUser?.uid,
-        updatedAt: serverTimestamp()
-      });
-      // In real app, we'd trigger a cloud function to update works/{workId}/averageRating
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, path);
-    }
-  },
-
   // Purchase AfriCoins (Simulated increment)
   purchaseCoins: async (userId: string, amount: number) => {
     const path = `users/${userId}`;
@@ -333,6 +334,281 @@ export const workService = {
       return snap.docs.map(d => ({ id: d.id, ...d.data() })) as Work[];
     } catch (error) {
       console.error('Error searching:', error);
+      return [];
+    }
+  },
+
+  // Reviews
+  addReview: async (workId: string, review: Omit<Review, 'id'>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'works', workId, 'reviews'), {
+        ...review,
+        createdAt: serverTimestamp(),
+      });
+      
+      const workRef = doc(db, 'works', workId);
+      const workSnap = await getDoc(workRef);
+      if (workSnap.exists()) {
+        const ratings = workSnap.data().ratings || { average: 0, count: 0 };
+        const newCount = ratings.count + 1;
+        const newAverage = ((ratings.average * ratings.count) + review.rating) / newCount;
+        await updateDoc(workRef, {
+          ratings: {
+            average: Math.round(newAverage * 10) / 10,
+            count: newCount,
+          }
+        });
+      }
+      
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding review:', error);
+      return null;
+    }
+  },
+
+  getReviews: async (workId: string): Promise<Review[]> => {
+    try {
+      const snap = await getDocs(query(collection(db, 'works', workId, 'reviews'), orderBy('createdAt', 'desc'), limit(50)));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() })) as Review[];
+    } catch (error) {
+      console.error('Error getting reviews:', error);
+      return [];
+    }
+  },
+
+  rateWork: async (workId: string, rating: number, userId: string) => {
+    try {
+      const reviewsRef = collection(db, 'works', workId, 'reviews');
+      const existingQ = query(reviewsRef, where('userId', '==', userId));
+      const existing = await getDocs(existingQ);
+      
+      if (!existing.empty) {
+        const existingDoc = existing.docs[0];
+        await updateDoc(doc(db, 'works', workId, 'reviews', existingDoc.id), { rating });
+        return existingDoc.id;
+      }
+      
+      return await workService.addReview(workId, {
+        workId,
+        userId,
+        userName: 'User',
+        rating,
+        containsSpoiler: false,
+      });
+    } catch (error) {
+      console.error('Error rating work:', error);
+      return null;
+    }
+  },
+
+  // AMA Sessions
+  createAMASession: async (artistId: string, title: string, description: string, durationMinutes: number = 120) => {
+    try {
+      const endTime = new Date(Date.now() + durationMinutes * 60 * 1000);
+      const docRef = await addDoc(collection(db, 'ama_sessions'), {
+        artistId,
+        title,
+        description,
+        durationMinutes,
+        endTime,
+        status: 'active',
+        questions: [],
+        createdAt: serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating AMA session:', error);
+      return null;
+    }
+  },
+
+  getAMAWorks: async (artistId: string) => {
+    try {
+      const q = query(collection(db, 'ama_sessions'), where('artistId', '==', artistId));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error('Error getting AMA sessions:', error);
+      return [];
+    }
+  },
+
+  addAMAQuestion: async (sessionId: string, userId: string, userName: string, question: string) => {
+    try {
+      const sessionRef = doc(db, 'ama_sessions', sessionId);
+      const sessionSnap = await getDoc(sessionRef);
+      if (!sessionSnap.exists()) return null;
+      
+      const data = sessionSnap.data();
+      const questions = data.questions || [];
+      questions.push({ userId, userName, question, answered: false, createdAt: new Date() });
+      
+      await updateDoc(sessionRef, { questions });
+      return true;
+    } catch (error) {
+      console.error('Error adding AMA question:', error);
+      return null;
+    }
+  },
+
+  answerAMAQuestion: async (sessionId: string, questionIndex: number, answer: string) => {
+    try {
+      const sessionRef = doc(db, 'ama_sessions', sessionId);
+      const sessionSnap = await getDoc(sessionRef);
+      if (!sessionSnap.exists()) return false;
+      
+      const data = sessionSnap.data();
+      const questions = data.questions || [];
+      if (questions[questionIndex]) {
+        questions[questionIndex].answer = answer;
+        questions[questionIndex].answered = true;
+        await updateDoc(sessionRef, { questions });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error answering AMA question:', error);
+      return null;
+    }
+  },
+
+  // Chapter Timer
+  scheduleChapter: async (workId: string, chapterData: any, publishAt: Date) => {
+    try {
+      const scheduledRef = await addDoc(collection(db, 'scheduled_chapters'), {
+        workId,
+        ...chapterData,
+        publishAt,
+        status: 'scheduled',
+        createdAt: serverTimestamp(),
+      });
+      return scheduledRef.id;
+    } catch (error) {
+      console.error('Error scheduling chapter:', error);
+      return null;
+    }
+  },
+
+  getScheduledChapters: async (workId: string) => {
+    try {
+      const snap = await getDocs(query(collection(db, 'scheduled_chapters'), where('workId', '==', workId)));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error('Error getting scheduled chapters:', error);
+      return [];
+    }
+  },
+
+  // Early Access Config
+  updateEarlyAccess: async (workId: string, chaptersAhead: number) => {
+    try {
+      const workRef = doc(db, 'works', workId);
+      await updateDoc(workRef, { earlyAccessChapters: chaptersAhead });
+      return true;
+    } catch (error) {
+      console.error('Error updating early access:', error);
+      return null;
+    }
+  },
+
+  // Content Exclusives
+  addExclusiveContent: async (workId: string, title: string, content: string, type: 'making_of' | 'sketch' | 'notes') => {
+    try {
+      const docRef = await addDoc(collection(db, 'works', workId, 'exclusives'), {
+        title,
+        content,
+        type,
+        createdAt: serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding exclusive content:', error);
+      return null;
+    }
+  },
+
+  getExclusiveContent: async (workId: string) => {
+    try {
+      const snap = await getDocs(collection(db, 'works', workId, 'exclusives'));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error('Error getting exclusive content:', error);
+      return [];
+    }
+  },
+
+  // Spoiler Detection
+  checkForSpoilers: async (text: string, knownSpoilerTerms: string[]): Promise<{ hasSpoiler: boolean; terms: string[] }> => {
+    const foundTerms: string[] = [];
+    const lowerText = text.toLowerCase();
+    
+    for (const term of knownSpoilerTerms) {
+      if (lowerText.includes(term.toLowerCase())) {
+        foundTerms.push(term);
+      }
+    }
+    
+    return {
+      hasSpoiler: foundTerms.length > 0,
+      terms: foundTerms,
+    };
+  },
+
+  // Real-time Messaging (for artist-to-artist chat)
+  createConversation: async (participants: string[]) => {
+    try {
+      const docRef = await addDoc(collection(db, 'conversations'), {
+        participants,
+        lastMessage: null,
+        lastMessageAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      return null;
+    }
+  },
+
+  sendMessage: async (conversationId: string, senderId: string, content: string) => {
+    try {
+      const messageRef = await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
+        senderId,
+        content,
+        createdAt: serverTimestamp(),
+      });
+      
+      await updateDoc(doc(db, 'conversations', conversationId), {
+        lastMessage: content,
+        lastMessageAt: serverTimestamp(),
+      });
+      
+      return messageRef.id;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      return null;
+    }
+  },
+
+  getConversations: async (userId: string) => {
+    try {
+      const q = query(collection(db, 'conversations'), where('participants', 'array-contains', userId));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error('Error getting conversations:', error);
+      return [];
+    }
+  },
+
+  getMessages: async (conversationId: string) => {
+    try {
+      const q = query(collection(db, 'conversations', conversationId, 'messages'), orderBy('createdAt', 'asc'));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error('Error getting messages:', error);
       return [];
     }
   }

@@ -33,6 +33,7 @@ import { NotFound } from './pages/NotFound';
 import { SearchPage } from './pages/SearchPage';
 import { CopyrightPage } from './pages/Copyright';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -105,12 +106,13 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <ScrollToTop />
-            <ScrollToTopButton />
-            <Layout>
-              <Routes>
+        <ThemeProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <ScrollToTop />
+              <ScrollToTopButton />
+              <Layout>
+                <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/search" element={<SearchPage />} />
@@ -192,6 +194,8 @@ export default function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/artist-profile/:id" element={<PublicArtistProfile />} />
+
             <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/profile" element={
               <ProtectedRoute requireAuth={true}>
@@ -253,6 +257,7 @@ export default function App() {
           </Layout>
         </BrowserRouter>
       </AuthProvider>
+      </ThemeProvider>
     </ToastProvider>
     </ErrorBoundary>
   );

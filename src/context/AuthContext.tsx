@@ -11,6 +11,9 @@ interface AuthContextType {
   hasPermission: (permission: string) => boolean;
   isAtLeastRole: (minRole: UserRole) => boolean;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
+  followUser: (artistId: string) => Promise<void>;
+  unfollowUser: (artistId: string) => Promise<void>;
+  isFollowing: (artistId: string) => boolean;
 }
 
 export interface UserProfile {
@@ -41,7 +44,10 @@ const defaultAuthContext: AuthContextType = {
   loading: true,
   hasPermission: () => false,
   isAtLeastRole: () => false,
-  updateProfile: async () => {}
+  updateProfile: async () => {},
+  followUser: async () => {},
+  unfollowUser: async () => {},
+  isFollowing: () => false
 };
 
 const AuthContext = createContext<AuthContextType>(defaultAuthContext);
@@ -91,6 +97,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     await updateDoc(doc(db, 'users', user.uid), data);
     setProfile(prev => prev ? { ...prev, ...data } : null);
+  };
+
+  const followUser = async (artistId: string) => {
+    if (!user || !profile) return;
+    if (!profile.following?.includes(artistId)) {
+      const newFollowing = [...(profile.following || []), artistId];
+      await updateDoc(doc(db, 'users', user.uid), { following: newFollowing });
+      setProfile(prev => prev ? { ...prev, following: newFollowing } : null);
+    }
+  };
+
+  const unfollowUser = async (artistId: string) => {
+    if (!user || !profile) return;
+    const newFollowing = (profile.following || []).filter(id => id !== artistId);
+    await updateDoc(doc(db, 'users', user.uid), { following: newFollowing });
+    setProfile(prev => prev ? { ...prev, following: newFollowing } : null);
+  };
+
+  const isFollowing = (artistId: string): boolean => {
+    return profile?.following?.includes(artistId) ?? false;
   };
 
   useEffect(() => {
@@ -152,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, hasPermission, isAtLeastRole, updateProfile: updateProfileData }}>
+    <AuthContext.Provider value={{ user, profile, loading, hasPermission, isAtLeastRole, updateProfile: updateProfileData, followUser, unfollowUser, isFollowing }}>
       {children}
     </AuthContext.Provider>
   );

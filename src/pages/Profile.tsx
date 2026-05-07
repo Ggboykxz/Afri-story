@@ -1,12 +1,13 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Award, Zap, Book, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X, Camera, Loader2 } from 'lucide-react';
+import { Award, Zap, BookOpen, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X, Camera, Loader2, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { updateProfile } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { Skeleton } from '../components/Skeleton';
+import { BADGES } from '../lib/roles';
 
 export const Profile = () => {
   const { userId } = useParams();
@@ -28,11 +29,25 @@ export const Profile = () => {
   const isOwnProfile = user?.uid === userId;
   const displayProfile = isOwnProfile ? profile : null; 
 
-  const badges = [
-    { label: 'Pionnier', icon: <Zap className="w-4 h-4" />, color: 'bg-brand-gold' },
-    { label: 'Abonné Premium', icon: <ShieldCheck className="w-4 h-4" />, color: 'bg-brand-red' },
-    { label: 'Super Lecteur', icon: <Book className="w-4 h-4" />, color: 'bg-brand-green' },
-  ];
+  const getBadgeDisplay = (badgeId: string) => {
+    const badgeInfo = BADGES[badgeId];
+    if (!badgeInfo) return null;
+    const colors: Record<string, string> = {
+      premium: 'bg-purple-500',
+      supporter: 'bg-brand-gold text-brand-black',
+      loyal: 'bg-brand-green',
+      megareader: 'bg-brand-red',
+      pro: 'bg-brand-gold',
+      mentor: 'bg-brand-brown',
+    };
+    return {
+      label: badgeInfo.name,
+      icon: <Star className="w-4 h-4" />,
+      color: colors[badgeId] || 'bg-gray-500',
+    };
+  };
+
+  const userBadges = profile?.badges?.map(b => getBadgeDisplay(b.id)).filter(Boolean) || [];
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
@@ -128,13 +143,20 @@ export const Profile = () => {
                       {displayProfile?.displayName || 'Utilisateur AfriStory'}
                       {displayProfile?.role === 'artist_pro' && <Award className="w-6 h-6 text-brand-gold" />}
                    </h1>
-                   <div className="flex flex-wrap gap-2">
-                      {badges.map((badge, i) => (
-                        <div key={i} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white ${badge.color}`}>
-                           {badge.icon}
-                           {badge.label}
+<div className="flex flex-wrap gap-2">
+                      {userBadges.length > 0 ? (
+                        userBadges.map((badge, i) => badge && (
+                          <div key={i} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white ${badge.color}`}>
+                             {badge.icon}
+                             {badge.label}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/10 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-wider text-gray-400">
+                           <Zap className="w-4 h-4" />
+                           Lecteur
                         </div>
-                      ))}
+                      )}
                       {displayProfile?.role !== 'reader' && (
                         <button 
                           onClick={() => setShowProModal(true)}

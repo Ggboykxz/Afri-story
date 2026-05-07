@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { User, BookOpen, Award, Heart, Share2, MessageCircle, Zap, Loader2 } from 'lucide-react';
+import { User, BookOpen, Award, Heart, Share2, MessageCircle, Zap, Loader2, UserPlus, UserCheck } from 'lucide-react';
 import { workService, Work } from '../lib/workService';
+import { userService, ArtistProfile } from '../lib/userService';
+import { useAuth } from '../context/AuthContext';
 import { ProfileHeaderSkeleton, WorkCardSkeleton, Skeleton } from '../components/Skeleton';
 
 export function PublicArtistProfile() {
   const { artistId } = useParams();
+  const { user, profile, hasPermission, isFollowing, followUser, unfollowUser } = useAuth();
   const [works, setWorks] = useState<Work[]>([]);
+  const [artistProfile, setArtistProfile] = useState<ArtistProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [following, setFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
 
   useEffect(() => {
     fetchArtistData();
@@ -17,13 +23,41 @@ export function PublicArtistProfile() {
   const fetchArtistData = async () => {
     try {
       setLoading(true);
-      // In a real app, we'd fetch profile + works separately
       const artistWorks = await workService.getWorks({ authorId: artistId }) as Work[];
       setWorks(artistWorks || []);
+      
+      if (artistId) {
+        const artist = await userService.getArtistProfile(artistId);
+        setArtistProfile(artist);
+        setFollowerCount(artist?.followers?.length || 0);
+        
+        if (profile && artistId) {
+          setFollowing(profile.following?.includes(artistId) || false);
+        }
+      }
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!user || !artistId) return;
+    
+    try {
+      if (following) {
+        await unfollowUser(artistId);
+        await userService.removeFollower(artistId, user.uid);
+        setFollowerCount(prev => Math.max(0, prev - 1));
+      } else {
+        await followUser(artistId);
+        await userService.addFollower(artistId, user.uid);
+        setFollowerCount(prev => prev + 1);
+      }
+      setFollowing(!following);
+    } catch (error) {
+      console.error('Error toggling follow:', error);
     }
   };
 
@@ -64,21 +98,41 @@ export function PublicArtistProfile() {
               <p className="text-gray-400 max-w-xl text-sm font-medium leading-relaxed">
                 Créateur passionné explorant les frontières entre tradition et futur. Bienvenue dans mon univers sur AfriStory.
               </p>
-              <div className="flex flex-wrap gap-6 text-[10px] font-black uppercase tracking-widest text-gray-500 italic">
+<div className="flex flex-wrap gap-6 text-[10px] font-black uppercase tracking-widest text-gray-500 italic">
                  <div className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-brand-gold" /> {works.length} Œuvres</div>
                  <div className="flex items-center gap-2"><Zap className="w-4 h-4 text-brand-gold" /> 25.4K Vues Totales</div>
-                 <div className="flex items-center gap-2"><Heart className="w-4 h-4 text-brand-gold" /> 4.2K Abonnés</div>
-              </div>
-            </div>
+                 <div className="flex items-center gap-2"><Heart className="w-4 h-4 text-brand-gold" /> {followerCount.toLocaleString()} Abonnés</div>
+               </div>
+             </div>
 
-            <div className="flex gap-4 w-full md:w-auto">
-              <button className="flex-1 md:flex-none px-8 py-3 bg-brand-gold text-brand-black font-black rounded-xl hover:scale-105 transition-transform tracking-widest text-[10px] uppercase">
-                S'ABONNER
-              </button>
-              <button className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">
-                <Share2 className="w-5 h-5" />
-              </button>
-            </div>
+             <div className="flex gap-4 w-full md:w-auto">
+               {user && profile && hasPermission('follow_artist') && artistId !== user.uid && (
+                 <motion.button
+                   whileTap={{ scale: 0.95 }}
+                   onClick={handleFollowToggle}
+                   className={`flex-1 md:flex-none px-8 py-3 font-black rounded-xl tracking-widest text-[10px] uppercase transition-colors ${
+                     following 
+                       ? 'bg-brand-gold text-brand-black' 
+                       : 'bg-brand-gold text-brand-black hover:bg-brand-gold/80'
+                   }`}
+                 >
+                   {following ? (
+                     <span className="flex items-center gap-2 justify-center">
+                       <UserCheck className="w-4 h-4" />
+                       Abonné
+                     </span>
+                   ) : (
+                     <span className="flex items-center gap-2 justify-center">
+                       <UserPlus className="w-4 h-4" />
+                       S'abonner
+                     </span>
+                   )}
+                 </motion.button>
+               )}
+               <button className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">
+                 <Share2 className="w-5 h-5" />
+               </button>
+             </div>
           </div>
         )}
 

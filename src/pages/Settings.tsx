@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Bell, Shield, Eye, Palette, CreditCard, ChevronRight, Check, LayoutDashboard, Sparkles } from 'lucide-react';
+import { User, Bell, Shield, Eye, Palette, CreditCard, ChevronRight, Check, LayoutDashboard, Sparkles, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { Skeleton } from '../components/Skeleton';
 
 export const Settings = () => {
   const navigate = useNavigate();
   const { profile, loading: authLoading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [activeSection, setActiveSection] = useState('profile');
   const [saved, setSaved] = useState(false);
 
@@ -198,14 +200,46 @@ export const Settings = () => {
                               </div>
                               <div className="w-12 h-6 bg-brand-gold/20 rounded-full p-1 cursor-pointer">
                                  <div className="w-4 h-4 bg-brand-gold rounded-full ml-auto" />
-                              </div>
-                           </div>
-                         ))}
+</div>
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+                 </motion.div>
+               )}
+
+               {activeSection === 'display' && (
+                 <motion.div 
+                   initial={{ opacity: 0, x: 20 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   className="space-y-8"
+                 >
+                   <div className="glass-card p-8 space-y-6">
+                      <h3 className="font-display font-bold text-xl">Options d'Affichage</h3>
+                      
+                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                         <div className="flex items-center gap-4">
+                            {theme === 'dark' ? <Moon className="w-5 h-5 text-brand-gold" /> : <Sun className="w-5 h-5 text-brand-gold" />}
+                            <div>
+                               <div className="text-sm font-bold">Mode {theme === 'dark' ? 'Sombre' : 'Clair'}</div>
+                               <div className="text-[10px] text-gray-500 font-bold">Changer le thème de l'interface</div>
+                            </div>
+                         </div>
+                         <button 
+                           onClick={toggleTheme}
+                           className={`w-14 h-7 rounded-full p-1 cursor-pointer transition-colors ${
+                             theme === 'dark' ? 'bg-brand-brown' : 'bg-brand-gold'
+                           }`}
+                         >
+                            <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                              theme === 'dark' ? 'translate-x-7' : 'translate-x-0'
+                            }`} />
+                         </button>
                       </div>
                    </div>
-                </motion.div>
-              )}
-           </AnimatePresence>
+                 </motion.div>
+               )}
+            </AnimatePresence>
         </main>
       </div>
     </div>
