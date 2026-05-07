@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { UserRole, Badge, SubscriptionPlan, ROLE_HIERARCHY } from '../lib/roles';
 
@@ -57,6 +57,7 @@ const defaultAuthContext: AuthContextType = {
   hasPermission: () => false,
   isAtLeastRole: () => false,
   updateProfile: async () => {},
+  refreshProfile: async () => {},
   followUser: async () => {},
   unfollowUser: async () => {},
   isFollowing: () => false
@@ -76,18 +77,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       see_catalog: true,
       read_free_chapters: !['artist_draft', 'artist_pro', 'artist_mentor'].includes(profile.role),
       read_premium_chapters: ['reader_premium', 'reader_supporter', 'artist_pro', 'artist_mentor', 'moderator', 'supervisor', 'admin'].includes(profile.role),
-      early_access: profile.role === 'artist_pro' || profile.role === 'artist_mentor' || profile.role === 'reader_premium' || profile.role === 'reader_supporter',
+      early_access: ['artist_pro', 'artist_mentor', 'reader_premium', 'reader_supporter'].includes(profile.role),
       comment: profile.role !== 'visitor',
       like: profile.role !== 'visitor',
       follow_artist: profile.role !== 'visitor',
       forum_public: ['reader', 'reader_premium', 'reader_supporter', 'artist_draft', 'artist_pro', 'artist_mentor', 'enterprise', 'moderator', 'supervisor', 'admin'].includes(profile.role),
       forum_premium: ['reader_premium', 'reader_supporter', 'artist_pro', 'artist_mentor', 'moderator', 'supervisor', 'admin'].includes(profile.role),
-      private_message_artist: profile.role === 'artist_pro' || profile.role === 'artist_mentor' || profile.role === 'enterprise' || profile.role === 'admin',
+      private_message_artist: ['artist_pro', 'artist_mentor', 'enterprise', 'admin'].includes(profile.role),
       publish_draft_work: profile.role === 'artist_draft',
-      publish_pro_work: profile.role === 'artist_pro' || profile.role === 'artist_mentor' || profile.role === 'admin',
-      monetize: profile.role === 'artist_pro' || profile.role === 'artist_mentor',
-      advanced_stats: profile.role === 'artist_pro' || profile.role === 'artist_mentor',
-      manage_team: profile.role === 'artist_pro' || profile.role === 'artist_mentor',
+      publish_pro_work: ['artist_pro', 'artist_mentor', 'admin'].includes(profile.role),
+      monetize: ['artist_pro', 'artist_mentor'].includes(profile.role),
+      advanced_stats: ['artist_pro', 'artist_mentor'].includes(profile.role),
+      manage_team: ['artist_pro', 'artist_mentor'].includes(profile.role),
       mentor_draft: profile.role === 'artist_mentor',
       committee_draft_pro: ['artist_mentor', 'moderator', 'supervisor', 'admin'].includes(profile.role),
       buy_africoins: ['reader', 'reader_premium', 'reader_supporter', 'artist_draft'].includes(profile.role),
@@ -109,26 +110,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     await updateDoc(doc(db, 'users', user.uid), data);
     setProfile(prev => prev ? { ...prev, ...data } : null);
-  };
-
-  const followUser = async (artistId: string) => {
-    if (!user || !profile) return;
-    if (!profile.following?.includes(artistId)) {
-      const newFollowing = [...(profile.following || []), artistId];
-      await updateDoc(doc(db, 'users', user.uid), { following: newFollowing });
-      setProfile(prev => prev ? { ...prev, following: newFollowing } : null);
-    }
-  };
-
-  const unfollowUser = async (artistId: string) => {
-    if (!user || !profile) return;
-    const newFollowing = (profile.following || []).filter(id => id !== artistId);
-    await updateDoc(doc(db, 'users', user.uid), { following: newFollowing });
-    setProfile(prev => prev ? { ...prev, following: newFollowing } : null);
-  };
-
-  const isFollowing = (artistId: string): boolean => {
-    return profile?.following?.includes(artistId) ?? false;
   };
 
   const refreshProfile = async () => {
@@ -161,11 +142,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const followUser = async (artistId: string) => {
+    if (!user || !profile) return;
+    if (!profile.following?.includes(artistId)) {
+      const newFollowing = [...(profile.following || []), artistId];
+      await updateDoc(doc(db, 'users', user.uid), { following: newFollowing });
+      setProfile(prev => prev ? { ...prev, following: newFollowing } : null);
+    }
+  };
+
+  const unfollowUser = async (artistId: string) => {
+    if (!user || !profile) return;
+    const newFollowing = (profile.following || []).filter(id => id !== artistId);
+    await updateDoc(doc(db, 'users', user.uid), { following: newFollowing });
+    setProfile(prev => prev ? { ...prev, following: newFollowing } : null);
+  };
+
+  const isFollowing = (artistId: string): boolean => {
+    return profile?.following?.includes(artistId) ?? false;
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
         const docRef = doc(db, 'users', user.uid);
+        
+        // GET initial profile
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
@@ -191,7 +194,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               darkMode: true,
             },
           });
+
+          // REAL-TIME SYNC - automatically updates when Firestore changes
+          const unsubRealtime = onSnapshot(doc(db, 'users', user.uid), (snap) => {
+            if (snap.exists()) {
+              const data = snap.data();
+              setProfile({
+                userId: user.uid,
+                email: user.email || '',
+                displayName: data.displayName || user.displayName || 'Voyageur',
+                photoURL: data.photoURL || user.photoURL,
+                role: data.role || 'reader',
+                afriCoins: data.afriCoins || 0,
+                badges: data.badges || [],
+                subscription: data.subscription,
+                subscriptionExpiresAt: data.subscriptionExpiresAt?.toDate?.() || data.subscriptionExpiresAt,
+                following: data.following || [],
+                favorites: data.favorites || [],
+                createdAt: data.createdAt?.toDate?.() || new Date(),
+                bio: data.bio,
+                socialLinks: data.socialLinks,
+                preferences: data.preferences || {
+                  notifications: true,
+                  emailNotifications: true,
+                  darkMode: true,
+                },
+              });
+            }
+          });
+
+          return () => unsubRealtime();
         } else {
+          // CREATE new profile for first-time users
           const newProfile: UserProfile = {
             userId: user.uid,
             email: user.email || '',
@@ -204,22 +238,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             following: [],
             favorites: [],
             bio: '',
-            socialLinks: {
-              instagram: '',
-              twitter: '',
-              website: '',
-            },
-            preferences: {
-              notifications: true,
-              emailNotifications: true,
-              darkMode: true,
-            },
-            statistics: {
-              totalReads: 0,
-              totalLikes: 0,
-              totalComments: 0,
-              readingTime: 0,
-            },
+            socialLinks: { instagram: '', twitter: '', website: '' },
+            preferences: { notifications: true, emailNotifications: true, darkMode: true },
+            statistics: { totalReads: 0, totalLikes: 0, totalComments: 0, readingTime: 0 },
           };
           await setDoc(docRef, newProfile);
           setProfile(newProfile);
