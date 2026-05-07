@@ -102,12 +102,12 @@ export const Reader = () => {
     try {
       setLoading(true);
       const workData = await workService.getWork(workId);
-      // In a real subcollection setup, we'd fetch the specific chapter doc.
-      // Here we simulate finding it in the array or a mock.
       const found = workData?.chapters?.find((c: any) => c.id === chapterId);
       if (found) {
         setChapterContent(found);
-        setIsLocked(found.isPremium && !profile?.unlockedChapters?.includes(chapterId));
+        setIsLocked(found.isPremium && !canReadPremium);
+      } else {
+        setIsLocked(true);
       }
     } catch (err) {
       console.error(err);
@@ -116,12 +116,7 @@ export const Reader = () => {
     }
   };
 
-  // Mock content (vertical scroll images)
-  const pages = [
-     'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&q=80&w=1000',
-     'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&q=80&w=1000',
-     'https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=1000',
-  ];
+  const pages = chapterContent?.pages?.map((url: string) => url) || [];
 
   return (
     <div className="bg-brand-black min-h-screen">
