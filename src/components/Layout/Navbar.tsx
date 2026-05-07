@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { signInWithGoogle, auth } from '../../lib/firebase';
 import { motion } from 'motion/react';
 import { notificationService, Notification } from '../../lib/notificationService';
+import { createPortal } from 'react-dom';
 
 export const Navbar = () => {
   const { user, profile } = useAuth();
@@ -216,10 +217,12 @@ export const Navbar = () => {
       </div>
 
       {/* Mobile Menu Drawer */}
-      {mobileMenuOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
-          <div 
-            style={{ position: 'fixed', inset: 0, backgroundColor: 'black', opacity: 1 }} 
+      {mobileMenuOpen && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999 }}>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'black' }}
             onClick={() => setMobileMenuOpen(false)}
           />
           <motion.div 
@@ -231,9 +234,9 @@ export const Navbar = () => {
               top: 0, 
               right: 0, 
               bottom: 0, 
-              width: '18rem', 
-              backgroundColor: 'black',
-              zIndex: 10000,
+              width: '280px', 
+              backgroundColor: '#000',
+              zIndex: 100000,
               borderLeft: '1px solid rgba(255,255,255,0.1)'
             }}
           >
@@ -283,8 +286,9 @@ export const Navbar = () => {
                 </div>
               )}
             </div>
-          </motion.div>
-        </div>
+</motion.div>
+        </div>,
+        document.body
       )}
     </nav>
   );
