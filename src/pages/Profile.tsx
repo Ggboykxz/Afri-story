@@ -1,15 +1,23 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Award, Zap, Book, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X } from 'lucide-react';
+import { Award, Zap, Book, ShieldCheck, Heart, Grid, List as ListIcon, MessageCircle, X, Camera, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { updateProfile } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db, auth } from '../lib/firebase';
 import { Skeleton } from '../components/Skeleton';
 
 export const Profile = () => {
   const { userId } = useParams();
-  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const { user, profile, updateProfile: updateUserProfile } = useAuth();
   const [showProModal, setShowProModal] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [editName, setEditName] = React.useState('');
+  const [editBio, setEditBio] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     // Simulate loading/checking profile

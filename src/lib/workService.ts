@@ -10,7 +10,8 @@ import {
   orderBy, 
   serverTimestamp,
   increment,
-  updateDoc
+  updateDoc,
+  deleteDoc
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { handleFirestoreError, OperationType } from './firestore-errors';
@@ -201,6 +202,67 @@ export const workService = {
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  },
+
+  // User Favorites
+  addToFavorites: async (userId: string, workId: string) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        favorites: increment(1)
+      });
+      await setDoc(doc(db, 'users', userId, 'favorites', workId), {
+        addedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error adding to favorites:', error);
+    }
+  },
+
+  removeFromFavorites: async (userId: string, workId: string) => {
+    try {
+      await deleteDoc(doc(db, 'users', userId, 'favorites', workId));
+    } catch (error) {
+      console.error('Error removing from favorites:', error);
+    }
+  },
+
+  getFavorites: async (userId: string): Promise<string[]> => {
+    try {
+      const snap = await getDocs(collection(db, 'users', userId, 'favorites'));
+      return snap.docs.map(d => d.id);
+    } catch (error) {
+      console.error('Error getting favorites:', error);
+      return [];
+    }
+  },
+
+  // Reading History
+  addToHistory: async (userId: string, workId: string, chapterId?: string, chapterNumber?: number) => {
+    try {
+      await setDoc(doc(db, 'users', userId, 'reading_history', workId), {
+        workId,
+        chapterId,
+        chapterNumber,
+        lastReadAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error adding to history:', error);
+    }
+  },
+
+  getReadingHistory: async (userId: string): Promise<{workId: string, chapterId?: string, chapterNumber?: number, lastReadAt: any}[]> => {
+    try {
+      const q = query(
+        collection(db, 'users', userId, 'reading_history'),
+        orderBy('lastReadAt', 'desc')
+      );
+      const snap = await getDocs(q);
+      return snap.docs.map(d => d.data()) as any[];
+    } catch (error) {
+      console.error('Error getting history:', error);
+      return [];
     }
   }
 };

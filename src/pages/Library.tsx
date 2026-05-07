@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, Bookmark, Clock, Zap, Award, Search, Loader2 } from 'lucide-react';
+import { BookOpen, Bookmark, Clock, Zap, Award, Search, Loader2, Heart, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { workService, Work } from '../lib/workService';
 import { Link, useNavigate } from 'react-router-dom';
 import { WorkCardSkeleton } from '../components/Skeleton';
+import { EmptyState } from '../components/EmptyState';
 
 export function Library() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [works, setWorks] = useState<Work[]>([]);
+  const [favorites, setFavorites] = useState<Work[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'reading' | 'favorites' | 'finished'>('reading');
 
@@ -19,17 +21,34 @@ export function Library() {
   }, [user]);
 
   const fetchLibrary = async () => {
+    if (!user) return;
     try {
       setLoading(true);
-      // Conceptually, we'd fetch specific IDs from user's favorites/history
-      // For now, let's fetch popular works to show SOMETHING in the library
-      const all = await workService.getPopularWorks();
-      setWorks(all);
+      const [favIds, hist] = await Promise.all([
+        workService.getFavorites(user.uid),
+        workService.getReadingHistory(user.uid)
+      ]);
+      setHistory(hist);
+
+      if (favIds.length > 0) {
+        const favWorks: Work[] = [];
+        for (const id of favIds) {
+          const w = await workService.getWork(id);
+          if (w) favWorks.push(w);
+        }
+        setFavorites(favWorks);
+      }
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRemoveFavorite = async (workId: string) => {
+    if (!user) return;
+    await workService.removeFromFavorites(user.uid, workId);
+    setFavorites(prev => prev.filter(w => w.id !== workId));
   };
 
   if (!user) {
@@ -49,84 +68,116 @@ export function Library() {
     );
   }
 
+  const tabs = [
+    { id: 'reading', label: 'En cours', icon: Clock, count: history.length },
+    { id: 'favorites', label: 'Favoris', icon: Heart, count: favorites.length },
+    { id: 'finished', label: 'Terminés', icon: Zap, count: 0 },
+  ] as const;
+
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 space-y-12">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter">Votre <span className="gradient-text">Bibliothèque</span></h1>
-          <p className="text-gray-500 font-medium">Gérez vos lectures en cours et vos coups de cœur.</p>
-        </div>
-        <div className="flex gap-4 border-b border-white/10">
-          {(['reading', 'favorites', 'finished'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-4 px-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${
-                activeTab === tab ? 'text-brand-gold' : 'text-gray-600 hover:text-white'
-              }`}
-            >
-              {tab === 'reading' ? 'En cours' : tab === 'favorites' ? 'Favoris' : 'Terminés'}
-              {activeTab === tab && (
-                <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-1 bg-brand-gold" />
-              )}
-            </button>
-          ))}
-        </div>
+    <div className="max-w-7xl mx-auto px-6 py-8 pb-24 space-y-8">
+      <div className="flex items-center gap-4">
+        <h1 className="text-3xl font-display font-black uppercase tracking-tighter">Ma Bibliothèque</h1>
+        <div className="text-xs text-gray-500 font-bold uppercase">{profile?.favorites?.length || 0} œuvres</div>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-widest whitespace-nowrap transition-all ${
+              activeTab === tab.id 
+                ? 'bg-brand-gold text-brand-black' 
+                : 'bg-white/5 text-gray-400 hover:text-white'
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+            {tab.count > 0 && <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px]">{tab.count}</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-           {Array(5).fill(0).map((_, i) => <WorkCardSkeleton key={i} />)}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {Array(5).fill(0).map((_, i) => <WorkCardSkeleton key={i} />)}
         </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-          {works.map((work) => (
-            <motion.div
-              key={work.id}
-              whileHover={{ y: -10 }}
-              className="group flex flex-col gap-3 cursor-pointer"
-              onClick={() => navigate(`/work/${work.id}`)}
-            >
-              <div className="aspect-[3/4] rounded-2xl overflow-hidden glass-card relative shadow-xl">
-                 <div className="absolute top-3 left-3 z-10">
-                    <div className="bg-brand-black/60 backdrop-blur-md px-2 py-1 rounded text-[8px] font-black border border-white/10 uppercase tracking-widest text-white">
-                      CH. 12/24
+      ) : activeTab === 'favorites' ? (
+        favorites.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {favorites.map(work => (
+              <motion.div
+                key={work.id}
+                whileHover={{ y: -5 }}
+                className="group relative"
+              >
+                <Link to={`/work/${work.id}`} className="block">
+                  <div className="aspect-[3/4] rounded-2xl overflow-hidden glass-card relative shadow-xl">
+                    {work.coverURL ? (
+                      <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-brand-brown" />
+                    )}
+                    <div className="absolute inset-0 bg-linear-to-t from-brand-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                      <span className="text-xs font-black text-white">LIRE</span>
                     </div>
-                 </div>
-                 {work.coverURL ? (
-                   <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                 ) : (
-                   <div className="w-full h-full bg-brand-brown" />
-                 )}
-                 <div className="absolute inset-x-0 bottom-0 p-4 bg-linear-to-t from-brand-black via-brand-black/40 to-transparent flex flex-col justify-end translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                    <div className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-full h-1 overflow-hidden mb-3">
-                       <div className="bg-brand-gold h-full w-1/2" />
-                    </div>
-                    <button className="w-full py-2 bg-white text-brand-black text-[10px] font-black uppercase tracking-widest rounded-lg">
-                      REPRENDRE
-                    </button>
-                 </div>
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-display font-bold leading-tight line-clamp-1">{work.title}</h4>
-                <p className="text-xs text-gray-500">{work.author}</p>
-                <div className="flex items-center gap-3 text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-                   <Clock className="w-3 h-3" /> Lu il y a 2j
+                  </div>
+                  <h4 className="font-bold text-sm mt-2 line-clamp-1">{work.title}</h4>
+                </Link>
+                <button
+                  onClick={(e) => { e.preventDefault(); handleRemoveFavorite(work.id); }}
+                  className="absolute -top-2 -right-2 p-1.5 bg-brand-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={Heart}
+            title="Aucun favori"
+            description="Ajoutez des œuvres à vos favoris pour les retrouver ici"
+            actionLabel="Explorer"
+            actionHref="/explore"
+          />
+        )
+      ) : activeTab === 'reading' ? (
+        history.length > 0 ? (
+          <div className="space-y-4">
+            {history.map((item, i) => (
+              <div key={i} className="flex items-center gap-4 glass-card p-4">
+                <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-bold">Œuvre en cours</h4>
+                  <p className="text-xs text-gray-500">Chapitre {item.chapterNumber || 1}</p>
                 </div>
+                <Link to={`/work/${item.workId}`} className="text-brand-gold text-xs font-black uppercase">
+                  Reprendre
+                </Link>
               </div>
-            </motion.div>
-          ))}
-          
-          <Link to="/explore" className="aspect-[3/4] rounded-2xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center text-center p-6 space-y-4 hover:border-brand-gold/30 hover:bg-white/5 transition-all group">
-             <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Search className="w-6 h-6 text-gray-600" />
-             </div>
-             <div>
-                <p className="text-xs font-black uppercase tracking-widest">Ajouter</p>
-                <p className="text-[10px] text-gray-600 font-bold">Trouvez votre prochaine obsession</p>
-             </div>
-          </Link>
-        </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={BookOpen}
+            title="Rien en cours"
+            description="Commencez à lire une œuvre pour suivre votre progression"
+            actionLabel="Explorer"
+            actionHref="/explore"
+          />
+        )
+      ) : (
+        <EmptyState
+          icon={Zap}
+          title="Aucun terminé"
+          description="Vos œuvres terminées apparaîtront ici"
+          actionLabel="Explorer"
+          actionHref="/explore"
+        />
       )}
     </div>
   );
