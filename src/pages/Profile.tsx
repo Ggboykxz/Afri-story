@@ -188,15 +188,15 @@ export const Profile = () => {
               <div className="glass-card p-8 space-y-4">
                 <h3 className="font-display font-bold text-sm uppercase tracking-widest text-gray-500">Liens Externe</h3>
                 <div className="space-y-3">
-                   <a href="#" className="flex items-center gap-3 text-sm text-gray-400 hover:text-brand-gold font-bold transition-all">
+                   <a href="https://amazon.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-400 hover:text-brand-gold font-bold transition-all">
                       <span className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">📦</span>
                       Amazon Store
                    </a>
-                   <a href="#" className="flex items-center gap-3 text-sm text-gray-400 hover:text-brand-gold font-bold transition-all">
+                   <a href="https://linktr.ee" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-400 hover:text-brand-gold font-bold transition-all">
                       <span className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">🌐</span>
                       Site Personnel
                    </a>
-                   <a href="#" className="flex items-center gap-3 text-sm text-gray-400 hover:text-brand-gold font-bold transition-all">
+                   <a href="https://artstation.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-400 hover:text-brand-gold font-bold transition-all">
                       <span className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">🎨</span>
                       Portfolio ArtStation
                    </a>

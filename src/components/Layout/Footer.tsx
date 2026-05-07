@@ -20,16 +20,16 @@ export const Footer = () => {
               La plateforme n°1 dédiée au rayonnement des récits, BD et Webtoons africains originaux.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-gold hover:text-brand-black transition-all">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-gold hover:text-brand-black transition-all">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-gold hover:text-brand-black transition-all">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-gold hover:text-brand-black transition-all">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-gold hover:text-brand-black transition-all">
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-gold hover:text-brand-black transition-all">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-gold hover:text-brand-black transition-all">
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-gold hover:text-brand-black transition-all">
                 <Youtube className="w-5 h-5" />
               </a>
             </div>
@@ -48,25 +48,26 @@ export const Footer = () => {
           <div>
             <h4 className="text-[10px] font-black uppercase tracking-widest text-brand-gold mb-6">Communauté</h4>
             <ul className="space-y-4">
-              <li><Link to="/become-pro" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">Devenir Pro</Link></li>
+              <li><Link to="/become-pro" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">Devenir Créateur</Link></li>
               <li><Link to="/collaboration" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">Collaboration Hub</Link></li>
-              <li><Link to="/faq" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">Aide & Support</Link></li>
+              <li><Link to="/faq" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">FAQ</Link></li>
+              <li><Link to="/about" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">À propos</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-[10px] font-black uppercase tracking-widest text-brand-gold mb-6">Légal</h4>
             <ul className="space-y-4">
-              <li><Link to="/terms" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">Conditions d'utilisation</Link></li>
+              <li><Link to="/terms" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">Conditions</Link></li>
               <li><Link to="/privacy" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">Confidentialité</Link></li>
-              <li><Link to="/copyright" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">Droits d'Auteur</Link></li>
+              <li><Link to="/subscription" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase">Abonnements</Link></li>
             </ul>
           </div>
         </div>
 
         <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest text-center md:text-left">
-            © {new Date().getFullYear()} AFRISTORY. TOUS DROITS RÉSERVÉS. CONÇU POUR LE RAYONNEMENT CULTUREL.
+            © {new Date().getFullYear()} AFRISTORY. TOUS DROITS RÉSERVÉS.
           </p>
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-2 text-gray-600">

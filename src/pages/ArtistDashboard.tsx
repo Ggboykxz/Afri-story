@@ -52,7 +52,7 @@ export const ArtistDashboard = () => {
     if (!title || !user) return;
     
     try {
-      await workService.createWork({
+      const workId = await workService.createWork({
         title,
         description: "Nouvelle oeuvre en cours de création.",
         type: "WEBTOON",
@@ -65,6 +65,7 @@ export const ArtistDashboard = () => {
       });
       alert("Oeuvre créée avec succès !");
       fetchArtistWorks();
+      navigate(`/artist/new-work`);
     } catch (err) {
       console.error(err);
     }

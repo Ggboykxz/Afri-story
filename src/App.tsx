@@ -31,6 +31,7 @@ import { Signup } from './pages/Signup';
 import { SubscriptionPage } from './pages/Subscription';
 import { NotFound } from './pages/NotFound';
 import { SearchPage } from './pages/SearchPage';
+import { CopyrightPage } from './pages/Copyright';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/Toast';
@@ -137,13 +138,14 @@ export default function App() {
             } />
             <Route path="/collaboration" element={<CollaborationHub />} />
             <Route path="/rankings" element={<Rankings />} />
-            <Route path="/rankings/pro" element={<Rankings />} />
-            <Route path="/rankings/draft" element={<Rankings />} />
+            <Route path="/rankings/:type" element={<Rankings />} />
 
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/about" element={<About />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/become-artist" element={<BecomePro />} />
 
             <Route path="/artist-profile/:artistId" element={<PublicArtistProfile />} />
             <Route path="/work/:id" element={<WorkDetail />} />
@@ -152,6 +154,7 @@ export default function App() {
 
             <Route path="/subscription" element={<SubscriptionPage />} />
             <Route path="/africoins" element={<SubscriptionPage />} />
+            <Route path="/copyright" element={<CopyrightPage />} />
 
             <Route path="/become-pro" element={<BecomePro />} />
             <Route path="/become-artist" element={<BecomePro />} />
