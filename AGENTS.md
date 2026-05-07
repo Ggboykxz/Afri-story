@@ -1,235 +1,348 @@
-# AfriStory - Documentation Technique
+# AfriStory - Plateforme Panafricaine de Webtoons, BDs et Romans Illustrés
 
-Projet de plateforme panafricaine de webtoons, BDs et romans illustrés.
+[![Netlify Status](https://api.netlify.com/api/v1/badges/xxxxx/deploy-status)](https://afristory.netlify.app)
+[![Vercel Status](https://thereis.no/status-url-yet)](https://afri-story.vercel.app)
+[![Firebase Hosting](https://fire-hosting-badge-url)](https://gen-lang-client-0232154573.web.app)
 
-## Stack Technique
+---
 
-- **Frontend**: React 19, Vite 6, TypeScript 5.8
-- **Styling**: Tailwind CSS 4, Framer Motion
-- **Backend**: Firebase (Auth + Firestore + Storage), Express (SSR)
-- **Routing**: React Router DOM v7
-- **Bundler**: Vite
+## 📱 À Propos
 
-## Structure du Projet
+AfriStory est une plateforme numérique panafricaine dédiée à la publication et découverte de:
+- **Webtoons** - Bandes dessinées numériques vertical scroll
+- **BD** - Bandes dessinées traditionnelles
+- **Romans illustrés** - Romans avec Illustrations
+- **Contenu hybride** - Combinaison des formats
+
+La plateforme met en valeur les créateurs Africans et Afro-descendants avec un système de monétisation équitable.
+
+---
+
+## 🛠️ Stack Technique
+
+### Frontend
+| Technologie | Version | Usage |
+|-------------|---------|-------|
+| React | 19.x | UI Framework |
+| TypeScript | 5.x | Type safety |
+| Vite | 6.x | Bundler |
+| Tailwind CSS | 4.x | Styling |
+| Framer Motion | 12.x | Animations |
+| React Router DOM | 7.x | Routing |
+
+### Backend & Services
+| Service | Usage |
+|---------|-------|
+| Firebase Auth | Authentication |
+| Firebase Firestore | Base de données |
+| Firebase Storage | Stockage fichiers |
+| Cloudinary | CDN images |
+| Stripe | Paiements (à configurer) |
+
+### Déploiement
+```bash
+# Firebase
+firebase deploy --only hosting
+
+# Vercel (automatique via Git)
+vercel --prod
+
+# Netlify (automatique via Git)
+netlify deploy --prod
+```
+
+---
+
+## 🚀 Installation Locale
+
+```bash
+# Cloner le projet
+git clone https://github.com/Ggboykxz/Afri-story.git
+cd Afri-story
+
+# Installer les dépendances
+npm install
+
+# Variables d'environnement
+cp .env.example .env.local
+# Configurer firebase-applet-config.json
+
+# Lancer en développement
+npm run dev
+
+# Vérifier les types
+npm run lint
+
+# Builder pour production
+npm run build
+```
+
+---
+
+## 📁 Structure du Projet
 
 ```
 src/
 ├── components/
 │   ├── Layout/
 │   │   ├── Layout.tsx       # Main layout
-│   │   ├── Navbar.tsx       # Navigation bar
-│   │   ├── Footer.tsx       # Footer
-│   │   └── BottomNav.tsx    # Mobile bottom navigation
-│   ├── EmptyState.tsx       # Empty/Loading/Error states
-│   ├── ErrorBoundary.tsx   # Global error handling
-│   ├── Toast.tsx            # Toast notifications
-│   └── Skeleton.tsx        # Loading skeletons
+│   │   ├── Navbar.tsx      # Navigation bar
+│   │   ├── Footer.tsx      # Footer
+│   │   └── BottomNav.tsx   # Mobile bottom nav
+│   ├── EmptyState.tsx      # States UI
+│   ├── ErrorBoundary.tsx   # Error handling
+│   ├── Toast.tsx           # Notifications
+│   └── Skeleton.tsx        # Loading states
 ├── context/
-│   └── AuthContext.tsx      # Authentication & permissions
+│   ├── AuthContext.tsx     # Auth & permissions
+│   └── ThemeContext.tsx    # Dark/light mode
 ├── lib/
-│   ├── firebase.ts          # Firebase config (auth, firestore, storage)
-│   ├── roles.ts            # Rôles, permissions, badges, plans
-│   ├── subscriptionService.ts # Abonnements & AfriCoins
-│   ├── moderationService.ts # Signalements & modération
-│   ├── workService.ts      # Œuvres, chapitres, comments, search
-│   ├── forumService.ts    # Forums, threads, replies
-│   ├── notificationService.ts # Notifications temps réel
-│   ├── collaborationService.ts # Collaborations
-│   ├── firestore-errors.ts # Error handling
-│   └── utils.ts
+│   ├── firebase.ts         # Firebase config
+│   ├── roles.ts            # Rôles, permissions, badges
+│   ├── subscriptionService.ts # Abonnements
+│   ├── workService.ts     # Œuvres, chapitres
+│   ├── forumService.ts    # Forums
+│   ├── notificationService.ts # Notifications
+│   ├── cloudinaryService.ts # Upload images
+│   └── utils.ts            # Helpers
 ├── pages/
 │   ├── Home.tsx            # Accueil
-│   ├── Explore.tsx         # Catalogue avec filtres
-│   ├── SearchPage.tsx       # Page recherche
-│   ├── Library.tsx         # Bibliothèque (favoris/historique)
-│   ├── WorkDetail.tsx      # Page œuvre avec chapitres
-│   ├── Reader.tsx          # Lecteur avec comments temps réel
-│   ├── Profile.tsx         # Profil utilisateur (éditable)
-│   ├── PublicArtistProfile.tsx # Profil artiste public
-│   ├── ArtistDashboard.tsx  # Dashboard créateur
-│   ├── AdminDashboard.tsx   # Dashboard admin
+│   ├── Explore.tsx        # Catalogue
+│   ├── SearchPage.tsx      # Recherche
+│   ├── Library.tsx        # Bibliothèque
+│   ├── WorkDetail.tsx     # Page oeuvre
+│   ├── Reader.tsx          # Lecteur
+│   ├── Profile.tsx        # Profil (éditable)
+│   ├── ArtistDashboard.tsx # Dashboard créateur
+│   ├── AdminDashboard.tsx # Dashboard admin
 │   ├── ForumHome.tsx       # Forums
-│   ├── ForumCategory.tsx    # Catégorie forum
-│   ├── ThreadDetail.tsx     # Thread forum
-│   ├── NotificationsPage.tsx # Centre notifications
-│   ├── CreateWork.tsx      # Création œuvre avec upload image
-│   ├── Shop.tsx            # Boutique
-│   ├── Subscription.tsx    # Abonnements & AfriCoins
-│   ├── Rankings.tsx         # Classements
-│   ├── CollaborationHub.tsx # Hub collaborations
-│   ├── Messaging.tsx        # Messages (entreprise/artistes)
-│   ├── Login.tsx / Signup.tsx # Auth
-│   ├── BecomePro.tsx       # Devenir artiste pro
-│   ├── NotFound.tsx         # Page 404
-│   ├── Copyright.tsx        # Droits d'auteur
-│   ├── Terms.tsx / Privacy.tsx / FAQ.tsx / About.tsx
-│   └── Settings.tsx
+│   ├── Subscription.tsx    # Abonnements
+│   ├── Rankings.tsx       # Classements
+│   └── [autres pages]
 ├── App.tsx                 # Routing principal
 └── main.tsx               # Entry point
 ```
 
-## Commandes
+---
 
-```bash
-npm run dev       # Développement (SSR)
-npm run build     # Production
-npm run lint      # TypeScript check
+## 🔐 Rôles et Permissions
+
+### Hiérarchie des Rôles
+
+```
+ADMIN
+  └── SUPERVISOR
+        └── MODERATOR
+              └── ARTISTE PRO CERTIFIÉ
+                    ├── ARTISTE MENTOR
+                    └── ARTISTE DRAFT
+ENTREPRISE
+LECTEUR PREMIUM
+LECTEUR STANDARD
+VISITEUR
 ```
 
-## Systèmes Implémentés
+### Liste des Rôles
 
-### Rôles (11)
+| Rôle | Description | Accès |
+|------|-------------|-------|
+| `visitor` | Non connecté | Lecture limitée |
+| `reader` | Lecteur gratuit | Lecture, commentaires |
+| `reader_premium` | Abonné Standard | + accès anticipé |
+| `reader_supporter` | Abonné Supporter | + AfriCoins mensuels |
+| `artist_draft` | Créateur amateur | Publication libre |
+| `artist_pro` | Créateur validé | Monétisation |
+| `artist_mentor` | Mentor Pro | Encadrement Draft |
+| `enterprise` | Partenaire B2B | Messages privés |
+| `moderator` | Modérateur | Signalements |
+| `supervisor` | Senior modérateur | Cas complexes |
+| `admin` | Administrateur | Accès total |
 
-| Rôle | Description |
-|------|-------------|
-| visitor | Non connecté |
-| reader | Lecteur gratuit |
-| reader_premium | Abonné Standard |
-| reader_supporter | Abonné Supporter |
-| artist_draft | Créateur amateur |
-| artist_pro | Créateur certifié |
-| artist_mentor | Mentor Pro |
-| enterprise | Partenaire B2B |
-| moderator | Modérateur |
-| supervisor | Senior modérateur |
-| admin | Administrateur |
+---
 
-### Permissions
+## 📡 API Routes
 
-25 permissions par rôle dans `src/lib/roles.ts` (PERMISSIONS_MATRIX)
+```
+/                           → Home
+/explore                    → Catalogue
+/search                     → Recherche
+/library                   → Bibliothèque (connecté)
+/forum                      → Forums
+/forum/public                → Forum public
+/forum/premium               → Forum Premium
+/notifications              → Centre notifications
+/collaboration              → Hub collaborations
+/rankings                   → Classements
+/rankings/:type              → Classements Pro/Draft
+/subscription                → Abonnements
+/africoins                   → Achat AfriCoins
+/shop                         → Boutique
+/work/:id                    → Page œuvre
+/read/:workId/:chapterId    → Lecteur
+/artist                       → Dashboard créateur
+/artist/new-work              → Créer œuvre
+/artist-profile/:id           → Profil artiste
+/profile/:id                  → Profil utilisateur
+/profile                      → Mon profil (éditable)
+/messages                     → Messages
+/admin                        → Dashboard admin
+/become-pro                   → Devenir artiste Pro
+/copyright                    → Droits d'auteur
+/terms / privacy / faq / about → Pages légales
+/login / signup               → Authentification
+/*                            → 404 NotFound
+```
 
-### Badges
+---
 
-- Premium, Supporter, Fidèle, MegaLecteur, ProCertifié, Mentor
+## 🗄️ Collections Firestore
+
+### Collections Principales
+
+| Collection | Description |
+|------------|-------------|
+| `users` | Profils utilisateurs |
+| `works` | Œuvres publiées |
+| `works/{workId}/chapters` | Chapitres |
+| `works/{workId}/chapters/{id}/comments` | Commentaires |
+| `works/{workId}/reviews` | Critiques |
+| `forums` | Catégories forum |
+| `forum_threads` | Sujets forum |
+| `forum_replies` | Réponses |
+| `notifications` | Notifications |
+| `conversations` | Messages privés |
+| `collections` | Collections utilisateur |
+| `book_clubs` | Clubs de lecture |
+| `contests` | Concours |
+| `ama_sessions` | Sessions AMA |
+| `scheduled_chapters` | Chapitres planifiés |
+| `recruitment_ads` | Annonces collaboration |
+| `team_members` | Équipes de création |
+| `reports` | Signalements |
+| `moderation_actions` | Actions modération |
+| `verification_requests` | Demandes Pro |
+| `africoins_transactions` | Transactions |
+
+Voir [FIRESTORE_SCHEMA.md](./FIRESTORE_SCHEMA.md) pour la documentation complète.
+
+---
+
+## 💰 Système de Monétisation
 
 ### Abonnements
 
-- Standard: 2,99€/mois
-- Premium: 4,99€/mois (+ accès anticipé, forum privé)
-- Supporter: 5,99€/mois (+ AfriCoins mensuels)
+| Plan | Prix | Avantages |
+|------|------|-----------|
+| Standard | 2,99€/mois | Sans pub, accès anticipé |
+| Premium | 4,99€/mois | + contenu exclusif, forums privés |
+| Supporter | 5,99€/mois | + AfriCoins mensuels |
 
 ### AfriCoins
 
-- Pack Découverte: 100 (0,99€)
-- Pack Standard: 500+50 (3,99€)
-- Pack Premium: 1500+250 (9,99€)
-- Pack Méga: 5000+1000 (29,99€)
+| Pack | Prix | Bonus |
+|------|------|-------|
+| Découverte | 0,99€ | 100 |
+| Standard | 3,99€ | 500 + 50 |
+| Premium | 9,99€ | 1500 + 250 |
+| Méga | 29,99€ | 5000 + 1000 |
 
-### Modération
+### Répartition Revenus
 
-- Signalements: spam, harassment, inappropriate, spoiler, plagiarism, copyright
-- Actions: warning, deleted, temporary_ban, permanent_ban
+| Source | Artiste | Plateforme |
+|--------|--------|------------|
+| Abonnements | 70% | 30% |
+| AfriCoins | 80% | 20% |
+| Dons | 90% | 10% |
 
-## Routes Principales
+---
 
-```
-/                       → Home
-/explore                 → Catalogue avec filtres
-/search                 → Page recherche
-/library                → Bibliothèque (connecté)
-/forum                  → Forums
-/forum/public           → Forum public
-/forum/premium          → Forum Premium (abonné)
-/notifications         → Centre notifications
-/collaboration          → Hub collaborations
-/rankings               → Classements
-/rankings/:type         → Classements (pro/draft)
-/subscription           → Abonnements + AfriCoins
-/africoins             → Achat AfriCoins
-/shop                   → Boutique
-/shop/:productId        → Produit boutique
-/work/:id               → Page œuvre
-/read/:workId/:chapterId → Lecteur
-/artist                 → Dashboard créateur
-/artist/new-work        → Créer œuvre
-/artist-profile/:id     → Profil artiste public
-/profile/:id            → Profil utilisateur
-/profile                → Mon profil (éditable)
-/messages               → Messages (entreprise/artistes)
-/admin                  → Dashboard admin
-/become-pro             → Devenir artiste pro
-/copyright              → Droits d'auteur
-/terms / privacy / faq / about → Pages légales
-/login / signup         → Auth
-/*                      → 404 NotFound
+## 🎨 Design System
+
+### Couleurs
+
+```css
+--color-brand-gold: #D4AF37;
+--color-brand-brown: #5C4033;
+--color-brand-red: #A52A2A;
+--color-brand-green: #2E8B57;
+--color-brand-black: #0F0F0F;
 ```
 
-## Firestore Schema
+### Polices
 
-Voir `FIRESTORE_SCHEMA.md` pour la documentation complète des collections.
+- **Display**: Space Grotesk
+- **Sans**: Outfit
 
-### Collections principales
+### Composants
 
-- `users` - Profils avec rôle, abonnements, badges, statistiques
-- `works` - Œuvres avec chapters, comments, reviews
-- `forums` + `forum_threads` + `forum_replies`
-- `notifications`
-- `conversations` + messages
-- `collections`, `book_clubs`, `contests`
-- `ama_sessions`, `scheduled_chapters`
-- `recruitment_ads`, `team_members`
-- `reports`, `moderation_actions`
-- `verification_requests`
-- `africoins_transactions`
+- Mobile-first avec BottomNav
+- Glass morphism cards
+- Animations Framer Motion
+- Dark mode (optionnel)
 
-## Conventions Code
+---
 
-- **Tailwind**: `@apply` directives autorisées
-- **Components**: Fonctionnels avec hooks
-- **Services**: Méthodes async avec try/catch
-- **Icons**: lucide-react
-- **Polices**: Space Grotesk (display), Outfit (sans)
-- **Images**: Firebase Storage pour uploads
-- **Temps réel**: Firestore onSnapshot pour comments/forum/notifications
-- **State**: useState pour UI local, context pour auth global
+## 🔧 Configuration
 
-## Dépendances Clés
-
+### Firebase
+Configurer `firebase-applet-config.json`:
 ```json
 {
-  "firebase": "^12.12.1",
-  "react": "^19.0.1",
-  "react-router-dom": "^7.15.0",
-  "recharts": "^3.8.1",
-  "lucide-react": "^0.546.0",
-  "motion": "^12.23.24"
+  "projectId": "your-project-id",
+  "appId": "your-app-id",
+  "apiKey": "your-api-key",
+  "authDomain": "your-project.firebaseapp.com",
+  "firestoreDatabaseId": "your-db-id",
+  "storageBucket": "your-project.firebasestorage.app"
 }
 ```
 
-## Environment
+### Cloudinary
+Créer un upload preset "unsigned" sur cloudinary.com et configurer dans `cloudinaryService.ts`:
+```typescript
+const CLOUDINARY_CLOUD_NAME = 'your-cloud-name';
+```
 
-- `firebase-applet-config.json`: Config Firebase (NE PAS COMMITTER credentials)
-- `.env.example`: Template variables d'environnement
+---
 
-## Flux Utilisateur
+## 🧪 Tests
 
-### Inscription
-1. Choix: Lecteur ou Artiste
-2. Email/password ou Google Auth
-3. Rôle: `reader` ou `artist_draft`
+```bash
+# Lancer les tests
+npm test
 
-### Création d'œuvre (artist_draft)
-1. Upload cover + titre + description
-2. Ajout chapitres (images)
-3. Publication
+# Tests avec coverage
+npm test -- --coverage
+```
 
-### Devenir Pro
-1. Portfolio 1000+ vues
-2. Demande vérification
-3. Modération approve → `artist_pro`
+---
 
-### Monetisation
-- Abonnements: 70% revenus artistes
-- AfriCoins: 80% revenus artistes  
-- Dons: 90% revenus artistes
+## 📱 Plateformes Déployées
 
-## Notes
+- **Vercel**: https://afri-story.vercel.app
+- **Firebase**: https://gen-lang-client-0232154573.web.app
+- **Netlify**: https://afristory.netlify.app
 
-- Mobile-first design avec BottomNav
-- Protection anti-clic droit sur images
-- Filigrane invisible sur chapitres
-- Toast notifications pour feedback utilisateur
-- ErrorBoundary pour gestion erreurs globale
-- Real-time comments, forum, notifications via Firestore
-- Profil utilisateur editable (nom + bio)
-- Menu hamburger mobile avec drawer noir opaque
+---
+
+## 🤝 Contribution
+
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/xxx`)
+3. Commit (`git commit -m 'Add xxx'`)
+4. Push (`git push origin feature/xxx`)
+5. Créer une Pull Request
+
+---
+
+## 📄 License
+
+Propriétaire - Tous droits réservés
+
+---
+
+## 📞 Contact
+
+- Email: contact@afristory.com
+- Twitter: @AfriStory
+- Instagram: @afristory_official

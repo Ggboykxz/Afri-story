@@ -1,8 +1,29 @@
 {
-  "name": "react-example",
+  "name": "afristory",
+  "version": "1.0.0",
+  "description": "Plateforme panafricaine de Webtoons, BDs et Romans Illustrés",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
+  "author": "AfriStory Team <contact@afristory.com>",
+  "license": "Proprietary",
+  "homepage": "https://afristory.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ggboykxz/Afri-story.git"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "webtoon",
+    "manga",
+    "comics",
+    "bd",
+    "firebase",
+    "framer-motion",
+    "tailwincss",
+    "african",
+    "creative-platform"
+  ],
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build",

@@ -4,35 +4,64 @@ AfriStory est une plateforme de narration graphique dédiée aux créateurs et l
 
 ## 🚀 Fonctionnalités Clés
 
-- **🏠 Home & Discovery** : Mise en avant des œuvres tendances et des nouveautés.
-- **📖 Lecteur Immersif** : Support des modes Webtoon (défilement vertical) et BD (planches horizontales) avec gestion des chapitres et verrouillage Premium.
-- **🎨 Dashboard Artiste** : Statistiques détaillées (Recharts), gestion d'équipe et publication simplifiée.
-- **🏆 Classements (Hall of Fame)** : Top dynamique basé sur les engagements réels.
-- **🛒 Boutique AfriCoins** : Système de monnaie virtuelle pour soutenir les artistes.
-- **💬 Forum & Interaction** : Espaces communautaires avec gestion des spoilers.
-- **👤 Profils & Paramètres** : Personnalisation complète de l'identité utilisateur et préférences de notification.
+- **🏠 Home & Discovery** : Mise en avant des œuvres tendances et des nouveautés
+- **📖 Lecteur Immersif** : Support des modes Webtoon (défilement vertical) et BD (planches horizontales) avec gestion des chapitres et verrouillage Premium
+- **🎨 Dashboard Artiste** : Statistiques détaillées, gestion d'équipe et publication simplifiée
+- **🏆 Classements** : Top dynamique basé sur les engagements réels
+- **🛒 Boutique AfriCoins** : Système de monnaie virtuelle pour soutenir les artistes
+- **💬 Forum & Interaction** : Espaces communautaires avec gestion des spoilers
+- **👤 Profils & Paramètres** : Personnalisation complète
 
 ## 🛠 Stack Technique
 
-- **Frontend** : React 18, TypeScript, Vite.
-- **Styling** : Tailwind CSS (Design System sur-mesure).
-- **Animations** : Motion (Transitions fluides et interactions).
-- **Backend/Auth** : Firebase (Authentication, Firestore).
-- **Graphiques** : Recharts (Analytiques artistes).
-- **Icons** : Lucide React.
+| Technologie | Usage |
+|------------|-------|
+| React 19 | UI Framework |
+| TypeScript 5.8 | Type safety |
+| Vite 6 | Bundler |
+| Tailwind CSS 4 | Styling |
+| Framer Motion | Animations |
+| Firebase | Auth, Firestore, Storage |
+| Cloudinary | CDN Images |
+| Lucide React | Icônes |
 
 ## 📦 Structure du Projet
 
-- `/src/pages` : Toutes les vues de l'application.
-- `/src/components` : Composants UI réutilisables (Layout, Navbar, Footer, etc.).
-- `/src/lib` : Services Firebase et utilitaires de données.
-- `/src/context` : Gestion de l'état global (AuthContext).
+```
+/src
+├── /components    # Composants UI réutilisables
+│   ├── /Layout  # Layout, Navbar, Footer, BottomNav
+│   └── *.tsx    # EmptyState, ErrorBoundary, Toast, Skeleton
+├── /context     # AuthContext, ThemeContext
+├── /lib         # Services Firebase, utilitaires
+├── /pages       # Toutes les vues
+└── App.tsx      # Routing principal
+```
 
-## 🔒 Configuration Production
+## 🔧 Configuration
 
-L'application utilise désormais les variables d'environnement pour la connexion aux services Firebase. Pour une utilisation locale :
-1. Copiez `.env.example` vers `.env`.
-2. Remplissez vos clés d'API Firebase.
+### Installation
+```bash
+npm install
+npm run dev
+```
+
+### Variables d'environnement
+Copiez `.env.example` vers `.env` et ajoutez vos clés Firebase.
+
+## 📱 Liens Déployés
+
+- **Vercel**: https://afri-story.vercel.app
+- **Firebase**: https://gen-lang-client-0232154573.web.app
+
+## 🤝 Contribution
+
+Voir [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+## 📄 License
+
+Propriétaire - Tous droits réservés
 
 ---
+
 *Fait avec ❤️ par l'équipe AfriStory.*
