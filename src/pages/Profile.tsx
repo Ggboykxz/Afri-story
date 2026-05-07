@@ -66,6 +66,19 @@ export const Profile = () => {
   const isOwnProfile = user?.uid === currentUserId;
   const displayProfile = profile;
 
+  // Stop loading once we have profile data - with timeout fallback
+  useEffect(() => {
+    if (user) {
+      // Set loading false after profile is available, or timeout fallback
+      const timer = setTimeout(() => setLoading(false), 3000);
+      if (profile) {
+        clearTimeout(timer);
+        setLoading(false);
+      }
+      return () => clearTimeout(timer);
+    }
+  }, [user, profile]);
+
   const handleSaveProfile = async () => {
     if (!user || !editName.trim()) return;
     setSaving(true);
