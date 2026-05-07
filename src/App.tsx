@@ -29,7 +29,10 @@ import { BecomePro } from './pages/BecomePro';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { SubscriptionPage } from './pages/Subscription';
+import { NotFound } from './pages/NotFound';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './components/Toast';
 import { ScrollToTop } from './components/ScrollToTop';
 import { ScrollToTopButton } from './components/ScrollToTopButton';
 import { UserRole } from './lib/roles';
@@ -98,12 +101,14 @@ const GuestRoute = ({ children }: { children: React.ReactNode }) => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <ScrollToTop />
-        <ScrollToTopButton />
-        <Layout>
-          <Routes>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <ScrollToTop />
+            <ScrollToTopButton />
+            <Layout>
+              <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/library" element={
@@ -239,16 +244,12 @@ export default function App() {
               </GuestRoute>
             } />
 
-            <Route path="*" element={
-              <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6">
-                <h1 className="text-6xl font-display font-black text-brand-gold">404</h1>
-                <p className="text-gray-500">Cette page n'existe pas.</p>
-                <Link to="/" className="bg-brand-gold text-brand-black px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px]">Retour à l'accueil</Link>
-              </div>
-            } />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
-    </AuthProvider>
+            <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Layout>
+        </BrowserRouter>
+      </AuthProvider>
+    </ToastProvider>
+    </ErrorBoundary>
   );
 }

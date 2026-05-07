@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, Loader2, Heart, Star, X } from 'lucide-react';
+import { ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, Lock, Loader2, Heart, Star, X, ChevronLeft, ChevronRight, Bookmark, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { workService } from '../lib/workService';
@@ -12,6 +12,21 @@ export const Reader = () => {
   const navigate = useNavigate();
   const [showControls, setShowControls] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (scrollTop / docHeight) * 100;
+      setScrollProgress(progress);
+      setShowControls(progress < 5 || scrollTop < 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const [readerMode, setReaderMode] = useState<'webtoon' | 'bd'>('webtoon');
   const [showComments, setShowComments] = useState(false);
   const [showShare, setShowShare] = useState(false);
@@ -95,6 +110,20 @@ export const Reader = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsBookmarked(!isBookmarked)}
+                className={`p-2 rounded-full transition-colors ${isBookmarked ? 'text-brand-gold' : 'hover:bg-white/10 text-gray-400'}`}
+                aria-label="Marquer comme lu"
+              >
+                <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
+              </button>
+              <button 
+                onClick={() => setShowSettings(!showSettings)}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Paramètres"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
               <div className="hidden sm:flex bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
                  <button 
                    onClick={() => setReaderMode('webtoon')}
