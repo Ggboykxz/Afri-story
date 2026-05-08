@@ -66,17 +66,19 @@ export const Profile = () => {
   const isOwnProfile = user?.uid === currentUserId;
   const displayProfile = profile;
 
-  // Stop loading once we have profile data - with timeout fallback
+  // Simple loading state - just check user, profile comes from context
   useEffect(() => {
-    if (user) {
-      // Set loading false after profile is available, or timeout fallback
-      const timer = setTimeout(() => setLoading(false), 3000);
-      if (profile) {
-        clearTimeout(timer);
-        setLoading(false);
-      }
-      return () => clearTimeout(timer);
+    if (!user) {
+      setLoading(false);
+      return;
     }
+    // Give profile time to load from Firestore, but don't wait forever
+    const timer = setTimeout(() => setLoading(false), 2000);
+    if (profile) {
+      setLoading(false);
+      clearTimeout(timer);
+    }
+    return () => clearTimeout(timer);
   }, [user, profile]);
 
   const handleSaveProfile = async () => {
