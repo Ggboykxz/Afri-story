@@ -5,11 +5,11 @@ import {
   AlertCircle, Filter, Volume2, VolumeX, Settings, CheckCircle2,
   BookOpen, Star, MessageCircle, ShoppingBag, Award, Users, Zap
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { notificationService, Notification, GroupedNotification } from '../lib/notificationService';
-import { Skeleton } from '../components/Skeleton';
+import { useAuth } from '@/context/AuthContext';
+import { notificationService, Notification, GroupedNotification } from '@/lib/notificationService';
+import { Skeleton } from '@/components/common/Skeleton';
 import { doc, deleteDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db } from '@/lib/firebase';
 
 type FilterType = 'all' | 'unread' | 'work' | 'forum' | 'chat' | 'chapter' | 'subscription' | 'milestone';
 type GroupBy = 'none' | 'type' | 'day';

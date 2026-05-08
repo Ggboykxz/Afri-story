@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Clock, CheckCircle, XCircle, Users, BookOpen, AlertTriangle, ArrowRight, BarChart3, TrendingUp, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth } from '../context/AuthContext';
-import { workService } from '../lib/workService';
+import { useAuth } from '@/context/AuthContext';
+import { workService } from '@/lib/workService';
+import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { Skeleton } from '../components/Skeleton';
+import { Skeleton } from '@/components/common/Skeleton';
 
 export function AdminDashboard() {
   const { user, profile } = useAuth();

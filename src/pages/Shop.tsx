@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Box, Truck, Star, Filter, ArrowRight, Loader2, Coins, X, Check, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { Skeleton } from '../components/Skeleton';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/common/Skeleton';
 
 export const Shop = () => {
   const { user, profile } = useAuth();

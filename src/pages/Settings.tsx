@@ -2,14 +2,13 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Bell, Shield, Eye, Palette, CreditCard, ChevronRight, Check, LayoutDashboard, Sparkles, Moon, Sun, Loader2, Camera, X, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { updateProfile as firebaseUpdateProfile } from 'firebase/auth';
-import { updatePassword } from 'firebase/auth';
+import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
+import { updateProfile as firebaseUpdateProfile, updatePassword } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
-import { Skeleton } from '../components/Skeleton';
-import cloudinaryService from '../lib/cloudinaryService';
+import { db, auth } from '@/lib/firebase';
+import { Skeleton } from '@/components/common/Skeleton';
+import cloudinaryService from '@/lib/cloudinaryService';
 
 export const Settings = () => {
   const navigate = useNavigate();

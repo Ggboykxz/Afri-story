@@ -9,6 +9,7 @@ import {
   where, 
   orderBy, 
   limit,
+  startAfter,
   serverTimestamp,
   increment,
   updateDoc,
@@ -41,6 +42,7 @@ export interface Work {
   featured?: boolean;
   featuredAt?: any;
   earlyAccessChapters?: number;
+  updatedAt?: any;
   createdAt: any;
 }
 
@@ -250,8 +252,8 @@ export const workService = {
     }
   },
 
-  // Get works (can filter by type or author)
-  getWorks: async (filters: { isPro?: boolean, authorId?: string } = {}): Promise<Work[]> => {
+  // Get works (can filter by type or author, supports pagination)
+  getWorks: async (filters: { isPro?: boolean, authorId?: string, limit?: number, lastDoc?: any } = {}): Promise<{ works: Work[], lastDoc: any }> => {
     const path = 'works';
     try {
       let q = query(collection(db, path), orderBy('createdAt', 'desc'));
@@ -262,12 +264,20 @@ export const workService = {
       if (filters.authorId) {
         q = query(q, where('authorId', '==', filters.authorId));
       }
+      if (filters.lastDoc) {
+        q = query(q, startAfter(filters.lastDoc));
+      }
+      if (filters.limit) {
+        q = query(q, limit(filters.limit));
+      }
 
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Work[];
+      const works = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Work[];
+      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+      return { works, lastDoc };
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, path);
-      return [];
+      return { works: [], lastDoc: null };
     }
   },
 

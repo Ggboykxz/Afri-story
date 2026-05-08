@@ -6,10 +6,10 @@ import {
   FileText, Download, Copy, Reply, Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useAuth } from '../context/AuthContext';
-import { Skeleton } from '../components/Skeleton';
-import { messagingService, Conversation, Message, TypingStatus } from '../lib/messagingService';
-import cloudinaryService from '../lib/cloudinaryService';
+import { useAuth } from '@/context/AuthContext';
+import { Skeleton } from '@/components/common/Skeleton';
+import { messagingService, Conversation, Message, TypingStatus } from '@/lib/messagingService';
+import cloudinaryService from '@/lib/cloudinaryService';
 
 const EMOJI_LIST = ['👍', '❤️', '😂', '😮', '😢', '😡', '🔥', '✨', '👏', '🎉'];
 

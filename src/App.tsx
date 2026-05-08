@@ -1,62 +1,79 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout/Layout';
-import { Home } from './pages/Home';
-import { WorkDetail } from './pages/WorkDetail';
-import { Reader } from './pages/Reader';
-import { ArtistDashboard } from './pages/ArtistDashboard';
-import { Forum } from './pages/Forum';
-import { Profile } from './pages/Profile';
+
+// Pages - Reader
+import { Home } from './pages/reader/Home';
+import { Explore } from './pages/reader/Explore';
+import { SearchPage } from './pages/reader/SearchPage';
+import { Library } from './pages/reader/Library';
+import { Reader } from './pages/reader/Reader';
+import { WorkDetail } from './pages/reader/WorkDetail';
+import { Rankings } from './pages/reader/Rankings';
+
+// Pages - Artist
+import { ArtistDashboard } from './pages/artist/ArtistDashboard';
+import { CreateWork } from './pages/artist/CreateWork';
+import { EditWork } from './pages/artist/EditWork';
+import { AddChapter } from './pages/artist/AddChapter';
+import { EditChapter } from './pages/artist/EditChapter';
+import { ManageChapters } from './pages/artist/ManageChapters';
+import { BecomePro } from './pages/artist/BecomePro';
+import { CollaborationHub } from './pages/artist/CollaborationHub';
+
+// Pages - Auth
+import { Login } from './pages/auth/Login';
+import { Signup } from './pages/auth/Signup';
+
+// Pages - Forum
+import { ForumHome } from './pages/forum/ForumHome';
+import { ForumCategory } from './pages/forum/ForumCategory';
+import { ThreadDetail } from './pages/forum/ThreadDetail';
+import { Forum } from './pages/forum/Forum';
+
+// Pages - Profile
+import { Profile } from './pages/profile/Profile';
+import { PublicArtistProfile } from './pages/profile/PublicArtistProfile';
+
+// Pages - Subscription & Shop
+import { SubscriptionPage } from './pages/subscription';
 import { Shop } from './pages/Shop';
-import { CreateWork } from './pages/CreateWork';
-import { Messaging } from './pages/Messaging';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { Rankings } from './pages/Rankings';
-import { Settings } from './pages/Settings';
-import { Explore } from './pages/Explore';
-import { Library } from './pages/Library';
-import { ForumHome } from './pages/ForumHome';
-import { ForumCategory } from './pages/ForumCategory';
-import { ThreadDetail } from './pages/ThreadDetail';
+
+// Pages - Legal
+import { Terms } from './pages/legal/Terms';
+import { Privacy } from './pages/legal/Privacy';
+import { FAQ } from './pages/legal/FAQ';
+import { About } from './pages/legal/About';
+import { CopyrightPage } from './pages/legal/Copyright';
+
+// Pages - Error
+import { NotFound } from './pages/error/NotFound';
+
+// Pages - Notifications
 import { NotificationsPage } from './pages/NotificationsPage';
-import { CollaborationHub } from './pages/CollaborationHub';
-import { PublicArtistProfile } from './pages/PublicArtistProfile';
-import { Terms } from './pages/Terms';
-import { Privacy } from './pages/Privacy';
-import { FAQ } from './pages/FAQ';
-import { About } from './pages/About';
-import { BecomePro } from './pages/BecomePro';
-import { Login } from './pages/Login';
-import { Signup } from './pages/Signup';
-import { SubscriptionPage } from './pages/Subscription';
-import { NotFound } from './pages/NotFound';
-import { SearchPage } from './pages/SearchPage';
-import { CopyrightPage } from './pages/Copyright';
-import { AddChapter } from './pages/AddChapter';
-import { EditWork } from './pages/EditWork';
-import { EditChapter } from './pages/EditChapter';
-import { ManageChapters } from './pages/ManageChapters';
-import { Forbidden } from './pages/Forbidden';
-import { ServerError } from './pages/ServerError';
+
+// Components
+import { AdCarousel } from './components/carousel/AdCarousel';
+import { Skeleton, WorkCardSkeleton } from './components/common/Skeleton';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { ToastProvider } from './components/common/Toast';
+import { ScrollToTop } from './components/common/ScrollToTop';
+import { ScrollToTopButton } from './components/common/ScrollToTopButton';
+
+// Context
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { ToastProvider } from './components/Toast';
-import { ScrollToTop } from './components/ScrollToTop';
-import { ScrollToTopButton } from './components/ScrollToTopButton';
 
 const ProtectedRoute = ({ 
   children, 
   allowedRoles,
   requireAuth = true,
-  fallbackTo = '/login'
 }: { 
   children: React.ReactNode; 
   allowedRoles?: string[];
   requireAuth?: boolean;
-  fallbackTo?: string;
 }) => {
-  const { user, profile, loading, hasPermission } = useAuth();
+  const { user, profile, loading } = useAuth();
 
   if (loading) {
     return (
@@ -71,7 +88,7 @@ const ProtectedRoute = ({
       <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6 px-6 text-center">
         <h2 className="text-4xl font-display font-black uppercase tracking-tighter">Accès Restreint</h2>
         <p className="text-gray-500 max-w-md">Veuillez vous connecter pour accéder à cette section.</p>
-        <Link to={fallbackTo} className="bg-brand-gold text-brand-black px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px]">Se connecter</Link>
+        <Link to="/login" className="bg-brand-gold text-brand-black px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px]">Se connecter</Link>
       </div>
     );
   }
@@ -79,7 +96,7 @@ const ProtectedRoute = ({
   if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6 px-6 text-center">
-        <h2 className="text-4xl font-display font-black uppercase tracking-tighter">Accès Restreint</h2>
+        <h2 className="text-4xl font-display font-black uppercase tracking-tighter">Accès <span className="text-brand-red">Refusé</span></h2>
         <p className="text-gray-500 max-w-md">Cette section est réservée aux comptes : {allowedRoles.join(', ')}.</p>
         <Link to="/" className="bg-brand-gold text-brand-black px-8 py-3 rounded-xl font-black uppercase tracking-widest text-[10px]">Retour à l'accueil</Link>
       </div>
@@ -127,6 +144,7 @@ export default function App() {
               <Layout>
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
+                    {/* Reader Routes */}
                     <Route path="/" element={<Home />} />
                     <Route path="/explore" element={<Explore />} />
                     <Route path="/explorer" element={<Navigate to="/explore" replace />} />
@@ -139,6 +157,7 @@ export default function App() {
                       </ProtectedRoute>
                     } />
                     
+                    {/* Forum Routes */}
                     <Route path="/forum" element={<ForumHome />} />
                     <Route path="/forum/public" element={<ForumHome />} />
                     <Route path="/forum/premium" element={
@@ -150,29 +169,37 @@ export default function App() {
                     <Route path="/forum/thread/:threadId" element={<ThreadDetail />} />
                     <Route path="/forum/work/:workId" element={<Forum />} />
 
+                    {/* Notifications */}
                     <Route path="/notifications" element={
                       <ProtectedRoute requireAuth={true}>
                         <NotificationsPage />
                       </ProtectedRoute>
                     } />
+
+                    {/* Artist Routes */}
                     <Route path="/collaboration" element={<CollaborationHub />} />
                     <Route path="/rankings" element={<Rankings />} />
                     <Route path="/rankings/:type" element={<Rankings />} />
-                    
                     <Route path="/bookclubs" element={<CollaborationHub />} />
                     <Route path="/contests" element={<CollaborationHub />} />
 
+                    {/* Legal Routes */}
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/about" element={<About />} />
+
+                    {/* Subscription & Shop */}
                     <Route path="/shop" element={<Shop />} />
                     <Route path="/shop/:productId" element={<Shop />} />
+                    <Route path="/subscription" element={<SubscriptionPage />} />
+                    <Route path="/africoins" element={<SubscriptionPage />} />
 
+                    {/* Become Pro */}
                     <Route path="/become-pro" element={<BecomePro />} />
                     <Route path="/become-artist" element={<BecomePro />} />
 
-                    <Route path="/subscription" element={<SubscriptionPage />} />
+                    {/* Work Routes */}
                     <Route path="/work/:id" element={<WorkDetail />} />
                     <Route path="/work/:id/add-chapter" element={
                       <ProtectedRoute requireAuth={true} allowedRoles={['artist_draft', 'artist_pro', 'artist_mentor', 'admin']}>
@@ -197,10 +224,10 @@ export default function App() {
                     <Route path="/work/:id/chapter/:chapterId" element={<Reader />} />
                     <Route path="/read/:workId/:chapterId" element={<Reader />} />
 
-                    <Route path="/subscription" element={<SubscriptionPage />} />
-                    <Route path="/africoins" element={<SubscriptionPage />} />
+                    {/* Copyright */}
                     <Route path="/copyright" element={<CopyrightPage />} />
 
+                    {/* Auth Routes */}
                     <Route path="/login" element={
                       <GuestRoute>
                         <Login />
@@ -212,6 +239,7 @@ export default function App() {
                       </GuestRoute>
                     } />
 
+                    {/* Profile Routes */}
                     <Route path="/profile" element={
                       <ProtectedRoute requireAuth={true}>
                         <Profile />
@@ -219,6 +247,7 @@ export default function App() {
                     } />
                     <Route path="/profile/:userId" element={<PublicArtistProfile />} />
 
+                    {/* Artist Dashboard */}
                     <Route path="/artist" element={
                       <ProtectedRoute requireAuth={true} allowedRoles={['artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
                         <ArtistDashboard />
@@ -236,24 +265,28 @@ export default function App() {
                     } />
                     <Route path="/artist-profile/:id" element={<PublicArtistProfile />} />
 
+                    {/* Messages */}
                     <Route path="/messages" element={
                       <ProtectedRoute requireAuth={true} allowedRoles={['artist_draft', 'artist_pro', 'artist_mentor', 'enterprise']}>
                         <Messaging />
                       </ProtectedRoute>
                     } />
 
-                    <Route path="/admin" element={
-                      <ProtectedRoute requireAuth={true} allowedRoles={['moderator', 'supervisor', 'admin']}>
-                        <AdminDashboard />
-                      </ProtectedRoute>
-                    } />
-
+                    {/* Settings */}
                     <Route path="/settings" element={
                       <ProtectedRoute requireAuth={true}>
                         <Settings />
                       </ProtectedRoute>
                     } />
 
+                    {/* Admin */}
+                    <Route path="/admin" element={
+                      <ProtectedRoute requireAuth={true} allowedRoles={['moderator', 'supervisor', 'admin']}>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    } />
+
+                    {/* 404 */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
@@ -265,3 +298,8 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
+// Import Messaging here to avoid circular dependency
+import { Messaging } from './pages/Messaging';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { Settings } from './pages/Settings';
