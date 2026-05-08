@@ -22,6 +22,7 @@ export interface UserProfile {
   email: string;
   displayName: string;
   photoURL?: string;
+  coverURL?: string;
   role: UserRole;
   afriCoins: number;
   badges: Badge[];
@@ -48,6 +49,7 @@ export interface UserProfile {
     emailNotifications: boolean;
     darkMode: boolean;
   };
+  profileVisibility?: 'public' | 'private' | 'friends';
 }
 
 const defaultAuthContext: AuthContextType = {
@@ -178,6 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: user.email || '',
             displayName: data.displayName || user.displayName || 'Voyageur',
             photoURL: data.photoURL || user.photoURL,
+            coverURL: data.coverURL,
             role: data.role || 'reader',
             afriCoins: data.afriCoins || 0,
             badges: data.badges || [],
@@ -188,6 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             createdAt: data.createdAt?.toDate?.() || new Date(),
             bio: data.bio,
             socialLinks: data.socialLinks,
+            profileVisibility: data.profileVisibility || 'public',
             preferences: data.preferences || {
               notifications: true,
               emailNotifications: true,
@@ -204,6 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 email: user.email || '',
                 displayName: data.displayName || user.displayName || 'Voyageur',
                 photoURL: data.photoURL || user.photoURL,
+                coverURL: data.coverURL,
                 role: data.role || 'reader',
                 afriCoins: data.afriCoins || 0,
                 badges: data.badges || [],
@@ -214,6 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 createdAt: data.createdAt?.toDate?.() || new Date(),
                 bio: data.bio,
                 socialLinks: data.socialLinks,
+                profileVisibility: data.profileVisibility || 'public',
                 preferences: data.preferences || {
                   notifications: true,
                   emailNotifications: true,

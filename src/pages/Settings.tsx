@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Bell, Shield, Eye, Palette, CreditCard, ChevronRight, Check, LayoutDashboard, Sparkles, Moon, Sun, Loader2 } from 'lucide-react';
+import { User, Bell, Shield, Eye, Palette, CreditCard, ChevronRight, Check, LayoutDashboard, Sparkles, Moon, Sun, Loader2, Camera, X, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { updateProfile as firebaseUpdateProfile } from 'firebase/auth';
+import { updatePassword } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { Skeleton } from '../components/Skeleton';
+import cloudinaryService from '../lib/cloudinaryService';
 
 export const Settings = () => {
   const navigate = useNavigate();
@@ -31,6 +33,17 @@ export const Settings = () => {
   const [shopNotif, setShopNotif] = useState(false);
   
   const [profileVisibility, setProfileVisibility] = useState<'public' | 'private' | 'friends'>('public');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   React.useEffect(() => {
     if (profile) {
@@ -41,6 +54,7 @@ export const Settings = () => {
       setWebsite(profile.socialLinks?.website || '');
       setNotificationsEnabled(profile.preferences?.notifications ?? true);
       setEmailNotificationsEnabled(profile.preferences?.emailNotifications ?? true);
+      if (profile.photoURL) setAvatarPreview(profile.photoURL);
     }
   }, [profile]);
 
@@ -103,6 +117,12 @@ export const Settings = () => {
           notifications: notificationsEnabled,
           emailNotifications: emailNotificationsEnabled,
           darkMode: theme === 'dark',
+        },
+        notificationSettings: {
+          newChapter: newChapterNotif,
+          messages: messageNotif,
+          social: socialNotif,
+          shop: shopNotif,
         }
       });
       await updateUserProfile({
@@ -153,6 +173,114 @@ export const Settings = () => {
       }
     }
   };
+
+  const handlePasswordChange = async () => {
+    if (!auth.currentUser || !newPassword) return;
+    setPasswordError('');
+    
+    if (newPassword.length < 8) {
+      setPasswordError('Le mot de passe doit contenir au moins 8 caractères');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Les mots de passe ne correspondent pas');
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      await updatePassword(auth.currentUser, newPassword);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordSuccess(true);
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      if (error.code === 'auth/requires-recent-login') {
+        setPasswordError('Veuillez vous reconnecter pour changer votre mot de passe');
+      } else {
+        setPasswordError('Erreur lors du changement de mot de passe');
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner une image');
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      alert("L'image ne doit pas dépasser 5MB");
+      return;
+    }
+    
+    setAvatarFile(file);
+    const preview = URL.createObjectURL(file);
+    setAvatarPreview(preview);
+  };
+
+  const handleCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez sélectionner une image');
+      return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+      alert("L'image ne doit pas dépasser 10MB");
+      return;
+    }
+    
+    setCoverFile(file);
+    const preview = URL.createObjectURL(file);
+    setCoverPreview(preview);
+  };
+
+  const handleUploadAvatar = async () => {
+    if (!avatarFile || !auth.currentUser) return;
+    setUploadingMedia(true);
+    try {
+      const url = await cloudinaryService.uploadAvatar(auth.currentUser.uid, avatarFile);
+      if (url) {
+        await updateDoc(doc(db, 'users', auth.currentUser.uid), { photoURL: url });
+        await updateUserProfile({ photoURL: url });
+        alert('Photo de profil mise à jour !');
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const handleUploadCover = async () => {
+    if (!coverFile || !auth.currentUser) return;
+    setUploadingMedia(true);
+    try {
+      const url = await cloudinaryService.uploadImage(coverFile, `afristory/covers/${auth.currentUser.uid}`);
+      if (url) {
+        await updateDoc(doc(db, 'users', auth.currentUser.uid), { coverURL: url });
+        alert('Bannière mise à jour !');
+      }
+    } catch (error) {
+      console.error('Error uploading cover:', error);
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const sections = [
     { id: 'profile', title: 'Profil Public', icon: User, desc: 'Gérez votre identité sur AfriStory' },
@@ -211,20 +339,95 @@ export const Settings = () => {
                  exit={{ opacity: 0, x: -20 }}
                  className="space-y-8"
                >
-                  <div className="space-y-6">
-                     <div className="flex items-center gap-8">
-                        <div className="w-24 h-24 bg-brand-brown rounded-3xl flex items-center justify-center font-display font-black text-3xl shadow-xl overflow-hidden">
-                           {profile?.photoURL ? (
-                             <img src={profile.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+<div className="space-y-6">
+                      <div className="flex items-center gap-8">
+                         <div className="w-24 h-24 bg-brand-brown rounded-3xl flex items-center justify-center font-display font-black text-3xl shadow-xl overflow-hidden relative group">
+                            {avatarPreview ? (
+                              <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : profile?.photoURL ? (
+                              <img src={profile.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                              profile?.displayName?.[0] || 'U'
+                            )}
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                               <Camera className="w-6 h-6 text-white" />
+                            </div>
+                            <input 
+                              ref={avatarInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleAvatarSelect}
+                              className="hidden"
+                            />
+                            <button 
+                              onClick={() => avatarInputRef.current?.click()}
+                              className="absolute inset-0 z-10 cursor-pointer"
+                            />
+                         </div>
+                         <div className="space-y-2 flex-1">
+                            <div className="flex items-center gap-3">
+                               <button 
+                                 onClick={() => avatarInputRef.current?.click()}
+                                 className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                               >
+                                 Changer l'avatar
+                               </button>
+                               {avatarFile && (
+                                 <button 
+                                   onClick={handleUploadAvatar}
+                                   disabled={uploadingMedia}
+                                   className="px-4 py-2 bg-brand-gold text-brand-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                                 >
+                                   {uploadingMedia ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                   Sauvegarder
+                                 </button>
+                               )}
+                            </div>
+                            <p className="text-[10px] text-gray-500 font-bold italic">Format recommandé: 512x512 PNG/JPG, max 5MB</p>
+                         </div>
+                      </div>
+
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Bannière du Profil</label>
+                         <div 
+                           className="h-48 rounded-2xl bg-brand-brown/30 border border-white/10 overflow-hidden relative cursor-pointer group"
+                           onClick={() => coverInputRef.current?.click()}
+                         >
+                           {coverPreview ? (
+                             <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+                           ) : profile?.coverURL ? (
+                             <img src={profile.coverURL} alt="Cover" className="w-full h-full object-cover" />
                            ) : (
-                             profile?.displayName?.[0] || 'U'
+                             <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                               <Upload className="w-8 h-8 mb-2 opacity-50" />
+                               <span className="text-xs font-bold">Cliquez pour ajouter une bannière</span>
+                             </div>
                            )}
-                        </div>
-                        <div className="space-y-2">
-                           <button className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Changer l'avatar</button>
-                           <p className="text-[10px] text-gray-500 font-bold italic">Format recommandé: 512x512 PNG/JPG</p>
-                        </div>
-                     </div>
+                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Upload className="w-8 h-8 text-white" />
+                           </div>
+                         </div>
+                         <input 
+                           ref={coverInputRef}
+                           type="file"
+                           accept="image/*"
+                           onChange={handleCoverSelect}
+                           className="hidden"
+                         />
+                         <div className="flex items-center justify-between">
+                            <p className="text-[10px] text-gray-500 font-bold italic">Format recommandé: 1500x500px, max 10MB</p>
+                            {coverFile && (
+                              <button 
+                                onClick={handleUploadCover}
+                                disabled={uploadingMedia}
+                                className="px-4 py-2 bg-brand-gold text-brand-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                              >
+                                {uploadingMedia ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                Sauvegarder
+                              </button>
+                            )}
+                         </div>
+                      </div>
 
                      <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -478,14 +681,45 @@ export const Settings = () => {
                            </div>
                          </div>
 
-                         <div className="pt-6 border-t border-white/10 space-y-4">
-                           <h4 className="text-sm font-black uppercase text-gray-400">Modifier le Mot de Passe</h4>
-                           <div className="space-y-3">
-                             <input type="password" placeholder="Mot de passe actuel" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm" />
-                             <input type="password" placeholder="Nouveau mot de passe" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm" />
-                             <input type="password" placeholder="Confirmer le nouveau mot de passe" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm" />
-                           </div>
-                         </div>
+<div className="pt-6 border-t border-white/10 space-y-4">
+                            <h4 className="text-sm font-black uppercase text-gray-400">Modifier le Mot de Passe</h4>
+                            <div className="space-y-3">
+                              <input 
+                                type="password" 
+                                placeholder="Mot de passe actuel" 
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm" 
+                              />
+                              <input 
+                                type="password" 
+                                placeholder="Nouveau mot de passe" 
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm" 
+                              />
+                              <input 
+                                type="password" 
+                                placeholder="Confirmer le nouveau mot de passe" 
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm" 
+                              />
+                              {passwordError && (
+                                <p className="text-xs text-brand-red font-bold">{passwordError}</p>
+                              )}
+                              {passwordSuccess && (
+                                <p className="text-xs text-brand-green font-bold">Mot de passe changé avec succès !</p>
+                              )}
+                            </div>
+                            <button 
+                              onClick={handlePasswordChange}
+                              disabled={saving || !currentPassword || !newPassword || !confirmPassword}
+                              className="px-6 py-2 bg-brand-gold text-brand-black rounded-xl font-black text-xs uppercase disabled:opacity-50"
+                            >
+                              {saving ? <Loader2 className="w-4 h-4 animate-spin inline" /> : 'Changer le mot de passe'}
+                            </button>
+                          </div>
 
                          <div className="pt-6 border-t border-white/10 space-y-4">
                            <h4 className="text-sm font-black uppercase text-brand-red">Zone Dangereuse</h4>
