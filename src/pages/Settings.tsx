@@ -11,7 +11,7 @@ import { Skeleton } from '../components/Skeleton';
 
 export const Settings = () => {
   const navigate = useNavigate();
-  const { profile, loading: authLoading, updateProfile: updateUserProfile } = useAuth();
+  const { user, profile, loading: authLoading, updateProfile: updateUserProfile } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [activeSection, setActiveSection] = useState('profile');
   const [saved, setSaved] = useState(false);
@@ -22,6 +22,15 @@ export const Settings = () => {
   const [instagram, setInstagram] = useState('');
   const [twitter, setTwitter] = useState('');
   const [website, setWebsite] = useState('');
+  
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
+  const [newChapterNotif, setNewChapterNotif] = useState(true);
+  const [messageNotif, setMessageNotif] = useState(true);
+  const [socialNotif, setSocialNotif] = useState(true);
+  const [shopNotif, setShopNotif] = useState(false);
+  
+  const [profileVisibility, setProfileVisibility] = useState<'public' | 'private' | 'friends'>('public');
 
   React.useEffect(() => {
     if (profile) {
@@ -30,6 +39,8 @@ export const Settings = () => {
       setInstagram(profile.socialLinks?.instagram || '');
       setTwitter(profile.socialLinks?.twitter || '');
       setWebsite(profile.socialLinks?.website || '');
+      setNotificationsEnabled(profile.preferences?.notifications ?? true);
+      setEmailNotificationsEnabled(profile.preferences?.emailNotifications ?? true);
     }
   }, [profile]);
 
@@ -83,6 +94,66 @@ export const Settings = () => {
     }
   };
 
+  const handleNotificationSave = async () => {
+    if (!auth.currentUser) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+        preferences: {
+          notifications: notificationsEnabled,
+          emailNotifications: emailNotificationsEnabled,
+          darkMode: theme === 'dark',
+        }
+      });
+      await updateUserProfile({
+        preferences: {
+          notifications: notificationsEnabled,
+          emailNotifications: emailNotificationsEnabled,
+          darkMode: theme === 'dark',
+        }
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error('Error saving notifications:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePrivacySave = async () => {
+    if (!auth.currentUser) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+        profileVisibility,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error('Error saving privacy settings:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!auth.currentUser) return;
+    if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+      try {
+        await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+          deletedAt: new Date(),
+          role: 'visitor',
+        });
+        await auth.currentUser.delete();
+        navigate('/');
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        alert('Impossible de supprimer le compte. Vérifiez que vous êtes bien connecté.');
+      }
+    }
+  };
+
   const sections = [
     { id: 'profile', title: 'Profil Public', icon: User, desc: 'Gérez votre identité sur AfriStory' },
     { id: 'notifications', title: 'Notifications', icon: Bell, desc: 'Alertes, e-mails et push' },
@@ -94,6 +165,15 @@ export const Settings = () => {
   if (['artist_pro', 'artist_draft', 'artist_mentor'].includes(profile?.role)) {
     sections.splice(1, 0, { id: 'artist', title: 'Profil Artiste', icon: LayoutDashboard, desc: 'Gérez votre page de créateur' });
   }
+
+  const ToggleSwitch = ({ enabled, onChange }: { enabled: boolean; onChange: (val: boolean) => void }) => (
+    <button
+      onClick={() => onChange(!enabled)}
+      className={`relative w-12 h-6 rounded-full p-1 transition-colors ${enabled ? 'bg-brand-gold' : 'bg-white/20'}`}
+    >
+      <div className={`w-4 h-4 bg-white rounded-full transition-transform ${enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+    </button>
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
@@ -272,7 +352,7 @@ export const Settings = () => {
                 </motion.div>
               )}
 
-              {activeSection === 'notifications' && (
+{activeSection === 'notifications' && (
                 <motion.div 
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -281,58 +361,236 @@ export const Settings = () => {
                    <div className="glass-card p-8 space-y-6">
                       <h3 className="font-display font-bold text-xl">Préférences de Notification</h3>
                       <div className="space-y-4">
-                         {[
-                           { t: 'Nouveaux chapitres', d: 'Recevoir une alerte quand un webtoon suivi est mis à jour' },
-                           { t: 'Messages privés', d: 'Être notifié quand vous recevez un nouveau message' },
-                           { t: 'Activités sociales', d: 'Likes, commentaires et mentions sur vos publications' },
-                           { t: 'Offres Boutique', d: 'Alertes sur les réductions AfriCoins et nouveaux goodies' },
-                         ].map((item, i) => (
-                           <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 group hover:border-brand-gold/30 transition-all">
-                              <div>
-                                 <div className="text-sm font-bold">{item.t}</div>
-                                 <div className="text-[10px] text-gray-500 font-bold">{item.d}</div>
-                              </div>
-                              <div className="w-12 h-6 bg-brand-gold/20 rounded-full p-1 cursor-pointer">
-                                 <div className="w-4 h-4 bg-brand-gold rounded-full ml-auto" />
-</div>
-                            </div>
-                          ))}
-                       </div>
-                    </div>
-                 </motion.div>
-               )}
-
-               {activeSection === 'display' && (
-                 <motion.div 
-                   initial={{ opacity: 0, x: 20 }}
-                   animate={{ opacity: 1, x: 0 }}
-                   className="space-y-8"
-                 >
-                   <div className="glass-card p-8 space-y-6">
-                      <h3 className="font-display font-bold text-xl">Options d'Affichage</h3>
-                      
-                      <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                         <div className="flex items-center gap-4">
-                            {theme === 'dark' ? <Moon className="w-5 h-5 text-brand-gold" /> : <Sun className="w-5 h-5 text-brand-gold" />}
+                         <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
                             <div>
-                               <div className="text-sm font-bold">Mode {theme === 'dark' ? 'Sombre' : 'Clair'}</div>
-                               <div className="text-[10px] text-gray-500 font-bold">Changer le thème de l'interface</div>
+                               <div className="text-sm font-bold">Notifications Push</div>
+                               <div className="text-[10px] text-gray-500 font-bold">Recevoir des alertes sur le navigateur</div>
                             </div>
+                            <ToggleSwitch enabled={notificationsEnabled} onChange={setNotificationsEnabled} />
                          </div>
+                         <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div>
+                               <div className="text-sm font-bold">Notifications Email</div>
+                               <div className="text-[10px] text-gray-500 font-bold">Recevoir des alertes par e-mail</div>
+                            </div>
+                            <ToggleSwitch enabled={emailNotificationsEnabled} onChange={setEmailNotificationsEnabled} />
+                         </div>
+                         <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div>
+                               <div className="text-sm font-bold">Nouveaux chapitres</div>
+                               <div className="text-[10px] text-gray-500 font-bold">Alerte quand un webtoon suivi est mis à jour</div>
+                            </div>
+                            <ToggleSwitch enabled={newChapterNotif} onChange={setNewChapterNotif} />
+                         </div>
+                         <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div>
+                               <div className="text-sm font-bold">Messages privés</div>
+                               <div className="text-[10px] text-gray-500 font-bold">Être notifié des nouveaux messages</div>
+                            </div>
+                            <ToggleSwitch enabled={messageNotif} onChange={setMessageNotif} />
+                         </div>
+                         <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div>
+                               <div className="text-sm font-bold">Activités sociales</div>
+                               <div className="text-[10px] text-gray-500 font-bold">Likes, commentaires et mentions</div>
+                            </div>
+                            <ToggleSwitch enabled={socialNotif} onChange={setSocialNotif} />
+                         </div>
+                         <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                            <div>
+                               <div className="text-sm font-bold">Offres Boutique</div>
+                               <div className="text-[10px] text-gray-500 font-bold">Promotions AfriCoins et nouveaux goodies</div>
+                            </div>
+                            <ToggleSwitch enabled={shopNotif} onChange={setShopNotif} />
+                         </div>
+                      </div>
+                      <div className="flex justify-end pt-4 border-t border-white/10">
                          <button 
-                           onClick={toggleTheme}
-                           className={`w-14 h-7 rounded-full p-1 cursor-pointer transition-colors ${
-                             theme === 'dark' ? 'bg-brand-brown' : 'bg-brand-gold'
-                           }`}
+                           onClick={handleNotificationSave}
+                           disabled={saving}
+                           className="px-6 py-2 bg-brand-gold text-brand-black font-black uppercase text-xs rounded-xl hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50"
                          >
-                            <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                              theme === 'dark' ? 'translate-x-7' : 'translate-x-0'
-                            }`} />
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : 'SAUVEGARDER'}
                          </button>
                       </div>
                    </div>
-                 </motion.div>
-               )}
+                </motion.div>
+              )}
+
+{activeSection === 'display' && (
+                  <motion.div 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="space-y-8"
+                  >
+                    <div className="glass-card p-8 space-y-6">
+                       <h3 className="font-display font-bold text-xl">Options d'Affichage</h3>
+                       
+                       <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                          <div className="flex items-center gap-4">
+                             {theme === 'dark' ? <Moon className="w-5 h-5 text-brand-gold" /> : <Sun className="w-5 h-5 text-brand-gold" />}
+                             <div>
+                                <div className="text-sm font-bold">Mode {theme === 'dark' ? 'Sombre' : 'Clair'}</div>
+                                <div className="text-[10px] text-gray-500 font-bold">Changer le thème de l'interface</div>
+                             </div>
+                          </div>
+                          <button 
+                            onClick={toggleTheme}
+                            className={`w-14 h-7 rounded-full p-1 cursor-pointer transition-colors ${
+                              theme === 'dark' ? 'bg-brand-brown' : 'bg-brand-gold'
+                            }`}
+                          >
+                             <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                               theme === 'dark' ? 'translate-x-7' : 'translate-x-0'
+                             }`} />
+                          </button>
+                       </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeSection === 'privacy' && (
+                  <motion.div 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="space-y-8"
+                  >
+                    <div className="glass-card p-8 space-y-6">
+                       <h3 className="font-display font-bold text-xl">Privacité & Sécurité</h3>
+                       
+                       <div className="space-y-4">
+                         <div className="space-y-2">
+                           <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Visibilité du Profil</label>
+                           <div className="grid grid-cols-3 gap-3">
+                             {(['public', 'private', 'friends'] as const).map(vis => (
+                               <button
+                                 key={vis}
+                                 onClick={() => setProfileVisibility(vis)}
+                                 className={`p-4 rounded-xl border text-sm font-bold transition-all ${
+                                   profileVisibility === vis 
+                                     ? 'border-brand-gold bg-brand-gold/10 text-brand-gold' 
+                                     : 'border-white/10 text-gray-400 hover:border-white/30'
+                                 }`}
+                               >
+                                 {vis === 'public' ? 'Public' : vis === 'private' ? 'Privé' : 'Amis'}
+                               </button>
+                             ))}
+                           </div>
+                         </div>
+
+                         <div className="pt-6 border-t border-white/10 space-y-4">
+                           <h4 className="text-sm font-black uppercase text-gray-400">Modifier le Mot de Passe</h4>
+                           <div className="space-y-3">
+                             <input type="password" placeholder="Mot de passe actuel" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm" />
+                             <input type="password" placeholder="Nouveau mot de passe" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm" />
+                             <input type="password" placeholder="Confirmer le nouveau mot de passe" className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm" />
+                           </div>
+                         </div>
+
+                         <div className="pt-6 border-t border-white/10 space-y-4">
+                           <h4 className="text-sm font-black uppercase text-brand-red">Zone Dangereuse</h4>
+                           <div className="p-4 bg-brand-red/5 border border-brand-red/20 rounded-xl flex items-center justify-between">
+                              <div>
+                                 <div className="text-sm font-bold text-brand-red">Supprimer mon Compte</div>
+                                 <div className="text-[10px] text-gray-500 font-bold">Action irréversible</div>
+                              </div>
+                              <button 
+                                onClick={handleDeleteAccount}
+                                className="px-4 py-2 bg-brand-red/20 text-brand-red rounded-lg text-xs font-black uppercase"
+                              >
+                                Supprimer
+                              </button>
+                           </div>
+                         </div>
+                       </div>
+
+                       <div className="flex justify-end pt-4 border-t border-white/10">
+                         <button 
+                           onClick={handlePrivacySave}
+                           disabled={saving}
+                           className="px-6 py-2 bg-brand-gold text-brand-black font-black uppercase text-xs rounded-xl hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50"
+                         >
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : 'SAUVEGARDER'}
+                         </button>
+                       </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeSection === 'billing' && (
+                  <motion.div 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="space-y-8"
+                  >
+                    <div className="glass-card p-8 space-y-6">
+                       <h3 className="font-display font-bold text-xl">Abonnement Actuel</h3>
+                       <div className="p-6 bg-brand-gold/10 border border-brand-gold/20 rounded-xl flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                             <CreditCard className="w-8 h-8 text-brand-gold" />
+                             <div>
+                                <div className="text-lg font-black">{profile?.subscription?.toUpperCase() || 'FREE'}</div>
+                                <div className="text-[10px] text-gray-500 font-bold">
+                                  {profile?.subscriptionExpiresAt 
+                                    ? `Expire le ${new Date(profile.subscriptionExpiresAt).toLocaleDateString()}` 
+                                    : 'Aucun abonnement actif'}
+                                </div>
+                             </div>
+                          </div>
+                          <button 
+                            onClick={() => navigate('/subscription')}
+                            className="px-6 py-3 bg-brand-gold text-brand-black rounded-xl font-black text-xs uppercase"
+                          >
+                            {profile?.subscription ? 'Gérer' : "S'abonner"}
+                          </button>
+                       </div>
+                    </div>
+
+                    <div className="glass-card p-8 space-y-6">
+                       <h3 className="font-display font-bold text-xl">Solde AfriCoins</h3>
+                       <div className="flex items-center justify-between p-6 bg-white/5 rounded-xl">
+                          <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 bg-brand-gold/20 rounded-xl flex items-center justify-center text-brand-gold text-xl font-black">
+                               {profile?.afriCoins || 0}
+                             </div>
+                             <div>
+                                <div className="text-sm font-bold">AfriCoins disponibles</div>
+                                <div className="text-[10px] text-gray-500 font-bold">Utilisés pour débloquer des chapitres premium</div>
+                             </div>
+                          </div>
+                          <button 
+                            onClick={() => navigate('/subscription')}
+                            className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl font-bold text-sm"
+                          >
+                            Acheter
+                          </button>
+                       </div>
+                    </div>
+
+                    {profile?.role && ['artist_pro', 'artist_mentor'].includes(profile.role) && (
+                      <div className="glass-card p-8 space-y-6">
+                         <h3 className="font-display font-bold text-xl">Revenus Artiste</h3>
+                         <div className="grid grid-cols-3 gap-4">
+                           <div className="p-4 bg-white/5 rounded-xl text-center">
+                              <div className="text-2xl font-black text-brand-green">0€</div>
+                              <div className="text-[10px] text-gray-500 font-bold uppercase">Ce mois</div>
+                           </div>
+                           <div className="p-4 bg-white/5 rounded-xl text-center">
+                              <div className="text-2xl font-black">0€</div>
+                              <div className="text-[10px] text-gray-500 font-bold uppercase">Total</div>
+                           </div>
+                           <div className="p-4 bg-white/5 rounded-xl text-center">
+                              <div className="text-2xl font-black">0€</div>
+                              <div className="text-[10px] text-gray-500 font-bold uppercase">En attente</div>
+                           </div>
+                         </div>
+                         <button className="w-full py-3 bg-brand-gold text-brand-black rounded-xl font-black text-xs uppercase">
+                           Voir les Transactions
+                         </button>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
             </AnimatePresence>
         </main>
       </div>
