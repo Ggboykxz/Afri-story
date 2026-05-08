@@ -98,7 +98,7 @@ export const carouselService = {
           title: work.title,
           subtitle: work.author,
           description: work.synopsis?.slice(0, 100) + '...',
-          image: work.coverURL || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1920',
+          image: work.coverURL,
           link: `/work/${doc.id}`,
           linkType: 'work' as const,
           badge: index === 0 ? 'N°1' : index < 3 ? 'Top 5' : undefined,

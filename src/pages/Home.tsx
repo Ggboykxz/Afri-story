@@ -157,20 +157,15 @@ export const Home = () => {
       )}
 
       {/* Promotional Carousel */}
-      {!searchQuery && (
+      {!searchQuery && !carouselLoading && carouselItems.length > 0 && (
         <section className="px-4 md:px-12 mb-12 md:mb-24">
-          {carouselLoading ? (
-            <div className="aspect-video rounded-2xl md:rounded-[2rem] bg-brand-black/50 animate-pulse" />
-          ) : (
-            <AdCarousel
-              items={carouselItems}
-              isLoading={carouselLoading}
-              autoPlay={true}
-              autoPlayInterval={6000}
-              aspectRatio="video"
-              variant="featured"
-            />
-          )}
+          <AdCarousel
+            items={carouselItems}
+            autoPlay={true}
+            autoPlayInterval={6000}
+            aspectRatio="video"
+            variant="featured"
+          />
         </section>
       )}
 

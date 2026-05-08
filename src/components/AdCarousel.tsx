@@ -28,7 +28,6 @@ interface AdCarouselProps {
   title?: string;
   className?: string;
   onItemClick?: (item: CarouselItem) => void;
-  isLoading?: boolean;
 }
 
 const variantStyles = {
@@ -64,7 +63,6 @@ export const AdCarousel = ({
   title,
   className = '',
   onItemClick,
-  isLoading = false,
 }: AdCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
@@ -151,15 +149,6 @@ export const AdCarousel = ({
         onMouseEnter={() => setIsPlaying(false)}
         onMouseLeave={() => setIsPlaying(true)}
       >
-        {isLoading ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 border-4 border-brand-gold/30 border-t-brand-gold rounded-full animate-spin" />
-          </div>
-        ) : displayItems.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-brand-brown/20">
-            <p className="text-gray-500 text-sm">Aucun contenu promotionnel disponible</p>
-          </div>
-        ) : (
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentIndex}
@@ -241,9 +230,8 @@ export const AdCarousel = ({
             </div>
           </motion.div>
         </AnimatePresence>
-        )}
 
-        {!isLoading && displayItems.length > 1 && showProgress && (
+        {displayItems.length > 1 && showProgress && (
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
             <motion.div
               className="h-full bg-brand-gold"
@@ -253,7 +241,7 @@ export const AdCarousel = ({
           </div>
         )}
 
-        {!isLoading && displayItems.length > 1 && showArrows && (
+        {displayItems.length > 1 && showArrows && (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); goToPrev(); }}
@@ -270,7 +258,7 @@ export const AdCarousel = ({
           </>
         )}
 
-        {!isLoading && displayItems.length > 1 && (
+        {displayItems.length > 1 && (
           <button
             onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
             className="absolute top-4 right-4 w-10 h-10 bg-brand-black/50 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-brand-gold hover:text-brand-black text-white"
@@ -279,7 +267,7 @@ export const AdCarousel = ({
           </button>
         )}
 
-        {!isLoading && showDots && displayItems.length > 1 && (
+        {showDots && displayItems.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
             {displayItems.map((_, index) => (
               <button
