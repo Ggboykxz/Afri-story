@@ -14,6 +14,16 @@
 }
 
 @layer base {
+  html {
+    font-size: 16px;
+  }
+  
+  @media (max-width: 640px) {
+    html {
+      font-size: 14px;
+    }
+  }
+  
   body {
     @apply bg-brand-black text-brand-offwhite font-sans antialiased;
     background-image: radial-gradient(circle at 50% -20%, #2a1a10 0%, #0f0f0f 60%);
@@ -26,7 +36,7 @@
 }
 
 .glass-card {
-  @apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl;
+  @apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl;
 }
 
 .glass-navbar {

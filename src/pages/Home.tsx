@@ -83,7 +83,7 @@ export const Home = () => {
 
       {/* Hero Section */}
       {!searchQuery && (
-        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-6 pt-12 pb-24">
+        <section className="relative min-h-[80vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden px-4 md:px-6 pt-12 pb-20 md:pb-24">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-linear-to-b from-brand-gold/20 via-brand-black/80 to-brand-black z-10" />
           <motion.div 
@@ -92,7 +92,7 @@ export const Home = () => {
               rotate: [12, 10, 12]
             }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="grid grid-cols-4 gap-4 rotate-12 scale-150 opacity-10"
+            className="hidden md:grid grid-cols-4 gap-4 rotate-12 scale-150 opacity-10"
           >
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="aspect-[3/4] bg-brand-brown rounded-2xl h-[500px] shadow-2xl relative overflow-hidden">
@@ -102,21 +102,21 @@ export const Home = () => {
           </motion.div>
         </div>
 
-        <div className="relative z-20 max-w-5xl text-center space-y-10">        <div className="flex flex-col items-center gap-6">
+        <div className="relative z-20 max-w-5xl text-center space-y-6 md:space-y-10">        <div className="flex flex-col items-center gap-4 md:gap-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-3 bg-brand-gold/10 border border-brand-gold/20 px-5 py-2.5 rounded-full text-brand-gold text-[10px] font-black uppercase tracking-[0.2em]"
+              className="inline-flex items-center gap-3 bg-brand-gold/10 border border-brand-gold/20 px-4 md:px-5 py-2 md:py-2.5 rounded-full text-brand-gold text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>Nouveauté : Découvrez AfriStory Draft</span>
+              <Sparkles className="w-3 md:w-4 h-3 md:h-4" />
+              <span>Nouveauté : AfriStory Draft</span>
             </motion.div>
             
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-7xl md:text-9xl font-display font-black tracking-tighter leading-[0.85]"
+              className="text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-display font-black tracking-tighter leading-[0.9]"
             >
               L'HISTOIRE <br />
               <span className="gradient-text">IMMERSIVE</span>
@@ -126,7 +126,7 @@ export const Home = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed"
+              className="text-sm md:text-base lg:text-lg text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed px-4"
             >
               La destination ultime pour les webtoons, BD et romans illustrés panafricains. 
               Découvrez des récits authentiques portés par une nouvelle génération de créateurs.
@@ -137,17 +137,17 @@ export const Home = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4"
           >
             <button 
               onClick={() => navigate('/explore')}
-              className="w-full sm:w-auto px-10 py-5 bg-brand-gold text-brand-black font-black rounded-2xl hover:bg-white transition-all transform hover:-translate-y-1 shadow-2xl shadow-brand-gold/20 uppercase tracking-widest text-xs"
+              className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 bg-brand-gold text-brand-black font-black rounded-xl md:rounded-2xl hover:bg-white transition-all transform hover:-translate-y-1 shadow-2xl shadow-brand-gold/20 uppercase tracking-widest text-[10px] md:text-xs"
             >
               COMMENCER À LIRE
             </button>
             <button 
               onClick={() => navigate('/become-pro')}
-              className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 text-white font-black rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
+              className="w-full sm:w-auto px-8 md:px-10 py-4 md:py-5 bg-white/5 border border-white/10 text-white font-black rounded-xl md:rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest text-[10px] md:text-xs"
             >
               DEVENIR CRÉATEUR
             </button>
@@ -158,20 +158,17 @@ export const Home = () => {
 
       {/* Promotional Carousel */}
       {!searchQuery && (
-        <section className="px-6 md:px-12 mb-24">
+        <section className="px-4 md:px-12 mb-12 md:mb-24">
           {carouselLoading ? (
-            <div className="aspect-video rounded-[2rem] bg-brand-black/50 animate-pulse" />
+            <div className="aspect-video rounded-2xl md:rounded-[2rem] bg-brand-black/50 animate-pulse" />
           ) : (
             <AdCarousel
               items={carouselItems}
+              isLoading={carouselLoading}
               autoPlay={true}
               autoPlayInterval={6000}
-              showArrows={true}
-              showDots={true}
-              showProgress={true}
               aspectRatio="video"
               variant="featured"
-              title={carouselItems.length > 0 ? undefined : undefined}
             />
           )}
         </section>
@@ -179,11 +176,11 @@ export const Home = () => {
 
       {/* Trending & Rankings Section */}
       {!searchQuery && (
-        <section className="px-6 md:px-12 mt-24 grid lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-2 space-y-8">
+        <section className="px-4 md:px-12 mt-16 md:mt-24 grid lg:grid-cols-3 gap-8 md:gap-12">
+          <div className="lg:col-span-2 space-y-6 md:space-y-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-display font-bold flex items-center gap-3">
-                <TrendingUp className="w-6 h-6 text-brand-gold" />
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-display font-bold flex items-center gap-3">
+                <TrendingUp className="w-5 md:w-6 h-5 md:h-6 text-brand-gold" />
                 Tendances du moment
               </h2>
             </div>
@@ -207,10 +204,10 @@ export const Home = () => {
             </div>
           </div>
 
-          <div className="glass-card p-8 space-y-8 h-fit">
+          <div className="glass-card p-4 md:p-8 space-y-6 md:space-y-8 h-fit">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-display font-bold">Classement Top 5</h2>
-              <Link to="/rankings" className="text-brand-gold text-[10px] font-black uppercase tracking-widest hover:underline">Voir Tout</Link>
+              <h2 className="text-lg md:text-xl lg:text-2xl font-display font-bold">Classement Top 5</h2>
+              <Link to="/rankings" className="text-brand-gold text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:underline">Voir Tout</Link>
             </div>
             <div className="space-y-6">
               {loading ? (
@@ -248,16 +245,16 @@ export const Home = () => {
       )}
 
       {/* Categories */}
-      <section className="px-6 md:px-12 space-y-12">
+      <section className="px-4 md:px-12 space-y-8 md:space-y-12">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <TrendingUp className="w-6 h-6 text-brand-gold" />
-            <h2 className="text-3xl font-display font-bold">Populaires en ce moment</h2>
+            <TrendingUp className="w-5 md:w-6 h-5 md:h-6 text-brand-gold" />
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-display font-bold">Populaires en ce moment</h2>
           </div>
-          <Link to="/explore" className="text-brand-gold text-sm font-bold hover:underline">Voir tout</Link>
+          <Link to="/explore" className="text-brand-gold text-xs md:text-sm font-bold hover:underline">Voir tout</Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
           {loading ? (
              Array(5).fill(0).map((_, i) => <WorkCardSkeleton key={i} />)
           ) : (
@@ -270,18 +267,18 @@ export const Home = () => {
 
       {/* Promotional Banner 2 */}
       {!searchQuery && (
-        <section className="px-6 md:px-12 mt-32">
-          <div className="bg-brand-brown rounded-[3rem] p-12 md:p-20 relative overflow-hidden flex flex-col md:flex-row items-center gap-12 border border-white/5 shadow-2xl">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-gold/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
-            <div className="w-32 h-32 md:w-56 md:h-56 bg-brand-black rounded-[2.5rem] flex items-center justify-center flex-shrink-0 shadow-2xl relative z-10">
-               <ShieldCheck className="w-16 h-16 md:w-24 md:h-24 text-brand-gold opacity-40" />
+        <section className="px-4 md:px-12 mt-16 md:mt-32">
+          <div className="bg-brand-brown rounded-2xl md:rounded-[3rem] p-6 md:p-12 lg:p-20 relative overflow-hidden flex flex-col md:flex-row items-center gap-8 md:gap-12 border border-white/5 shadow-2xl">
+            <div className="absolute top-0 right-0 w-64 md:w-96 h-64 md:h-96 bg-brand-gold/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="w-24 h-24 md:w-32 md:h-32 lg:w-56 lg:h-56 bg-brand-black rounded-2xl md:rounded-[2.5rem] flex items-center justify-center flex-shrink-0 shadow-2xl relative z-10">
+               <ShieldCheck className="w-10 md:w-16 md:w-24 lg:w-24 h-10 md:h-16 md:h-24 lg:h-24 text-brand-gold opacity-40" />
             </div>
-            <div className="flex-1 space-y-6 relative z-10 text-center md:text-left">
-              <h2 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter leading-none">Protection <br /> des <span className="text-brand-gold">Droits d'Auteurs</span></h2>
-              <p className="text-gray-400 font-medium max-w-xl">Chaque œuvre publiée sur AfriStory bénéficie d'un horodatage numérique certifiant votre propriété intellectuelle dès la mise en ligne.</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                 <button className="px-8 py-3 bg-white text-brand-black font-black rounded-xl text-xs uppercase tracking-widest hover:bg-brand-gold transition-all duration-300">En savoir plus</button>
-                 <button className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black rounded-xl text-xs uppercase tracking-widest hover:bg-white/10 transition-all duration-300">Consulter la charte</button>
+            <div className="flex-1 space-y-4 md:space-y-6 relative z-10 text-center md:text-left">
+              <h2 className="text-2xl md:text-4xl lg:text-6xl font-display font-black uppercase tracking-tighter leading-none">Protection <br /> des <span className="text-brand-gold">Droits d'Auteurs</span></h2>
+              <p className="text-gray-400 font-medium max-w-xl text-sm md:text-base">Chaque œuvre publiée sur AfriStory bénéficie d'un horodatage numérique certifiant votre propriété intellectuelle dès la mise en ligne.</p>
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center md:justify-start">
+                 <button className="px-6 md:px-8 py-2.5 md:py-3 bg-white text-brand-black font-black rounded-xl text-[10px] md:text-xs uppercase tracking-widest hover:bg-brand-gold transition-all duration-300">En savoir plus</button>
+                 <button className="px-6 md:px-8 py-2.5 md:py-3 bg-white/5 border border-white/10 text-white font-black rounded-xl text-[10px] md:text-xs uppercase tracking-widest hover:bg-white/10 transition-all duration-300">Consulter la charte</button>
               </div>
             </div>
           </div>
@@ -289,19 +286,19 @@ export const Home = () => {
       )}
 
       {/* Draft Spotlight */}
-      <section className="px-6 md:px-12 mt-24 space-y-12">
+      <section className="px-4 md:px-12 mt-16 md:mt-24 space-y-8 md:space-y-12">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Sparkles className="w-6 h-6 text-brand-green" />
+            <Sparkles className="w-5 md:w-6 h-5 md:h-6 text-brand-green" />
             <div>
-               <h2 className="text-3xl font-display font-bold">AfriStory <span className="text-brand-green">Draft</span></h2>
-               <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Les pépites de demain — Espace communautaire</p>
+               <h2 className="text-xl md:text-2xl lg:text-3xl font-display font-bold">AfriStory <span className="text-brand-green">Draft</span></h2>
+               <p className="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest">Les pépites de demain — Espace communautaire</p>
             </div>
           </div>
-          <Link to="/explore?format=Tous&genre=Tous&type=Draft" className="text-brand-green text-sm font-bold hover:underline">Explorer le Draft</Link>
+          <Link to="/explore?format=Tous&genre=Tous&type=Draft" className="text-brand-green text-xs md:text-sm font-bold hover:underline">Explorer le Draft</Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
           {loading ? (
              Array(5).fill(0).map((_, i) => <WorkCardSkeleton key={i} />)
           ) : (
@@ -313,22 +310,22 @@ export const Home = () => {
       </section>
 
       {/* Two Poles Section */}
-      <section className="px-6 md:px-12 mt-32 grid md:grid-cols-2 gap-8">
-        <div className="glass-card p-12 space-y-6 group hover:border-brand-gold/30 transition-all cursor-pointer">
-          <div className="w-16 h-16 bg-brand-gold/10 rounded-2xl flex items-center justify-center text-brand-gold font-display text-2xl font-bold">PRO</div>
-          <h3 className="text-4xl font-display font-bold">AfriStory Pro</h3>
-          <p className="text-gray-400">Pour les professionnels. Monétisez vos œuvres, accédez à des statistiques avancées et construisez votre empire médiatique.</p>
-          <ul className="space-y-3 text-sm text-gray-500">
+      <section className="px-4 md:px-12 mt-16 md:mt-32 grid md:grid-cols-2 gap-6 md:gap-8">
+        <div className="glass-card p-6 md:p-12 space-y-4 md:space-y-6 group hover:border-brand-gold/30 transition-all cursor-pointer">
+          <div className="w-12 md:w-16 h-12 md:h-16 bg-brand-gold/10 rounded-xl md:rounded-2xl flex items-center justify-center text-brand-gold font-display text-xl md:text-2xl font-bold">PRO</div>
+          <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold">AfriStory Pro</h3>
+          <p className="text-gray-400 text-sm md:text-base">Pour les professionnels. Monétisez vos œuvres, accédez à des statistiques avancées et construisez votre empire médiatique.</p>
+          <ul className="space-y-2 md:space-y-3 text-xs md:text-sm text-gray-500">
             <li>• Part de revenus de 70% à 90%</li>
             <li>• Micro-transactions (AfriCoins)</li>
             <li>• Badge Certifié</li>
           </ul>
         </div>
-        <div className="glass-card p-12 space-y-6 group hover:border-brand-green/30 transition-all cursor-pointer">
-          <div className="w-16 h-16 bg-brand-green/10 rounded-2xl flex items-center justify-center text-brand-green font-display text-2xl font-bold">DRAFT</div>
-          <h3 className="text-4xl font-display font-bold">AfriStory Draft</h3>
-          <p className="text-gray-400">L'espace communautaire. Publiez librement, recevez des feedbacks et progressez vers le statut Pro.</p>
-          <ul className="space-y-3 text-sm text-gray-500">
+        <div className="glass-card p-6 md:p-12 space-y-4 md:space-y-6 group hover:border-brand-green/30 transition-all cursor-pointer">
+          <div className="w-12 md:w-16 h-12 md:h-16 bg-brand-green/10 rounded-xl md:rounded-2xl flex items-center justify-center text-brand-green font-display text-xl md:text-2xl font-bold">DRAFT</div>
+          <h3 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold">AfriStory Draft</h3>
+          <p className="text-gray-400 text-sm md:text-base">L'espace communautaire. Publiez librement, recevez des feedbacks et progressez vers le statut Pro.</p>
+          <ul className="space-y-2 md:space-y-3 text-xs md:text-sm text-gray-500">
             <li>• Publication gratuite et illimitée</li>
             <li>• Ateliers et concours</li>
             <li>• Système de mentorat Pro</li>
@@ -344,16 +341,16 @@ const TrendingWorkCard = ({ work, index }: { work: any, index: number }) => {
   return (
     <div 
       onClick={() => navigate(`/work/${work.id}`)}
-      className="flex items-center gap-6 group cursor-pointer glass-card p-4 hover:border-brand-gold/30 transition-all"
+      className="flex items-center gap-3 md:gap-6 group cursor-pointer glass-card p-3 md:p-4 hover:border-brand-gold/30 transition-all"
     >
-      <div className="w-20 h-28 bg-brand-brown rounded-xl flex-shrink-0 relative overflow-hidden">
+      <div className="w-16 md:w-20 h-24 md:h-28 bg-brand-brown rounded-lg md:rounded-xl flex-shrink-0 relative overflow-hidden">
          {work.coverURL && <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />}
-         <div className="absolute top-0 right-0 bg-brand-gold text-brand-black text-[10px] font-black px-2 py-0.5">#{index}</div>
+         <div className="absolute top-0 right-0 bg-brand-gold text-brand-black text-[8px] md:text-[10px] font-black px-1.5 md:px-2 py-0.5">#{index}</div>
       </div>
-      <div className="space-y-2">
-        <div className="text-[8px] font-black text-brand-gold uppercase tracking-[0.2em]">{work.category}</div>
-        <h4 className="font-display font-bold text-lg leading-tight group-hover:text-brand-gold transition-colors">{work.title}</h4>
-        <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold">
+      <div className="space-y-1 md:space-y-2">
+        <div className="text-[7px] md:text-[8px] font-black text-brand-gold uppercase tracking-[0.2em]">{work.category}</div>
+        <h4 className="font-display font-bold text-sm md:text-lg leading-tight group-hover:text-brand-gold transition-colors">{work.title}</h4>
+        <div className="flex items-center gap-1.5 md:gap-2 text-[8px] md:text-[10px] text-gray-500 font-bold">
            <span>{work.author}</span>
            <span className="w-1 h-1 bg-gray-700 rounded-full" />
            <span>{work.views} vues</span>

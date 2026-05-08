@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Play, Pause, Zap, Star, Crown, TrendingUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Pause, Zap, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export interface CarouselItem {
@@ -28,6 +28,7 @@ interface AdCarouselProps {
   title?: string;
   className?: string;
   onItemClick?: (item: CarouselItem) => void;
+  isLoading?: boolean;
 }
 
 const variantStyles = {
@@ -63,6 +64,7 @@ export const AdCarousel = ({
   title,
   className = '',
   onItemClick,
+  isLoading = false,
 }: AdCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
@@ -71,7 +73,7 @@ export const AdCarousel = ({
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const progressRef = useRef<NodeJS.Timeout | null>(null);
 
-  const safeItems = items.length > 0 ? items : demoItems;
+  const displayItems = items;
 
   const startProgress = useCallback(() => {
     if (progressRef.current) clearInterval(progressRef.current);
@@ -83,15 +85,15 @@ export const AdCarousel = ({
 
   const goToNext = useCallback(() => {
     setDirection(1);
-    setCurrentIndex(prev => (prev + 1) % safeItems.length);
+    setCurrentIndex(prev => (prev + 1) % displayItems.length);
     startProgress();
-  }, [safeItems.length, startProgress]);
+  }, [displayItems.length, startProgress]);
 
   const goToPrev = useCallback(() => {
     setDirection(-1);
-    setCurrentIndex(prev => (prev - 1 + safeItems.length) % safeItems.length);
+    setCurrentIndex(prev => (prev - 1 + displayItems.length) % displayItems.length);
     startProgress();
-  }, [safeItems.length, startProgress]);
+  }, [displayItems.length, startProgress]);
 
   const goToSlide = (index: number) => {
     setDirection(index > currentIndex ? 1 : -1);
@@ -100,13 +102,13 @@ export const AdCarousel = ({
   };
 
   useEffect(() => {
-    if (isPlaying && safeItems.length > 1) {
+    if (isPlaying && displayItems.length > 1) {
       intervalRef.current = setInterval(goToNext, autoPlayInterval);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isPlaying, autoPlayInterval, goToNext, safeItems.length]);
+  }, [isPlaying, autoPlayInterval, goToNext, displayItems.length]);
 
   useEffect(() => {
     startProgress();
@@ -115,7 +117,7 @@ export const AdCarousel = ({
     };
   }, [autoPlayInterval, startProgress]);
 
-  const currentItem = safeItems[currentIndex];
+  const currentItem = displayItems[currentIndex];
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -148,8 +150,16 @@ export const AdCarousel = ({
         className={`relative ${currentAspect} ${currentVariant.container} bg-brand-black cursor-pointer`}
         onMouseEnter={() => setIsPlaying(false)}
         onMouseLeave={() => setIsPlaying(true)}
-        onClick={() => onItemClick?.(currentItem)}
       >
+        {isLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-brand-gold/30 border-t-brand-gold rounded-full animate-spin" />
+          </div>
+        ) : displayItems.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-brand-brown/20">
+            <p className="text-gray-500 text-sm">Aucun contenu promotionnel disponible</p>
+          </div>
+        ) : (
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentIndex}
@@ -222,7 +232,7 @@ export const AdCarousel = ({
                 <Link
                   to={currentItem.link}
                   onClick={e => e.stopPropagation()}
-                  className="inline-flex items-center gap-3 bg-brand-gold text-brand-black px-8 py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-white transition-colors"
+                  className="inline-flex items-center gap-3 bg-brand-gold text-brand-black px-6 md:px-8 py-3 md:py-4 rounded-xl font-black text-xs md:text-sm uppercase tracking-widest hover:bg-white transition-colors"
                 >
                   {currentItem.ctaText || 'Découvrir'}
                   <TrendingUp className="w-4 h-4" />
@@ -231,8 +241,9 @@ export const AdCarousel = ({
             </div>
           </motion.div>
         </AnimatePresence>
+        )}
 
-        {showProgress && (
+        {!isLoading && displayItems.length > 1 && showProgress && (
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
             <motion.div
               className="h-full bg-brand-gold"
@@ -242,7 +253,7 @@ export const AdCarousel = ({
           </div>
         )}
 
-        {showArrows && (
+        {!isLoading && displayItems.length > 1 && showArrows && (
           <>
             <button
               onClick={(e) => { e.stopPropagation(); goToPrev(); }}
@@ -259,16 +270,18 @@ export const AdCarousel = ({
           </>
         )}
 
-        <button
-          onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
-          className="absolute top-4 right-4 w-10 h-10 bg-brand-black/50 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-brand-gold hover:text-brand-black text-white"
-        >
-          {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-        </button>
+        {!isLoading && displayItems.length > 1 && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
+            className="absolute top-4 right-4 w-10 h-10 bg-brand-black/50 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-brand-gold hover:text-brand-black text-white"
+          >
+            {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+          </button>
+        )}
 
-        {showDots && safeItems.length > 1 && (
+        {!isLoading && showDots && displayItems.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {safeItems.map((_, index) => (
+            {displayItems.map((_, index) => (
               <button
                 key={index}
                 onClick={(e) => { e.stopPropagation(); goToSlide(index); }}
@@ -285,44 +298,5 @@ export const AdCarousel = ({
     </div>
   );
 };
-
-const demoItems: CarouselItem[] = [
-  {
-    id: '1',
-    title: 'Les Origins du Lion',
-    subtitle: 'Par Awa Kouyaté',
-    description: 'Une épopée familiale retraçant les origines d\'une dynastie royale dans l\'Afrique de l\'Ouest.',
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1920&auto=format&fit=crop',
-    link: '/work/1',
-    badge: 'Top de la semaine',
-    badgeIcon: <Crown className="w-3 h-3" />,
-    badgeColor: 'bg-gradient-to-r from-brand-gold to-yellow-600',
-    ctaText: 'Lire Maintenant',
-  },
-  {
-    id: '2',
-    title: 'AfriStory Pro',
-    subtitle: 'Rejoignez l\'élite créative',
-    description: 'Monétisez vos œuvres, accédez à des statistiques avancées et construisez votre empire médiatique.',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1920&auto=format&fit=crop',
-    link: '/become-pro',
-    badge: 'Exclusivité',
-    badgeIcon: <Star className="w-3 h-3" />,
-    badgeColor: 'bg-gradient-to-r from-brand-gold to-yellow-600',
-    ctaText: 'Devenir Pro',
-  },
-  {
-    id: '3',
-    title: 'Concours AfriStory 2026',
-    subtitle: '50 000€ de prix',
-    description: 'Participez au plus grand concours de BD panafricain. Deadline : 30 Juin 2026.',
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1920&auto=format&fit=crop',
-    link: '/contests',
-    badge: 'Événement',
-    badgeIcon: <Zap className="w-3 h-3" />,
-    badgeColor: 'bg-brand-green',
-    ctaText: 'Participer',
-  },
-];
 
 export default AdCarousel;
