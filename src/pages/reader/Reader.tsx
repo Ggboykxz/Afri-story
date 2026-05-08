@@ -68,6 +68,10 @@ export const Reader = () => {
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const pinchRef = useRef<{ startDist: number; startScale: number } | null>(null);
+  const [scale, setScale] = useState(1);
+  const [pinchImage, setPinchImage] = useState<string | null>(null);
+  const pinchContainerRef = useRef<HTMLDivElement>(null);
 
   const canReadPremium = hasPermission('read_premium_chapters');
   const canComment = hasPermission('comment');
@@ -183,6 +187,32 @@ export const Reader = () => {
   const handleLongPress = (imageUrl: string) => {
     if (readerMode === 'bd') {
       setZoomedImage(imageUrl);
+    }
+  };
+
+  const getTouchDistance = (t1: React.Touch, t2: React.Touch) => {
+    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && readerMode === 'bd') {
+      const dist = getTouchDistance(e.touches[0], e.touches[1]);
+      pinchRef.current = { startDist: dist, startScale: scale };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchRef.current && readerMode === 'bd') {
+      const dist = getTouchDistance(e.touches[0], e.touches[1]);
+      const newScale = Math.max(1, Math.min(4, pinchRef.current.startScale * (dist / pinchRef.current.startDist)));
+      setScale(newScale);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    pinchRef.current = null;
+    if (scale > 1) {
+      setScale(1);
     }
   };
 
@@ -639,20 +669,35 @@ export const Reader = () => {
             <p>Aucune page disponible.</p>
           </div>
         ) : (
-          <div className={`${readerMode === 'bd' && backgroundTheme !== 'dark' ? 'px-4' : ''}`}>
+          <div
+            ref={pinchContainerRef}
+            className={`${readerMode === 'bd' && backgroundTheme !== 'dark' ? 'px-4' : ''}`}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             {pages.map((page, idx) => (
-              <div 
+              <div
                 key={idx}
                 className={`relative ${readerMode === 'bd' ? 'mb-8' : 'mb-1'}`}
                 onClick={handleImageTap}
                 onContextMenu={(e) => { e.preventDefault(); handleLongPress(page); }}
               >
-                <img 
-                  src={page} 
-                  alt={`Page ${idx + 1}`}
-                  className={`w-full h-auto ${readerMode === 'bd' ? 'rounded-xl shadow-2xl' : ''}`}
-                  loading={idx < 2 ? 'eager' : 'lazy'}
-                />
+                <div className={readerMode === 'bd' ? 'relative overflow-hidden rounded-xl' : ''}>
+                  <img
+                    src={page}
+                    alt={`Page ${idx + 1}`}
+                    className={`w-full h-auto transition-transform duration-200 origin-top-left ${readerMode === 'bd' ? 'rounded-xl shadow-2xl' : ''}`}
+                    style={readerMode === 'bd' ? { transform: `scale(${scale})` } : undefined}
+                    loading={idx < 2 ? 'eager' : 'lazy'}
+                  />
+                  {readerMode === 'bd' && scale > 1 && (
+                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur px-3 py-1 rounded-lg flex items-center gap-1">
+                      <ZoomIn className="w-3 h-3" />
+                      <span className="text-[10px] font-bold">{Math.round(scale * 100)}%</span>
+                    </div>
+                  )}
+                </div>
                 {readerMode === 'bd' && (
                   <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest">
                     {idx + 1}/{pages.length}

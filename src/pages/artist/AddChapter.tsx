@@ -156,8 +156,9 @@ export const AddChapter = () => {
         number: formData.number,
         isPremium: formData.isPremium,
         price: formData.isPremium ? formData.price : 0,
-        images: imageUrls,
-        viewCount: 0,
+        pages: imageUrls,
+        likes: 0,
+        views: 0,
         createdAt: serverTimestamp(),
         publishedAt: formData.status === 'draft' || asDraft ? null : serverTimestamp(),
       };

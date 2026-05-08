@@ -227,7 +227,9 @@ export const WorkDetail = () => {
                       </div>
                       <div>
                         <h4 className="font-bold text-sm">{chapter.title}</h4>
-                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">{chapter.date}</p>
+                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
+                          {chapter.publishedAt?.toDate ? chapter.publishedAt.toDate().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : 'Non publié'}
+                        </p>
                       </div>
                     </div>
                     

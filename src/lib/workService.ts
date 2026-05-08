@@ -108,7 +108,7 @@ export const workService = {
       if (docSnap.exists()) {
         const data = docSnap.data();
         // Fetch chapters subcollection
-        const chapSnap = await getDocs(query(collection(db, 'works', id, 'chapters'), orderBy('publishedAt', 'asc')));
+        const chapSnap = await getDocs(query(collection(db, 'works', id, 'chapters'), orderBy('number', 'asc')));
         const chapters = chapSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         
         return { 
