@@ -231,25 +231,76 @@ export function Explore() {
       </section>
 
       {/* Featured Creators Section */}
-      <section className="pt-12 border-t border-white/5 space-y-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-display font-bold">Artistes Pro en vedette</h2>
-          <Link to="/rankings" className="text-brand-gold text-[10px] font-black uppercase tracking-widest hover:underline">
-            Voir le classement complet
-          </Link>
+      <FeaturedArtistsSection />
+    </div>
+  );
+};
+
+const FeaturedArtistsSection = () => {
+  const [artists, setArtists] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProArtists = async () => {
+      try {
+        const { collection, query, where, getDocs, limit } = await import('firebase/firestore');
+        const { db } = await import('../lib/firebase');
+        const q = query(
+          collection(db, 'users'),
+          where('role', 'in', ['artist_pro', 'artist_mentor']),
+          limit(10)
+        );
+        const snap = await getDocs(q);
+        setArtists(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProArtists();
+  }, []);
+
+  return (
+    <section className="pt-12 border-t border-white/5 space-y-8">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-display font-bold">Artistes Pro en vedette</h2>
+        <Link to="/rankings" className="text-brand-gold text-[10px] font-black uppercase tracking-widest hover:underline">
+          Voir le classement complet
+        </Link>
+      </div>
+      {loading ? (
+        <div className="flex gap-6 overflow-x-auto pb-8">
+          {Array(6).fill(0).map((_, i) => (
+            <div key={i} className="flex-shrink-0 w-48 text-center space-y-3">
+              <div className="w-24 h-24 rounded-full bg-white/5 animate-pulse mx-auto" />
+              <div className="space-y-1">
+                <div className="h-4 w-20 bg-white/5 animate-pulse mx-auto" />
+              </div>
+            </div>
+          ))}
         </div>
+      ) : artists.length > 0 ? (
         <div className="flex gap-6 overflow-x-auto pb-8 invisible-scrollbar">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <motion.div 
-              key={i}
+          {artists.map((artist) => (
+            <motion.div
+              key={artist.uid}
               whileHover={{ scale: 1.05 }}
               className="flex-shrink-0 w-48 text-center space-y-3"
             >
-              <div className="w-24 h-24 rounded-full bg-brand-brown/40 border-2 border-brand-gold/30 mx-auto overflow-hidden">
-                {/* Artist avatar */}
-              </div>
+              <Link to={`/artist-profile/${artist.uid}`}>
+                <div className="w-24 h-24 rounded-full bg-brand-brown/40 border-2 border-brand-gold/30 mx-auto overflow-hidden">
+                  {artist.photoURL ? (
+                    <img src={artist.photoURL} alt={artist.displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl font-display font-black text-brand-gold">
+                      {artist.displayName?.[0] || 'A'}
+                    </div>
+                  )}
+                </div>
+              </Link>
               <div className="space-y-1">
-                <h4 className="font-bold text-sm">Artiste #{i}</h4>
+                <h4 className="font-bold text-sm">{artist.displayName || 'Artiste'}</h4>
                 <div className="flex items-center justify-center gap-1 text-[8px] font-black text-brand-gold uppercase tracking-[0.2em]">
                   <Award className="w-3 h-3" /> Certifié
                 </div>
@@ -257,7 +308,11 @@ export function Explore() {
             </motion.div>
           ))}
         </div>
-      </section>
-    </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 text-sm">
+          Aucun artiste certifié pour le moment
+        </div>
+      )}
+    </section>
   );
-}
+};
