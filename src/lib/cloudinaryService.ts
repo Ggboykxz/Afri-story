@@ -39,6 +39,10 @@ const cloudinaryService = {
     return this.uploadImage(file, `afristory/chapters/${workId}/${chapterId}`);
   },
 
+  async uploadChapterImage(file: File): Promise<string | null> {
+    return this.uploadImage(file, 'afristory/chapters');
+  },
+
   async uploadAvatar(userId: string, file: File): Promise<string | null> {
     return this.uploadImage(file, `afristory/avatars/${userId}`);
   },

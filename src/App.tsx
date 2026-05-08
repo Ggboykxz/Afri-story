@@ -32,6 +32,8 @@ import { SubscriptionPage } from './pages/Subscription';
 import { NotFound } from './pages/NotFound';
 import { SearchPage } from './pages/SearchPage';
 import { CopyrightPage } from './pages/Copyright';
+import { AddChapter } from './pages/AddChapter';
+import { EditWork } from './pages/EditWork';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -168,6 +170,16 @@ export default function App() {
 
                     <Route path="/subscription" element={<SubscriptionPage />} />
                     <Route path="/work/:id" element={<WorkDetail />} />
+                    <Route path="/work/:id/add-chapter" element={
+                      <ProtectedRoute requireAuth={true} allowedRoles={['artist_draft', 'artist_pro', 'artist_mentor', 'admin']}>
+                        <AddChapter />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/work/:id/edit" element={
+                      <ProtectedRoute requireAuth={true}>
+                        <EditWork />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/work/:id/chapter/:chapterId" element={<Reader />} />
                     <Route path="/read/:workId/:chapterId" element={<Reader />} />
 

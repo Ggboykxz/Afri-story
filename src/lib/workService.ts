@@ -75,6 +75,29 @@ export const workService = {
     }
   },
 
+  // Update a work
+  updateWork: async (workId: string, data: Partial<Work>): Promise<void> => {
+    try {
+      await updateDoc(doc(db, 'works', workId), {
+        ...data,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `works/${workId}`);
+      throw error;
+    }
+  },
+
+  // Delete a work
+  deleteWork: async (workId: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(db, 'works', workId));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `works/${workId}`);
+      throw error;
+    }
+  },
+
   // Get a single work
   getWork: async (id: string): Promise<Work | null> => {
     const path = `works/${id}`;
