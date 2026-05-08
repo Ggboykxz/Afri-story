@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
-  ArrowLeft, MessageSquare, ChevronUp, ChevronDown, List, Share2, 
+  ArrowLeft, MessageSquare, ChevronUp, ChevronDown, Share2, 
   Lock, Loader2, Heart, Star, X, ChevronLeft, ChevronRight, 
-  Bookmark, Settings, Zap, Eye, Moon, Sun, Contrast
+  Bookmark, Settings, Moon, Sun, List, Check, Eye, EyeOff,
+  Wifi, WifiOff, Volume2, VolumeX, ZoomIn
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '@/context/AuthContext';
 import { workService, Work } from '@/lib/workService';
 import { Skeleton } from '@/components/common/Skeleton';
-import { doc, updateDoc, onSnapshot, query, orderBy, limit, getDocs, where, collection } from 'firebase/firestore';
+import { doc, updateDoc, onSnapshot, query, orderBy, limit, getDocs, where, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 type Chapter = {
@@ -38,6 +39,7 @@ export const Reader = () => {
   const [showControls, setShowControls] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
+  const [showChapterList, setShowChapterList] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
@@ -53,17 +55,95 @@ export const Reader = () => {
   const [newComment, setNewComment] = useState('');
   const [commentSubmitting, setCommentSubmitting] = useState(false);
 
+  const [likeAnimation, setLikeAnimation] = useState(false);
+  const [autoHideControls, setAutoHideControls] = useState(true);
+  const [keepScreenOn, setKeepScreenOn] = useState(false);
+  const [showWakeLockTip, setShowWakeLockTip] = useState(false);
+
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [readingProgress, setReadingProgress] = useState(0);
+
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
   const canReadPremium = hasPermission('read_premium_chapters');
-  const canEarlyAccess = hasPermission('early_access');
   const canComment = hasPermission('comment');
-  const canLike = hasPermission('like');
 
   const prevChapter = chapters[currentChapterIndex - 1];
   const nextChapter = chapters[currentChapterIndex + 1];
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    setShowControls(true);
+    resetControlsTimer();
   }, [chapterId]);
+
+  useEffect(() => {
+    if (workId && chapterId) {
+      fetchChapterData();
+      subscribeToComments();
+      checkBookmark();
+      loadReadingProgress();
+    }
+  }, [workId, chapterId]);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    document.body.style.backgroundColor = 
+      backgroundTheme === 'dark' ? '#0F0F0F' :
+      backgroundTheme === 'sepia' ? '#F5E6D3' : '#FFFFFF';
+    return () => { document.body.style.backgroundColor = ''; };
+  }, [backgroundTheme]);
+
+  useEffect(() => {
+    if (keepScreenOn && 'wakeLock' in navigator) {
+      requestWakeLock();
+    } else {
+      releaseWakeLock();
+    }
+    return () => { releaseWakeLock(); };
+  }, [keepScreenOn]);
+
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request('screen');
+      }
+    } catch (err) {
+      console.log('Wake Lock error:', err);
+    }
+  };
+
+  const releaseWakeLock = () => {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  };
+
+  const resetControlsTimer = useCallback(() => {
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    if (autoHideControls && !showSettings && !showChapterList) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 4000);
+    }
+  }, [autoHideControls, showSettings, showChapterList]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -71,32 +151,40 @@ export const Reader = () => {
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
       setScrollProgress(progress);
+      setReadingProgress(Math.round(progress));
       setShowControls(scrollTop < 100);
+      resetControlsTimer();
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [resetControlsTimer]);
 
-  useEffect(() => {
-    if (workId && chapterId) {
-      fetchChapterData();
-      subscribeToComments();
-      checkBookmark();
-    }
-  }, [workId, chapterId]);
-
-  useEffect(() => {
-    if (readerMode === 'bd') {
-      document.body.style.backgroundColor = 
-        backgroundTheme === 'dark' ? '#0F0F0F' :
-        backgroundTheme === 'sepia' ? '#F5E6D3' : '#FFFFFF';
+  const handleImageTap = (e: React.MouseEvent | React.TouchEvent) => {
+    const now = Date.now();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const y = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    if (lastTapRef.current && now - lastTapRef.current.time < 300) {
+      const dx = Math.abs(x - lastTapRef.current.x);
+      const dy = Math.abs(y - lastTapRef.current.y);
+      
+      if (dx < 30 && dy < 30) {
+        setLikeAnimation(true);
+        setTimeout(() => setLikeAnimation(false), 800);
+        if (user) workService.likeChapter(workId!, chapterId!);
+      }
+      lastTapRef.current = null;
     } else {
-      document.body.style.backgroundColor = '#0F0F0F';
+      lastTapRef.current = { time: now, x, y };
     }
-    return () => {
-      document.body.style.backgroundColor = '';
-    };
-  }, [readerMode, backgroundTheme]);
+  };
+
+  const handleLongPress = (imageUrl: string) => {
+    if (readerMode === 'bd') {
+      setZoomedImage(imageUrl);
+    }
+  };
 
   const fetchChapterData = async () => {
     if (!workId || !chapterId) return;
@@ -107,15 +195,13 @@ export const Reader = () => {
         setWork(workData);
         
         const chaptersData = await workService.getChapters(workId);
-        const sortedChapters = (chaptersData || []).sort((a: any, b: any) => 
-          (a.number || 0) - (b.number || 0)
-        );
-        setChapters(sortedChapters);
+        const sorted = (chaptersData || []).sort((a, b) => (a.number || 0) - (b.number || 0));
+        setChapters(sorted);
 
-        const idx = sortedChapters.findIndex((c: Chapter) => c.id === chapterId);
+        const idx = sorted.findIndex((c) => c.id === chapterId);
         setCurrentChapterIndex(idx >= 0 ? idx : 0);
 
-        const found = sortedChapters.find((c: Chapter) => c.id === chapterId);
+        const found = sorted.find((c) => c.id === chapterId);
         if (found) {
           setChapterContent(found);
           setIsLocked(found.isPremium && !canReadPremium);
@@ -132,20 +218,17 @@ export const Reader = () => {
     if (!workId || !chapterId) return;
     setCommentsLoading(true);
     
-    const commentsQuery = query(
+    const q = query(
       collection(db, 'works', workId, 'chapters', chapterId, 'comments'),
       orderBy('createdAt', 'desc'),
       limit(50)
     );
     
-    const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setComments(data);
       setCommentsLoading(false);
-    }, (error) => {
-      console.error('Comments error:', error);
-      setCommentsLoading(false);
-    });
+    }, () => setCommentsLoading(false));
     
     return unsubscribe;
   };
@@ -153,37 +236,76 @@ export const Reader = () => {
   const checkBookmark = async () => {
     if (!user || !workId || !chapterId) return;
     try {
-      const userDoc = await getDocs(query(
+      const snap = await getDocs(query(
         collection(db, 'users', user.uid, 'readHistory'),
         where('workId', '==', workId),
         where('chapterId', '==', chapterId)
       ));
-      setIsBookmarked(!userDoc.empty);
+      setIsBookmarked(!snap.empty);
     } catch (err) {
       console.error('Error checking bookmark:', err);
     }
   };
 
-  const handleBookmark = async () => {
-    if (!user) {
-      navigate('/login');
-      return;
+  const loadReadingProgress = async () => {
+    if (!user || !workId || !chapterId) return;
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'users', user.uid, 'readingProgress'),
+        where('workId', '==', workId),
+        where('chapterId', '==', chapterId)
+      ));
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        if (data.progress > 0 && scrollProgress === 0) {
+          setTimeout(() => {
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            window.scrollTo(0, (docHeight * data.progress) / 100);
+          }, 100);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading progress:', err);
     }
+  };
+
+  const saveReadingProgress = async (progress: number) => {
+    if (!user || !workId || !chapterId) return;
+    try {
+      const progressRef = doc(db, 'users', user.uid, 'readingProgress', `${workId}_${chapterId}`);
+      await updateDoc(progressRef, {
+        workId,
+        chapterId,
+        workTitle: work?.title,
+        chapterNumber: chapterContent?.number,
+        progress,
+        lastReadAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.error('Error saving progress:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (readingProgress > 0 && readingProgress % 10 === 0) {
+      saveReadingProgress(readingProgress);
+    }
+  }, [readingProgress]);
+
+  const handleBookmark = async () => {
+    if (!user) { navigate('/login'); return; }
     setBookmarkLoading(true);
     try {
-      const bookmarkRef = doc(db, 'users', user.uid, 'readHistory', `${workId}_${chapterId}`);
+      const ref = doc(db, 'users', user.uid, 'readHistory', `${workId}_${chapterId}`);
       if (isBookmarked) {
-        await import('firebase/firestore').then(({ deleteDoc }) => deleteDoc(bookmarkRef));
+        await import('firebase/firestore').then(({ deleteDoc }) => deleteDoc(ref));
         setIsBookmarked(false);
       } else {
-        await updateDoc(bookmarkRef, {
-          workId,
-          chapterId,
-          workTitle: work?.title,
+        await updateDoc(ref, {
+          workId, chapterId, workTitle: work?.title,
           chapterTitle: chapterContent?.title,
           chapterNumber: chapterContent?.number,
-          readAt: new Date(),
-          progress: scrollProgress
+          readAt: serverTimestamp(), progress: readingProgress
         });
         setIsBookmarked(true);
       }
@@ -195,55 +317,38 @@ export const Reader = () => {
   };
 
   const handleUnlock = async () => {
-    if (!user) return navigate('/login');
+    if (!user) { navigate('/login'); return; }
     if (!canReadPremium && (profile?.afriCoins || 0) < 50) {
-      alert("AfriCoins insuffisants. Souscrivez à un abonnement ou achetez des AfriCoins.");
       navigate('/subscription');
       return;
     }
-    
     setUnlocking(true);
     try {
       await workService.unlockChapter(workId!, chapterId!, 50);
       setIsLocked(false);
-      alert("Chapitre débloqué !");
     } catch (error) {
       console.error(error);
-      alert("Erreur lors du déverrouillage.");
     } finally {
       setUnlocking(false);
     }
   };
 
   const handleAddComment = async () => {
-    if (!user || !newComment.trim() || !workId || !chapterId) return;
-    if (!canComment) {
-      alert("Vous devez être connecté pour commenter.");
-      navigate('/login');
-      return;
-    }
-    
+    if (!user || !newComment.trim()) return;
     setCommentSubmitting(true);
     try {
-      await workService.addComment(
-        workId, 
-        chapterId, 
-        user.uid, 
-        profile?.displayName || 'Anonyme', 
-        newComment,
-        profile?.photoURL
-      );
+      await workService.addComment(workId!, chapterId!, user.uid, profile?.displayName || 'Anonyme', newComment, profile?.photoURL);
       setNewComment('');
     } catch (err) {
       console.error('Error adding comment:', err);
-      alert("Erreur lors de l'ajout du commentaire");
     } finally {
       setCommentSubmitting(false);
     }
   };
 
-  const navigateToChapter = (targetChapterId: string) => {
-    navigate(`/read/${workId}/${targetChapterId}`);
+  const navigateToChapter = (id: string) => {
+    setShowChapterList(false);
+    navigate(`/read/${workId}/${id}`);
   };
 
   const getThemeStyles = (): string => {
@@ -259,94 +364,94 @@ export const Reader = () => {
 
   return (
     <div className={`min-h-screen ${getThemeStyles()} transition-colors duration-300`}>
+      {/* Like Animation Overlay */}
+      <AnimatePresence>
+        {likeAnimation && (
+          <motion.div
+            initial={{ scale: 0, opacity: 1 }}
+            animate={{ scale: 2, opacity: 0 }}
+            exit={{ scale: 2, opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center"
+          >
+            <Heart className="w-32 h-32 text-brand-red fill-current" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Zoomed Image Modal */}
+      <AnimatePresence>
+        {zoomedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[90] bg-black flex items-center justify-center"
+            onClick={() => setZoomedImage(null)}
+          >
+            <img src={zoomedImage} alt="Zoomed" className="max-w-full max-h-full object-contain" />
+            <button className="absolute top-4 right-4 p-2 bg-white/20 rounded-full">
+              <X className="w-6 h-6 text-white" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top Bar */}
       <AnimatePresence>
-        {(showControls || scrollProgress < 5) && (
+        {showControls && (
           <motion.div 
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             exit={{ y: -100 }}
-            className={`fixed top-0 left-0 right-0 h-16 z-50 px-6 flex items-center justify-between shadow-lg ${
+            className={`fixed top-0 left-0 right-0 z-50 px-4 py-3 flex items-center justify-between shadow-xl ${
               backgroundTheme === 'dark' ? 'bg-[#0F0F0F]/95 border-white/10' : 
               backgroundTheme === 'sepia' ? 'bg-[#F5E6D3]/95 border-amber-200/30' : 
               'bg-white/95 border-gray-200'
             }`}
+            onClick={() => resetControlsTimer()}
           >
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => navigate(`/work/${workId}`)}
-                className={`p-2 rounded-full transition-colors ${
-                  backgroundTheme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-                }`}
-              >
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <button onClick={() => navigate(`/work/${workId}`)} className="p-2 rounded-full hover:bg-white/10">
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <div>
-                <h1 className="font-display font-bold text-sm truncate max-w-[150px] md:max-w-none">
-                  {work?.title || 'Chargement...'}
-                </h1>
+              <div className="min-w-0 flex-1" onClick={() => setShowChapterList(true)}>
+                <h1 className="font-bold text-sm truncate">{work?.title || '...'}</h1>
                 <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest">
-                  Épisode {chapterNumber} {chapterContent?.title ? `- ${chapterContent.title}` : ''}
+                  Ep.{chapterNumber}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={handleBookmark}
-                disabled={bookmarkLoading}
-                className={`p-2 rounded-full transition-colors ${isBookmarked ? 'text-brand-gold' : 'text-gray-400 hover:text-white'}`}
-              >
-                <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
+            <div className="flex items-center gap-1">
+              {isOffline && (
+                <div className="p-1.5 bg-red-500/20 rounded-lg" title="Hors ligne">
+                  <WifiOff className="w-4 h-4 text-red-400" />
+                </div>
+              )}
+              
+              <button onClick={handleBookmark} disabled={bookmarkLoading} className="p-2 rounded-full hover:bg-white/10">
+                <Bookmark className={`w-5 h-5 ${isBookmarked ? 'text-brand-gold fill-current' : ''}`} />
               </button>
-              <button 
-                onClick={() => setShowSettings(!showSettings)}
-                className={`p-2 rounded-full transition-colors ${
-                  backgroundTheme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-                }`}
-              >
+              
+              <button onClick={() => { setShowSettings(!showSettings); setAutoHideControls(false); }} className="p-2 rounded-full hover:bg-white/10">
                 <Settings className="w-5 h-5" />
               </button>
               
-              {/* Reader Mode Toggle */}
-              <div className={`hidden sm:flex rounded-xl p-1 gap-1 ${
-                backgroundTheme === 'light' ? 'bg-gray-100' : 'bg-white/5'
-              }`}>
-                <button 
-                  onClick={() => setReaderMode('webtoon')}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                    readerMode === 'webtoon' ? 'bg-brand-gold text-black' : ''
-                  }`}
-                >
-                  Webtoon
-                </button>
-                <button 
-                  onClick={() => setReaderMode('bd')}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                    readerMode === 'bd' ? 'bg-brand-gold text-black' : ''
-                  }`}
-                >
-                  BD
-                </button>
-              </div>
+              <button onClick={() => setShowChapterList(true)} className="p-2 rounded-full hover:bg-white/10">
+                <List className="w-5 h-5" />
+              </button>
               
-              <button 
-                onClick={() => setShowComments(true)}
-                className={`p-2 rounded-full transition-colors relative ${
-                  backgroundTheme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-                }`}
-              >
+              <button onClick={() => setShowComments(true)} className="p-2 rounded-full hover:bg-white/10 relative">
                 <MessageSquare className="w-5 h-5" />
                 {comments.length > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-brand-gold rounded-full" />
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-gold text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {comments.length > 9 ? '9+' : comments.length}
+                  </span>
                 )}
               </button>
-              <button 
-                onClick={() => setShowShare(true)}
-                className={`p-2 rounded-full transition-colors ${
-                  backgroundTheme === 'light' ? 'hover:bg-gray-100' : 'hover:bg-white/10'
-                }`}
-              >
+              
+              <button onClick={() => setShowShare(true)} className="p-2 rounded-full hover:bg-white/10">
                 <Share2 className="w-5 h-5" />
               </button>
             </div>
@@ -361,254 +466,315 @@ export const Reader = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-20 right-6 z-50 rounded-2xl p-4 shadow-2xl border ${
+            className={`fixed top-20 right-4 z-50 rounded-2xl p-4 shadow-2xl border w-64 ${
               backgroundTheme === 'light' ? 'bg-white border-gray-200' : 'glass-card'
             }`}
           >
-            <h4 className="text-xs font-black uppercase tracking-widest mb-3">Mode de lecture</h4>
-            <div className="flex gap-2 mb-4">
-              {(['dark', 'sepia', 'light'] as BackgroundTheme[]).map(theme => (
-                <button
-                  key={theme}
-                  onClick={() => setBackgroundTheme(theme)}
-                  className={`p-2 rounded-lg transition-all ${
-                    backgroundTheme === theme ? 'bg-brand-gold text-black' : 'bg-white/5'
-                  }`}
-                >
-                  {theme === 'dark' ? <Moon className="w-4 h-4" /> : theme === 'sepia' ? <Sun className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                </button>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-xs font-black uppercase tracking-widest">Paramètres</h4>
+              <button onClick={() => { setShowSettings(false); setAutoHideControls(true); }} className="p-1 hover:bg-white/10 rounded">
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-gray-500">
-              <span className={`w-4 h-4 rounded ${backgroundTheme === 'dark' ? 'bg-[#0F0F0F] border border-white/20' : backgroundTheme === 'sepia' ? 'bg-[#F5E6D3] border border-amber-200' : 'bg-white border border-gray-300'}`} />
-              <span className="capitalize">{backgroundTheme === 'dark' ? 'Sombre' : backgroundTheme === 'sepia' ? 'Sépia' : 'Clair'}</span>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2 block">Mode</label>
+                <div className="flex gap-1 bg-white/5 rounded-lg p-1">
+                  {(['dark', 'sepia', 'light'] as BackgroundTheme[]).map(t => (
+                    <button key={t} onClick={() => setBackgroundTheme(t)}
+                      className={`flex-1 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
+                        backgroundTheme === t ? 'bg-brand-gold text-black' : ''
+                      }`}>
+                      {t === 'dark' ? '🌙' : t === 'sepia' ? '☀️' : '☀️'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2 block">Lecture</label>
+                <div className="flex gap-1 bg-white/5 rounded-lg p-1">
+                  <button onClick={() => setReaderMode('webtoon')}
+                    className={`flex-1 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
+                      readerMode === 'webtoon' ? 'bg-brand-gold text-black' : ''
+                    }`}>
+                    Scroll
+                  </button>
+                  <button onClick={() => setReaderMode('bd')}
+                    className={`flex-1 py-2 rounded-md text-[10px] font-bold uppercase transition-all ${
+                      readerMode === 'bd' ? 'bg-brand-gold text-black' : ''
+                    }`}>
+                    Pages
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between py-2 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  <span className="text-xs font-bold">Masquer auto</span>
+                </div>
+                <button onClick={() => setAutoHideControls(!autoHideControls)}
+                  className={`w-10 h-6 rounded-full transition-all ${autoHideControls ? 'bg-brand-gold' : 'bg-white/20'}`}>
+                  <div className={`w-4 h-4 bg-white rounded-full transition-all ${autoHideControls ? 'ml-5' : 'ml-1'}`} />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between py-2 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <Moon className="w-4 h-4" />
+                  <span className="text-xs font-bold">Écran allumé</span>
+                </div>
+                <button onClick={() => {
+                  setKeepScreenOn(!keepScreenOn);
+                  if (!keepScreenOn) setShowWakeLockTip(true);
+                  setTimeout(() => setShowWakeLockTip(false), 3000);
+                }}
+                  className={`w-10 h-6 rounded-full transition-all ${keepScreenOn ? 'bg-brand-gold' : 'bg-white/20'}`}>
+                  <div className={`w-4 h-4 bg-white rounded-full transition-all ${keepScreenOn ? 'ml-5' : 'ml-1'}`} />
+                </button>
+              </div>
+
+              {showWakeLockTip && (
+                <p className="text-[10px] text-gray-500 bg-white/5 p-2 rounded-lg">
+                  💡 L'écran restera allumé pendant la lecture
+                </p>
+              )}
+
+              <div className="pt-2 border-t border-white/10 text-center">
+                <span className="text-[10px] text-gray-500">
+                  Progression: {readingProgress}%
+                </span>
+                <div className="h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
+                  <div className="h-full bg-brand-gold transition-all" style={{ width: `${readingProgress}%` }} />
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Reading Progress Bar */}
+      {/* Chapter List Modal */}
+      <AnimatePresence>
+        {showChapterList && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowChapterList(false)} />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              className={`absolute right-0 top-0 bottom-0 w-80 max-w-full shadow-2xl overflow-hidden flex flex-col ${
+                backgroundTheme === 'light' ? 'bg-white' : 'bg-[#0F0F0F]'
+              }`}
+            >
+              <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                <h3 className="font-bold">Chapitres ({chapters.length})</h3>
+                <button onClick={() => setShowChapterList(false)} className="p-2 hover:bg-white/10 rounded-full">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {chapters.map((ch, idx) => (
+                  <button
+                    key={ch.id}
+                    onClick={() => navigateToChapter(ch.id)}
+                    className={`w-full p-4 flex items-center gap-3 border-b border-white/5 hover:bg-white/5 transition-colors ${
+                      ch.id === chapterId ? 'bg-brand-gold/10' : ''
+                    }`}
+                  >
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                      ch.id === chapterId ? 'bg-brand-gold text-black' : 'bg-white/10'
+                    }`}>
+                      {ch.number}
+                    </span>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-bold truncate">{ch.title || `Épisode ${ch.number}`}</p>
+                      {ch.isPremium && <span className="text-[10px] text-brand-gold">🔒 Premium</span>}
+                    </div>
+                    {ch.id === chapterId && <Check className="w-5 h-5 text-brand-gold" />}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Progress Bar */}
       <div className="fixed top-0 left-0 right-0 h-1 z-[60]">
-        <div 
-          className="h-full bg-brand-gold transition-all duration-100" 
-          style={{ width: `${scrollProgress}%` }}
-        />
+        <div className="h-full bg-brand-gold transition-all duration-150" style={{ width: `${scrollProgress}%` }} />
       </div>
 
       {/* Content */}
-      <div className={`max-w-3xl mx-auto pt-20 pb-32 flex flex-col items-center min-h-screen ${
-        readerMode === 'bd' && backgroundTheme !== 'dark' ? 'px-4' : ''
-      }`}>
+      <div ref={contentRef} className="pt-20 pb-32">
         {loading ? (
-          <div className="w-full space-y-4 pt-8">
+          <div className="w-full space-y-4 px-4 pt-4">
             {Array(3).fill(0).map((_, i) => (
-              <Skeleton key={i} className="w-full aspect-[2/3]" />
+              <Skeleton key={i} className="w-full aspect-[2/3] rounded-xl" />
             ))}
           </div>
         ) : isLocked ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center py-40">
-            <div className="w-24 h-24 bg-brand-gold/10 rounded-[2.5rem] flex items-center justify-center text-brand-gold relative">
-              <Lock className="w-10 h-10" />
-              <div className="absolute inset-0 border-2 border-brand-gold/20 rounded-[2.5rem] animate-pulse" />
+          <div className="flex flex-col items-center justify-center py-40 px-8 text-center">
+            <div className="w-20 h-20 bg-brand-gold/10 rounded-[2rem] flex items-center justify-center relative">
+              <Lock className="w-8 h-8 text-brand-gold" />
+              <div className="absolute inset-0 border-2 border-brand-gold/20 rounded-[2rem] animate-pulse" />
             </div>
-            <div className="space-y-4 mt-8">
-              <h2 className="text-3xl font-display font-black uppercase tracking-tighter">Chapitre Premium</h2>
-              <p className="text-gray-400 max-w-sm mx-auto">
-                Ce chapitre nécessite <span className="text-brand-gold font-bold">50 AfriCoins</span> pour être déverrouillé.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 w-full max-w-xs mt-8">
-              <button 
-                onClick={handleUnlock}
-                disabled={unlocking}
-                className="w-full py-4 bg-brand-gold text-black font-black rounded-2xl flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-brand-gold/20"
-              >
-                {unlocking ? <Loader2 className="w-6 h-6 animate-spin" /> : "DÉBLOQUER (50 🪙)"}
-              </button>
-              <Link to="/shop" className="text-xs font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors text-center">
-                Acheter des AfriCoins
-              </Link>
-            </div>
+            <h2 className="text-2xl font-black uppercase mt-6 tracking-tight">Chapitre Premium</h2>
+            <p className="text-gray-400 mt-2 max-w-xs">
+              Ce chapitre nécessite <span className="text-brand-gold font-bold">50 AfriCoins</span>
+            </p>
+            <button onClick={handleUnlock} disabled={unlocking}
+              className="mt-8 px-8 py-4 bg-brand-gold text-black font-black rounded-2xl flex items-center gap-3 hover:scale-105 transition-transform">
+              {unlocking ? <Loader2 className="w-5 h-5 animate-spin" /> : 'DÉBLOQUER (50 🪙)'}
+            </button>
           </div>
         ) : pages.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-            <p className="text-gray-500">Aucune page disponible pour ce chapitre.</p>
+          <div className="text-center py-20 text-gray-500">
+            <p>Aucune page disponible.</p>
           </div>
         ) : (
-          pages.map((page, index) => (
-            <div 
-              key={index} 
-              className={`w-full relative ${
-                readerMode === 'bd' 
-                  ? 'mb-12 bg-brand-brown rounded-2xl overflow-hidden shadow-2xl' 
-                  : 'mb-2'
-              }`}
-            >
-              <img 
-                src={page} 
-                alt={`Page ${index + 1}`} 
-                className={`w-full h-auto ${readerMode === 'bd' ? 'h-full object-cover' : ''}`}
-                loading={index < 2 ? 'eager' : 'lazy'}
-              />
-              {readerMode === 'webtoon' && pages.length > 1 && index === pages.length - 1 && (
-                <div className="h-24 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
-              )}
-              {readerMode === 'bd' && (
-                <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 uppercase tracking-widest">
-                  Page {index + 1}/{pages.length}
-                </div>
-              )}
-            </div>
-          ))
+          <div className={`${readerMode === 'bd' && backgroundTheme !== 'dark' ? 'px-4' : ''}`}>
+            {pages.map((page, idx) => (
+              <div 
+                key={idx}
+                className={`relative ${readerMode === 'bd' ? 'mb-8' : 'mb-1'}`}
+                onClick={handleImageTap}
+                onContextMenu={(e) => { e.preventDefault(); handleLongPress(page); }}
+              >
+                <img 
+                  src={page} 
+                  alt={`Page ${idx + 1}`}
+                  className={`w-full h-auto ${readerMode === 'bd' ? 'rounded-xl shadow-2xl' : ''}`}
+                  loading={idx < 2 ? 'eager' : 'lazy'}
+                />
+                {readerMode === 'bd' && (
+                  <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest">
+                    {idx + 1}/{pages.length}
+                  </div>
+                )}
+                {readerMode === 'webtoon' && idx === pages.length - 1 && (
+                  <div className="h-20 bg-gradient-to-t from-[#0F0F0F] to-transparent pointer-events-none" />
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
-        {/* Chapter Navigation & End Content */}
+        {/* Chapter Navigation */}
         {!loading && !isLocked && (
-          <div className="w-full py-16 px-6 text-center space-y-8">
-            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="px-4 py-16 text-center space-y-6">
+            <div className="h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             
-            <h2 className="text-3xl font-display font-black uppercase tracking-tighter">FIN DU CHAPITRE {chapterNumber}</h2>
+            <h2 className="text-2xl font-black uppercase tracking-tight">Fin - Épisode {chapterNumber}</h2>
             
-            {/* Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               {prevChapter ? (
-                <button 
-                  onClick={() => navigateToChapter(prevChapter.id)}
-                  className={`w-full sm:w-auto px-8 py-4 font-black rounded-2xl flex items-center justify-center gap-2 group transition-all ${
-                    backgroundTheme === 'light' 
-                      ? 'bg-gray-100 hover:bg-gray-200 text-gray-900' 
-                      : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                  }`}
-                >
-                  <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                  ÉPISODE PRÉCÉDENT
+                <button onClick={() => navigateToChapter(prevChapter.id)}
+                  className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-transform ${
+                    backgroundTheme === 'light' ? 'bg-gray-100' : 'bg-white/5'
+                  }`}>
+                  <ChevronLeft className="w-4 h-4" /> Précédent
                 </button>
               ) : (
-                <div className="w-full sm:w-auto px-8 py-4 text-center text-gray-600 text-sm font-bold uppercase tracking-widest">
-                  Début de l'histoire
-                </div>
+                <span className="px-6 py-3 text-gray-600 text-sm font-bold uppercase">Début</span>
               )}
               
               {nextChapter ? (
-                <button 
-                  onClick={() => navigateToChapter(nextChapter.id)}
-                  className="w-full sm:w-auto px-8 py-4 bg-brand-gold text-black font-black rounded-2xl flex items-center justify-center gap-2 group hover:scale-105 active:scale-95 transition-all shadow-lg shadow-brand-gold/20"
-                >
-                  ÉPISODE SUIVANT
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <button onClick={() => navigateToChapter(nextChapter.id)}
+                  className="w-full sm:w-auto px-6 py-3 bg-brand-gold text-black font-bold rounded-xl flex items-center gap-2 hover:scale-105 transition-transform">
+                  Suivant <ChevronRight className="w-4 h-4" />
                 </button>
               ) : (
-                <div className="w-full sm:w-auto px-8 py-4 text-center text-gray-600 text-sm font-bold uppercase tracking-widest">
-                  Fin de l'histoire
-                </div>
+                <span className="px-6 py-3 text-gray-600 text-sm font-bold uppercase">Fin</span>
               )}
             </div>
-
-            <Link 
-              to={`/work/${workId}`} 
-              className="block text-sm text-gray-500 hover:text-brand-gold font-bold uppercase tracking-widest transition-colors"
-            >
-              Voir tous les épisodes ({chapters.length})
+            
+            <Link to={`/work/${workId}`} className="block text-sm text-gray-500 hover:text-brand-gold font-bold uppercase tracking-widest">
+              Tous les épisodes ({chapters.length})
             </Link>
           </div>
         )}
       </div>
 
-      {/* Comment Drawer */}
+      {/* Floating Scroll-to-Top */}
+      {scrollProgress > 30 && (
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-8 right-8 w-12 h-12 bg-brand-gold text-black rounded-full shadow-lg flex items-center justify-center z-40 hover:scale-110 transition-transform"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </motion.button>
+      )}
+
+      {/* Comments Drawer */}
       <AnimatePresence>
         {showComments && (
-          <div className="fixed inset-0 z-50 overflow-hidden">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowComments(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25 }}
-              className="absolute right-0 inset-y-0 w-full max-w-md bg-brand-black border-l border-white/10 shadow-2xl flex flex-col"
-            >
-              <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                <h3 className="text-xl font-display font-black uppercase tracking-tighter">
-                  Commentaires ({comments.length})
-                </h3>
-                <button onClick={() => setShowComments(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                  <X className="w-6 h-6" />
+          <div className="fixed inset-0 z-50">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowComments(false)} />
+            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-[#0F0F0F] border-l border-white/10 shadow-2xl flex flex-col">
+              <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                <h3 className="font-bold">Commentaires ({comments.length})</h3>
+                <button onClick={() => setShowComments(false)} className="p-2 hover:bg-white/10 rounded-full">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-              
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {commentsLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-20" />)}
-                  </div>
+                  <div className="space-y-4">{[1,2,3].map(i => <Skeleton key={i} className="h-20" />)}</div>
                 ) : comments.length > 0 ? (
-                  comments.map((comment: any) => (
-                    <div key={comment.id} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-brand-gold/20 flex items-center justify-center text-brand-gold font-bold text-xs">
-                            {comment.userName?.charAt(0)?.toUpperCase() || '?'}
-                          </div>
-                          <span className="font-black text-xs uppercase tracking-widest">{comment.userName}</span>
+                  comments.map(c => (
+                    <div key={c.id} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-brand-gold/20 flex items-center justify-center text-brand-gold text-xs font-bold">
+                          {c.authorName?.charAt(0)?.toUpperCase()}
                         </div>
-                        <span className="text-[10px] text-gray-500 font-bold uppercase">
-                          {comment.createdAt?.toDate?.()?.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) || 'Maintenant'}
+                        <span className="text-xs font-bold uppercase">{c.authorName}</span>
+                        <span className="text-[10px] text-gray-500">
+                          {c.createdAt?.toDate()?.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-300 leading-relaxed font-medium bg-white/5 p-4 rounded-xl border border-white/5">
-                        {comment.content}
-                      </p>
-                      <div className="flex items-center gap-4 text-[10px] font-black uppercase text-gray-500">
-                        <button 
-                          className="hover:text-white flex items-center gap-1"
-                          onClick={() => user && workService.likeComment(workId!, chapterId!, comment.id)}
-                        >
-                          <Heart className="w-3 h-3" /> {comment.likes || 0}
+                      <p className="text-sm bg-white/5 p-3 rounded-xl">{c.content}</p>
+                      <div className="flex items-center gap-4 text-[10px] text-gray-500">
+                        <button onClick={() => user && workService.likeComment(workId!, chapterId!, c.id)} className="hover:text-white flex items-center gap-1">
+                          <Heart className="w-3 h-3" /> {c.likes || 0}
                         </button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500 py-12">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                  <div className="text-center py-12 text-gray-500">
+                    <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-30" />
                     <p className="font-bold">Aucun commentaire</p>
-                    <p className="text-xs mt-1">Soyez le premier à réagir !</p>
+                    <p className="text-xs mt-1">Soyez le premier !</p>
                   </div>
                 )}
               </div>
-              
-              <div className="p-6 border-t border-white/10 bg-white/5">
+              <div className="p-4 border-t border-white/10 bg-white/5">
                 <div className="relative">
-                  <textarea 
-                    value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
-                    placeholder={user ? "Votre commentaire..." : "Connectez-vous pour commenter"}
+                  <textarea value={newComment} onChange={e => setNewComment(e.target.value)}
+                    placeholder={user ? "Votre commentaire..." : "Connectez-vous"}
                     disabled={!user || commentSubmitting}
-                    className="w-full bg-brand-black border border-white/10 rounded-xl p-4 pr-12 text-sm outline-none focus:border-brand-gold transition-colors resize-none"
+                    className="w-full bg-[#0F0F0F] border border-white/10 rounded-xl p-3 pr-12 text-sm outline-none focus:border-brand-gold resize-none"
                     rows={3}
                   />
-                  <button 
-                    onClick={handleAddComment}
-                    disabled={!user || !newComment.trim() || commentSubmitting}
-                    className="absolute bottom-4 right-4 p-2 text-brand-gold hover:scale-110 transition-transform disabled:opacity-30"
-                  >
-                    {commentSubmitting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <ArrowLeft className="w-5 h-5 rotate-180" />
-                    )}
+                  <button onClick={handleAddComment} disabled={!user || !newComment.trim() || commentSubmitting}
+                    className="absolute bottom-3 right-3 text-brand-gold disabled:opacity-30">
+                    {commentSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowLeft className="w-5 h-5 rotate-180" />}
                   </button>
                 </div>
                 {!user && (
-                  <button 
-                    onClick={() => navigate('/login')}
-                    className="w-full mt-3 py-2 bg-brand-gold text-black font-black rounded-xl text-xs uppercase"
-                  >
+                  <button onClick={() => navigate('/login')}
+                    className="w-full mt-3 py-2 bg-brand-gold text-black font-bold rounded-xl text-sm uppercase">
                     Se connecter
                   </button>
                 )}
@@ -622,101 +788,31 @@ export const Reader = () => {
       <AnimatePresence>
         {showShare && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowShare(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md"
-            />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-card max-w-sm w-full p-8 relative z-10 text-center space-y-6"
-            >
-              <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Partager l'œuvre</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <button 
-                  onClick={() => {
-                    const url = `${window.location.origin}/read/${workId}/${chapterId}`;
-                    window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank');
-                  }}
-                  className="p-4 bg-green-500/20 border border-green-500/30 rounded-2xl hover:bg-green-500/30 transition-all text-[10px] font-black uppercase tracking-widest text-green-400"
-                >
-                  WhatsApp
-                </button>
-                <button 
-                  onClick={() => {
-                    const url = `${window.location.origin}/read/${workId}/${chapterId}`;
-                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
-                  }}
-                  className="p-4 bg-blue-500/20 border border-blue-500/30 rounded-2xl hover:bg-blue-500/30 transition-all text-[10px] font-black uppercase tracking-widest text-blue-400"
-                >
-                  Facebook
-                </button>
-                <button 
-                  onClick={() => {
-                    const url = `${window.location.origin}/read/${workId}/${chapterId}`;
-                    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`, '_blank');
-                  }}
-                  className="p-4 bg-sky-500/20 border border-sky-500/30 rounded-2xl hover:bg-sky-500/30 transition-all text-[10px] font-black uppercase tracking-widest text-sky-400"
-                >
-                  Twitter/X
-                </button>
-                <button 
-                  onClick={() => {
-                    const url = `${window.location.origin}/read/${workId}/${chapterId}`;
-                    navigator.clipboard.writeText(url);
-                    setShowShare(false);
-                  }}
-                  className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-brand-gold hover:text-brand-gold transition-all text-[10px] font-black uppercase tracking-widest"
-                >
-                  Copier Lien
-                </button>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowShare(false)} />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-card max-w-sm w-full p-6 relative z-10 text-center space-y-4">
+              <h3 className="text-xl font-black uppercase">Partager</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { name: 'WhatsApp', color: 'bg-green-500/20 text-green-400 border-green-500/30', url: `https://wa.me/?text=${encodeURIComponent(window.location.href)}` },
+                  { name: 'Facebook', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}` },
+                  { name: 'Twitter', color: 'bg-sky-500/20 text-sky-400 border-sky-500/30', url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}` },
+                  { name: 'Copier', color: 'bg-white/5 border-white/10', action: () => { navigator.clipboard.writeText(window.location.href); setShowShare(false); } },
+                ].map(btn => (
+                  <button key={btn.name} onClick={() => btn.action ? btn.action() : window.open(btn.url, '_blank')}
+                    className={`p-4 rounded-xl border transition-all hover:scale-105 text-[10px] font-black uppercase tracking-widest ${btn.color}`}>
+                    {btn.name}
+                  </button>
+                ))}
               </div>
-              <button onClick={() => setShowShare(false)} className="text-xs font-black text-gray-500 uppercase hover:text-white transition-colors">
+              <button onClick={() => setShowShare(false)} className="text-xs text-gray-500 hover:text-white uppercase font-bold">
                 Fermer
               </button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
-      {/* Floating Buttons */}
-      <div className="fixed bottom-8 right-8 flex flex-col gap-3 z-40">
-        <motion.button 
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${
-            backgroundTheme === 'light' 
-              ? 'bg-gray-100 border border-gray-200 text-gray-900' 
-              : 'bg-white/10 backdrop-blur-lg border border-white/10 text-white'
-          }`}
-        >
-          <ChevronUp className="w-6 h-6" />
-        </motion.button>
-      </div>
-
-      {/* Quick Navigation Dots */}
-      {!loading && chapters.length > 3 && (
-        <div className="fixed left-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2">
-          {chapters.slice(0, 10).map((ch, idx) => (
-            <button
-              key={ch.id}
-              onClick={() => navigateToChapter(ch.id)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                ch.id === chapterId ? 'bg-brand-gold scale-125' : 'bg-white/30 hover:bg-white/50'
-              }`}
-              title={`Épisode ${ch.number}`}
-            />
-          ))}
-          {chapters.length > 10 && (
-            <span className="text-[8px] text-gray-500 text-center">+{chapters.length - 10}</span>
-        )}
-        </div>
-      )}
     </div>
   );
 };

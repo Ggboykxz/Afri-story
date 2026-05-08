@@ -459,6 +459,16 @@ export const workService = {
     }
   },
 
+  likeChapter: async (workId: string, chapterId: string) => {
+    try {
+      await updateDoc(doc(db, 'works', workId, 'chapters', chapterId), {
+        likes: increment(1)
+      });
+    } catch (error) {
+      console.error('Error liking chapter:', error);
+    }
+  },
+
   // Upload chapter images
   uploadChapterImages: async (workId: string, chapterId: string, images: File[]): Promise<string[]> => {
     const urls: string[] = [];
