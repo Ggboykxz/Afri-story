@@ -174,6 +174,21 @@ export const workService = {
     }
   },
 
+  // Get all chapters for a work
+  getChapters: async (workId: string): Promise<any[]> => {
+    try {
+      const chaptersQuery = query(
+        collection(db, 'works', workId, 'chapters'),
+        orderBy('number', 'asc')
+      );
+      const snapshot = await getDocs(chaptersQuery);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.LIST, `works/${workId}/chapters`);
+      return [];
+    }
+  },
+
   // Update a chapter
   updateChapter: async (workId: string, chapterId: string, data: any): Promise<void> => {
     try {
@@ -399,12 +414,21 @@ export const workService = {
   },
 
   // Comments on chapters
-  addComment: async (workId: string, chapterId: string, userId: string, authorName: string, content: string, isSpoiler: boolean = false) => {
+  addComment: async (
+    workId: string, 
+    chapterId: string, 
+    userId: string, 
+    authorName: string, 
+    content: string, 
+    userPhoto?: string,
+    isSpoiler: boolean = false
+  ) => {
     try {
       await addDoc(collection(db, 'works', workId, 'chapters', chapterId, 'comments'), {
         userId,
         authorName,
         content,
+        userPhoto: userPhoto || null,
         isSpoiler,
         likes: 0,
         createdAt: serverTimestamp()
