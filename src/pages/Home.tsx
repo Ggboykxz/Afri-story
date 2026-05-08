@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChefHat, TrendingUp, Sparkles, BookOpen, Search, Loader2, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { workService, Work } from '../lib/workService';
 import { WorkCardSkeleton, Skeleton } from '../components/Skeleton';
 import { AdCarousel, CarouselItem } from '../components/AdCarousel';
@@ -10,6 +11,7 @@ import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 export const Home = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -82,7 +84,7 @@ export const Home = () => {
       )}
 
       {/* Hero Section */}
-      {!searchQuery && (
+      {!searchQuery && !user && (
         <section className="relative min-h-[80vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden px-4 md:px-6 pt-12 pb-20 md:pb-24">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-linear-to-b from-brand-gold/20 via-brand-black/80 to-brand-black z-10" />
