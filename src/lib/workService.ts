@@ -158,6 +158,98 @@ export const workService = {
     }
   },
 
+  // Get a single chapter
+  getChapter: async (workId: string, chapterId: string): Promise<any | null> => {
+    try {
+      const docSnap = await getDoc(doc(db, 'works', workId, 'chapters', chapterId));
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() };
+      }
+      return null;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.GET, `works/${workId}/chapters/${chapterId}`);
+      return null;
+    }
+  },
+
+  // Update a chapter
+  updateChapter: async (workId: string, chapterId: string, data: any): Promise<void> => {
+    try {
+      await updateDoc(doc(db, 'works', workId, 'chapters', chapterId), {
+        ...data,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `works/${workId}/chapters/${chapterId}`);
+      throw error;
+    }
+  },
+
+  // Delete a chapter
+  deleteChapter: async (workId: string, chapterId: string): Promise<void> => {
+    try {
+      await deleteDoc(doc(db, 'works', workId, 'chapters', chapterId));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `works/${workId}/chapters/${chapterId}`);
+      throw error;
+    }
+  },
+
+  // Duplicate a chapter (create copy with new number)
+  duplicateChapter: async (workId: string, chapterId: string, newNumber?: number): Promise<string | null> => {
+    try {
+      const original = await workService.getChapter(workId, chapterId);
+      if (!original) return null;
+
+      const chaptersSnap = await getDocs(
+        query(collection(db, 'works', workId, 'chapters'), orderBy('number', 'desc'))
+      );
+      const nextNumber = newNumber || (chaptersSnap.docs[0]?.data().number || 0) + 1;
+
+      const docRef = await addDoc(collection(db, 'works', workId, 'chapters'), {
+        ...original,
+        id: undefined,
+        number: nextNumber,
+        title: `${original.title || 'Chapitre'} (copie)`,
+        viewCount: 0,
+        createdAt: serverTimestamp(),
+        publishedAt: null,
+        isDraft: true,
+      });
+      return docRef.id;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, `works/${workId}/chapters`);
+      return null;
+    }
+  },
+
+  // Get chapter history/versions
+  getChapterHistory: async (workId: string, chapterId: string): Promise<any[]> => {
+    try {
+      const q = query(
+        collection(db, 'works', workId, 'chapters', chapterId, 'history'),
+        orderBy('createdAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error('Error fetching chapter history:', error);
+      return [];
+    }
+  },
+
+  // Save chapter version to history
+  saveChapterVersion: async (workId: string, chapterId: string, versionData: any): Promise<void> => {
+    try {
+      await addDoc(collection(db, 'works', workId, 'chapters', chapterId, 'history'), {
+        ...versionData,
+        createdAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Error saving chapter version:', error);
+    }
+  },
+
   // Get works (can filter by type or author)
   getWorks: async (filters: { isPro?: boolean, authorId?: string } = {}): Promise<Work[]> => {
     const path = 'works';

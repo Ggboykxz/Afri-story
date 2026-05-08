@@ -179,7 +179,7 @@ const WorksTab = ({
   onEditWork: (id: string) => void;
   onViewWork: (id: string) => void;
 }) => {
-  const [filter, setFilter] = useState<'all' | 'draft' | 'published' | 'hidden'>('all');
+  const [filter, setFilter] = useState<'all' | 'draft' | 'published' | 'hidden' | 'archived'>('all');
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   const filteredWorks = works.filter(w => filter === 'all' || w.status === filter);
@@ -204,7 +204,7 @@ const WorksTab = ({
   return (
     <div className="space-y-6">
       <div className="flex gap-2">
-        {(['all', 'draft', 'published', 'hidden'] as const).map(f => (
+        {(['all', 'draft', 'published', 'hidden', 'archived'] as const).map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -212,7 +212,7 @@ const WorksTab = ({
               filter === f ? 'bg-white text-brand-black' : 'bg-white/5 text-gray-400'
             }`}
           >
-            {f === 'all' ? 'Tout' : f === 'draft' ? 'Brouillons' : f === 'published' ? 'Publiés' : 'Masqués'}
+            {f === 'all' ? 'Tout' : f === 'draft' ? 'Brouillons' : f === 'published' ? 'Publiés' : f === 'hidden' ? 'Masqués' : 'Archivés'}
           </button>
         ))}
       </div>
@@ -315,6 +315,14 @@ const WorksTab = ({
                             className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-white/10 flex items-center gap-3 text-brand-green"
                           >
                             <CheckCircle className="w-4 h-4" /> Publier
+                          </button>
+                        )}
+                        {work.status !== 'archived' && (
+                          <button 
+                            onClick={() => { onUpdateStatus(work.id, 'archived'); setMenuOpen(null); }}
+                            className="w-full px-4 py-2 text-left text-xs font-bold hover:bg-white/10 flex items-center gap-3"
+                          >
+                            <CheckCircle className="w-4 h-4" /> Archiver
                           </button>
                         )}
                         <button 
