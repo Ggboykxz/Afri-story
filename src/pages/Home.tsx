@@ -1,9 +1,11 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ChefHat, TrendingUp, Sparkles, BookOpen, Search, Loader2, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { workService, Work } from '../lib/workService';
 import { WorkCardSkeleton, Skeleton } from '../components/Skeleton';
+import { AdCarousel, CarouselItem } from '../components/AdCarousel';
+import { carouselService } from '../lib/carouselService';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -15,6 +17,8 @@ export const Home = () => {
   
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
+  const [carouselItems, setCarouselItems] = useState<CarouselItem[]>([]);
+  const [carouselLoading, setCarouselLoading] = useState(true);
 
   useEffect(() => {
     // REAL-TIME: Subscribe to popular works
@@ -26,6 +30,35 @@ export const Home = () => {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const loadCarouselData = async () => {
+      setCarouselLoading(true);
+      try {
+        // Get both Firestore content and top works
+        const [featuredContent, topWorks] = await Promise.all([
+          carouselService.getFeaturedContent({ maxItems: 5 }),
+          carouselService.getTopWorksForCarousel(3),
+        ]);
+
+        const allItems = [...featuredContent, ...topWorks];
+        
+        if (allItems.length > 0) {
+          setCarouselItems(carouselService.transformToCarouselItems(allItems));
+        } else {
+          // Fallback to demo items if no content in DB
+          setCarouselItems([]);
+        }
+      } catch (error) {
+        console.error('Error loading carousel:', error);
+        setCarouselItems([]);
+      } finally {
+        setCarouselLoading(false);
+      }
+    };
+
+    loadCarouselData();
   }, []);
 
   const filteredWorks = useMemo(() => {
@@ -123,29 +156,24 @@ export const Home = () => {
       </section>
       )}
 
-      {/* Promotional Banner 1 */}
+      {/* Promotional Carousel */}
       {!searchQuery && (
         <section className="px-6 md:px-12 mb-24">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden group cursor-pointer"
-          >
-            <div className="absolute inset-0 bg-linear-to-r from-brand-black via-brand-black/60 to-transparent z-10" />
-            <img src="https://images.unsplash.com/photo-1541873676-d18283b9a5ca?auto=format&fit=crop&q=80" alt="Promo" className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-700" />
-            <div className="relative z-20 h-full flex flex-col justify-center p-12 space-y-4 max-w-2xl">
-              <div className="flex items-center gap-2 text-brand-gold font-black uppercase tracking-[0.3em] text-[10px]">
-                <ChefHat className="w-4 h-4" />
-                Exclusivité AfriStory
-              </div>
-              <h2 className="text-4xl md:text-5xl font-display font-black leading-tight uppercase tracking-tighter">Abonnez-vous au <span className="text-brand-gold">Pass Premium</span></h2>
-              <p className="text-gray-300 font-medium">Lisez vos chapitres préférés 1 semaine à l'avance et débloquez des contenus exclusifs d'artistes certifiés.</p>
-              <Link to="/become-pro" className="inline-flex items-center gap-3 text-white font-black uppercase tracking-widest text-[10px] group-hover:gap-5 transition-all mt-4">
-                DÉCOUVRIR LES OFFRES <TrendingUp className="w-4 h-4 text-brand-gold" />
-              </Link>
-            </div>
-          </motion.div>
+          {carouselLoading ? (
+            <div className="aspect-video rounded-[2rem] bg-brand-black/50 animate-pulse" />
+          ) : (
+            <AdCarousel
+              items={carouselItems}
+              autoPlay={true}
+              autoPlayInterval={6000}
+              showArrows={true}
+              showDots={true}
+              showProgress={true}
+              aspectRatio="video"
+              variant="featured"
+              title={carouselItems.length > 0 ? undefined : undefined}
+            />
+          )}
         </section>
       )}
 

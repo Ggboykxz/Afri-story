@@ -294,6 +294,29 @@ Historique des transactions AfriCoins
 - `description` (string)
 - `createdAt` (timestamp)
 
+### featured_content
+Contenu en vedette / Carousels publicitaires
+- `id` (string)
+- `title` (string)
+- `subtitle` (string, optionnel)
+- `description` (string, optionnel)
+- `image` (string) - URL de l'image
+- `link` (string) - Lien de destination
+- `linkType` (string) - work/page/external/contest/subscription
+- `badge` (string, optionnel) - Texte du badge
+- `badgeColor` (string, optionnel) - Classe CSS couleur
+- `badgeIcon` (string, optionnel) - Icône Lucide
+- `ctaText` (string, optionnel) - Texte du bouton CTA
+- `category` (string) - promo/event/featured/contest/subscription
+- `priority` (number) - Ordre d'affichage (plus haut = priorité)
+- `startDate` (timestamp)
+- `endDate` (timestamp, optionnel)
+- `isActive` (boolean)
+- `viewCount` (number)
+- `clickCount` (number)
+- `createdAt` (timestamp)
+- `updatedAt` (timestamp)
+
 ### comment_reactions
 Réactions aux commentaires
 - `id` (string)
