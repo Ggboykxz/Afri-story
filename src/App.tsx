@@ -52,6 +52,9 @@ import { NotFound } from './pages/error/NotFound';
 // Pages - Notifications
 import { NotificationsPage } from './pages/NotificationsPage';
 
+// Pages - Contests
+import { ContestsPage } from './pages/ContestsPage';
+
 // Components
 import { AdCarousel } from './components/carousel/AdCarousel';
 import { Skeleton, WorkCardSkeleton } from './components/common/Skeleton';
@@ -181,7 +184,8 @@ export default function App() {
                     <Route path="/rankings" element={<Rankings />} />
                     <Route path="/rankings/:type" element={<Rankings />} />
                     <Route path="/bookclubs" element={<CollaborationHub />} />
-                    <Route path="/contests" element={<CollaborationHub />} />
+                    <Route path="/contests" element={<ContestsPage />} />
+                    <Route path="/contests/:id" element={<ContestsPage />} />
 
                     {/* Legal Routes */}
                     <Route path="/terms" element={<Terms />} />

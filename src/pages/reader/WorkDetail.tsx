@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Heart, Share2, Award, User, Star, DollarSign, X, Check, Loader2, MessageCircle } from 'lucide-react';
+import { BookOpen, Heart, Share2, Award, User, Star, DollarSign, X, Check, Loader2, MessageCircle, Send, Flag, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { workService, Work } from '@/lib/workService';
 import { useAuth } from '@/context/AuthContext';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, arrayRemove, collection, addDoc, query, where, orderBy, getDocs, serverTimestamp, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/common/Skeleton';
+
+interface Review {
+  id: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  comment?: string;
+  containsSpoiler: boolean;
+  createdAt: any;
+}
 
 export const WorkDetail = () => {
   const { id } = useParams();
@@ -20,6 +30,18 @@ export const WorkDetail = () => {
   const [isFavorited, setIsFavorited] = useState(false);
   const [following, setFollowing] = useState(false);
   const [donating, setDonating] = useState(false);
+  
+  // Reviews
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [newReview, setNewReview] = useState({ rating: 0, comment: '', containsSpoiler: false });
+  const [reviewSort, setReviewSort] = useState<'recent' | 'highest' | 'lowest'>('recent');
+  
+  // Share
+  const [showShare, setShowShare] = useState(false);
+  
+  // Similar works
+  const [similarWorks, setSimilarWorks] = useState<Work[]>([]);
 
   const canDonate = hasPermission('donate');
   const canFollow = hasPermission('follow_artist');
@@ -36,6 +58,13 @@ export const WorkDetail = () => {
     }
   }, [user, work, profile]);
 
+  useEffect(() => {
+    if (work) {
+      fetchReviews();
+      fetchSimilarWorks();
+    }
+  }, [work]);
+
   const fetchWork = async () => {
     try {
       setLoading(true);
@@ -48,12 +77,40 @@ export const WorkDetail = () => {
     }
   };
 
+  const fetchReviews = async () => {
+    if (!work) return;
+    try {
+      const q = query(collection(db, 'works', work.id, 'reviews'), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Review[];
+      setReviews(data);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    }
+  };
+
+  const fetchSimilarWorks = async () => {
+    if (!work) return;
+    try {
+      const q = query(
+        collection(db, 'works'),
+        where('category', '==', work.category),
+        where('authorId', '!=', work.authorId),
+      );
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter((w: any) => w.id !== work.id)
+        .slice(0, 4) as Work[];
+      setSimilarWorks(data);
+    } catch (error) {
+      console.error('Error fetching similar works:', error);
+    }
+  };
+
   const handleDonate = async () => {
     if (!user) return navigate('/login');
-    if (!canDonate) {
-      alert("Vous devez être connecté pour faire un don.");
-      return;
-    }
+    if (!canDonate) return;
     setDonating(true);
     try {
       await updateDoc(doc(db, 'users', work!.authorId), {
@@ -93,6 +150,55 @@ export const WorkDetail = () => {
       });
     }
   };
+
+  const submitReview = async () => {
+    if (!user || !work || newReview.rating === 0) return;
+    try {
+      await workService.addReview(work.id, {
+        workId: work.id,
+        userId: user.uid,
+        userName: profile?.displayName || 'Utilisateur',
+        rating: newReview.rating,
+        comment: newReview.comment || undefined,
+        containsSpoiler: newReview.containsSpoiler,
+        createdAt: new Date(),
+      });
+      setNewReview({ rating: 0, comment: '', containsSpoiler: false });
+      setShowReviewForm(false);
+      fetchReviews();
+    } catch (error) {
+      console.error('Error submitting review:', error);
+    }
+  };
+
+  const shareUrl = window.location.href;
+  const shareTitle = work ? `AfriStory - ${work.title}` : 'AfriStory';
+
+  const handleShare = (platform: string) => {
+    const urls: Record<string, string> = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareTitle + '\n' + shareUrl)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`,
+    };
+    if (urls[platform]) {
+      window.open(urls[platform], '_blank', 'width=600,height=400');
+    } else if (platform === 'copy') {
+      navigator.clipboard.writeText(shareUrl);
+    }
+    setShowShare(false);
+  };
+
+  const sortedReviews = [...reviews].sort((a, b) => {
+    if (reviewSort === 'highest') return b.rating - a.rating;
+    if (reviewSort === 'lowest') return a.rating - b.rating;
+    const dateA = a.createdAt?.toDate?.() || new Date(0);
+    const dateB = b.createdAt?.toDate?.() || new Date(0);
+    return dateB.getTime() - dateA.getTime();
+  });
+
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : 0;
 
   return (
     <div className="min-h-screen">
@@ -145,6 +251,13 @@ export const WorkDetail = () => {
                       <BookOpen className="w-4 h-4" />
                       {work.category}
                     </div>
+                    {reviews.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-brand-gold fill-current" />
+                        <span className="text-brand-gold">{averageRating.toFixed(1)}</span>
+                        <span className="text-gray-500">({reviews.length})</span>
+                      </div>
+                    )}
                   </>
                )}
             </div>
@@ -168,6 +281,12 @@ export const WorkDetail = () => {
                 DONNER
               </button>
               <button 
+                onClick={() => setShowShare(true)}
+                className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+              >
+                <Share2 className="w-6 h-6" />
+              </button>
+              <button 
                 onClick={toggleFavorite}
                 className={`p-3 border rounded-xl transition-all ${isFavorited ? 'bg-brand-red/20 border-brand-red text-brand-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
               >
@@ -179,7 +298,7 @@ export const WorkDetail = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-8 md:px-12 pt-32 grid md:grid-cols-3 gap-12 pb-24">
-        {/* Left Column: Chapters */}
+        {/* Left Column: About, Chapters, Reviews */}
         <div className="md:col-span-2 space-y-12">
           <section className="space-y-6">
             <h2 className="text-2xl font-display font-bold">À propos</h2>
@@ -235,7 +354,7 @@ export const WorkDetail = () => {
                     
                     {chapter.isPremium ? (
                       <div className="flex items-center gap-2 bg-brand-gold/10 text-brand-gold border border-brand-gold/20 px-3 py-1 rounded-full text-[10px] font-black uppercase">
-                        < Star className="w-3 h-3 fill-current" />
+                        <Star className="w-3 h-3 fill-current" />
                         Premium
                       </div>
                     ) : (
@@ -246,6 +365,155 @@ export const WorkDetail = () => {
               )}
             </div>
           </section>
+
+          {/* Reviews Section */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-display font-bold">Avis ({reviews.length})</h2>
+              <div className="flex items-center gap-3">
+                {user && !showReviewForm && (
+                  <button
+                    onClick={() => setShowReviewForm(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-brand-gold/10 border border-brand-gold/30 rounded-xl text-brand-gold font-bold text-sm hover:bg-brand-gold/20 transition-colors"
+                  >
+                    <Star className="w-4 h-4" />
+                    Laisser un avis
+                  </button>
+                )}
+                <select
+                  value={reviewSort}
+                  onChange={e => setReviewSort(e.target.value as any)}
+                  className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm font-bold focus:border-brand-gold focus:outline-none"
+                >
+                  <option value="recent">Plus récents</option>
+                  <option value="highest">Meilleures notes</option>
+                  <option value="lowest">Plus basses notes</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Review Form */}
+            <AnimatePresence>
+              {showReviewForm && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="glass-card p-6 space-y-4 overflow-hidden"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold">Votre avis</h3>
+                    <button onClick={() => setShowReviewForm(false)} className="p-1 hover:bg-white/10 rounded transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button
+                        key={star}
+                        onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
+                        className="p-1 transition-transform hover:scale-110"
+                      >
+                        <Star className={`w-8 h-8 ${star <= newReview.rating ? 'text-brand-gold fill-current' : 'text-gray-600'}`} />
+                      </button>
+                    ))}
+                  </div>
+
+                  <textarea
+                    value={newReview.comment}
+                    onChange={e => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
+                    placeholder="Partagez votre opinion sur cette œuvre..."
+                    rows={3}
+                    className="w-full p-3 bg-white/5 border border-white/10 rounded-xl focus:border-brand-gold focus:outline-none transition-colors resize-none"
+                  />
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newReview.containsSpoiler}
+                      onChange={e => setNewReview(prev => ({ ...prev, containsSpoiler: e.target.checked }))}
+                      className="w-4 h-4 rounded border-white/20 bg-white/5 text-brand-gold focus:ring-brand-gold"
+                    />
+                    <span className="text-sm text-gray-400">Contient des spoilers</span>
+                  </label>
+
+                  <button
+                    onClick={submitReview}
+                    disabled={newReview.rating === 0}
+                    className="w-full py-3 bg-brand-gold text-brand-black font-black uppercase tracking-wider rounded-xl hover:bg-brand-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    Publier l'avis
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Reviews List */}
+            <div className="space-y-4">
+              {sortedReviews.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                  <p className="font-bold">Aucun avis pour le moment</p>
+                  <p className="text-sm">Soyez le premier à donner votre avis !</p>
+                </div>
+              ) : (
+                sortedReviews.map(review => (
+                  <div key={review.id} className="glass-card p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-brand-brown rounded-full flex items-center justify-center">
+                          <User className="w-4 h-4 text-white/40" />
+                        </div>
+                        <div>
+                          <span className="font-bold text-sm">{review.userName}</span>
+                          {review.containsSpoiler && (
+                            <span className="ml-2 text-[10px] bg-brand-red/20 text-brand-red px-2 py-0.5 rounded-full font-black uppercase">Spoiler</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'text-brand-gold fill-current' : 'text-gray-600'}`} />
+                        ))}
+                      </div>
+                    </div>
+                    {review.comment && (
+                      <p className="text-sm text-gray-300">{review.comment}</p>
+                    )}
+                    <p className="text-[10px] text-gray-600 font-bold">
+                      {review.createdAt?.toDate ? review.createdAt.toDate().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          {/* Similar Works */}
+          {similarWorks.length > 0 && (
+            <section className="space-y-6">
+              <h2 className="text-2xl font-display font-bold">Vous aimerez aussi</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {similarWorks.map(sw => (
+                  <Link key={sw.id} to={`/work/${sw.id}`} className="group">
+                    <div className="aspect-[3/4] rounded-xl overflow-hidden mb-2 bg-brand-brown/30">
+                      {sw.coverURL ? (
+                        <img src={sw.coverURL} alt={sw.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <BookOpen className="w-8 h-8 text-white/10" />
+                        </div>
+                      )}
+                    </div>
+                    <h4 className="font-bold text-sm group-hover:text-brand-gold transition-colors line-clamp-1">{sw.title}</h4>
+                    <p className="text-[10px] text-gray-500">{sw.author}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         {/* Right Column: Stats & Author */}
@@ -263,6 +531,18 @@ export const WorkDetail = () => {
                   {loading ? <Skeleton className="w-12 h-8 mx-auto" /> : work?.likes}
                 </div>
                 <div className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Likes</div>
+              </div>
+              <div className="text-center p-4 bg-white/5 rounded-xl">
+                <div className="text-2xl font-display font-black text-brand-gold">
+                  {loading ? <Skeleton className="w-12 h-8 mx-auto" /> : averageRating > 0 ? averageRating.toFixed(1) : '—'}
+                </div>
+                <div className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Note</div>
+              </div>
+              <div className="text-center p-4 bg-white/5 rounded-xl">
+                <div className="text-2xl font-display font-black text-white">
+                  {loading ? <Skeleton className="w-12 h-8 mx-auto" /> : reviews.length}
+                </div>
+                <div className="text-[10px] text-gray-500 font-black uppercase tracking-wider">Avis</div>
               </div>
             </div>
           </div>
@@ -287,10 +567,53 @@ export const WorkDetail = () => {
                 )}
               </div>
             </div>
+            {canFollow && !loading && work && (
+              <button
+                onClick={handleFollowToggle}
+                className={`w-full py-3 rounded-xl font-black uppercase tracking-wider text-sm transition-all ${
+                  following
+                    ? 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                    : 'bg-brand-gold text-brand-black hover:bg-brand-gold/90'
+                }`}
+              >
+                {following ? 'Abonné' : 'Suivre'}
+              </button>
+            )}
             {loading ? <Skeleton variant="text" className="w-full h-12" /> : <p className="text-sm text-gray-400">Dessinateur et illustrateur passionné par les récits mythologiques nigérians.</p>}
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {showShare && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowShare(false)} className="absolute inset-0 bg-brand-black/90 backdrop-blur-md" />
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="glass-card w-full max-w-sm p-8 relative z-10 space-y-6">
+              <button onClick={() => setShowShare(false)} className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"><X className="w-6 h-6" /></button>
+              <h3 className="text-xl font-display font-black text-center">Partager</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => handleShare('whatsapp')} className="flex items-center gap-3 p-4 bg-green-600/10 border border-green-600/20 rounded-xl hover:bg-green-600/20 transition-colors">
+                  <ExternalLink className="w-5 h-5 text-green-500" />
+                  <span className="font-bold text-sm">WhatsApp</span>
+                </button>
+                <button onClick={() => handleShare('facebook')} className="flex items-center gap-3 p-4 bg-blue-600/10 border border-blue-600/20 rounded-xl hover:bg-blue-600/20 transition-colors">
+                  <ExternalLink className="w-5 h-5 text-blue-500" />
+                  <span className="font-bold text-sm">Facebook</span>
+                </button>
+                <button onClick={() => handleShare('twitter')} className="flex items-center gap-3 p-4 bg-sky-500/10 border border-sky-500/20 rounded-xl hover:bg-sky-500/20 transition-colors">
+                  <ExternalLink className="w-5 h-5 text-sky-500" />
+                  <span className="font-bold text-sm">Twitter</span>
+                </button>
+                <button onClick={() => handleShare('copy')} className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
+                  <ExternalLink className="w-5 h-5 text-gray-400" />
+                  <span className="font-bold text-sm">Copier le lien</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Donation Modal */}
       <AnimatePresence>
@@ -317,7 +640,7 @@ export const WorkDetail = () => {
                   <div className="w-20 h-20 bg-brand-gold/10 rounded-full flex items-center justify-center text-brand-gold mx-auto">
                      <DollarSign className="w-10 h-10" />
                   </div>
-                  <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Soutenir {work.author}</h3>
+                  <h3 className="text-2xl font-display font-black uppercase tracking-tighter">Soutenir {work?.author}</h3>
                   <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Vos dons servent à faire avancer l'histoire !</p>
                </div>
 

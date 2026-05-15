@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, TrendingUp, Users, Plus, Hash, ChevronRight, Zap, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { forumService, Thread } from '@/lib/forumService';
 import { ForumThreadSkeleton, Skeleton } from '@/components/common/Skeleton';
+import { CreateThreadModal } from '@/components/forum/CreateThreadModal';
+import { useAuth } from '@/context/AuthContext';
 
 const CATEGORIES = [
   { id: 'webtoons', name: 'Webtoons & BD', description: 'Discutez de vos oeuvres préférées et des dernières sorties.', icon: MessageCircle, color: 'text-brand-gold' },
@@ -13,8 +15,10 @@ const CATEGORIES = [
 ];
 
 export function ForumHome() {
+  const { user } = useAuth();
   const [popularThreads, setPopularThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateThread, setShowCreateThread] = useState(false);
 
   useEffect(() => {
     const fetchPopular = async () => {
@@ -31,16 +35,38 @@ export function ForumHome() {
     fetchPopular();
   }, []);
 
+  const handleThreadCreated = () => {
+    forumService.getPopularThreads(5).then(data => setPopularThreads(data));
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 space-y-12">
       {/* Header */}
       <section className="space-y-4">
-        <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter">
-          AfriStory <span className="gradient-text">Forums</span>
-        </h1>
-        <p className="text-gray-400 max-w-2xl text-lg font-medium">
-          L'agora du continent. Échangez avec des milliers de passionnés et créateurs.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter">
+              AfriStory <span className="gradient-text">Forums</span>
+            </h1>
+            <p className="text-gray-400 max-w-2xl text-lg font-medium mt-2">
+              L'agora du continent. Échangez avec des milliers de passionnés et créateurs.
+            </p>
+          </div>
+          {user && (
+            <button
+              onClick={() => setShowCreateThread(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-brand-gold text-brand-black font-black uppercase tracking-wider text-sm rounded-xl hover:bg-brand-gold/90 transition-colors flex-shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              Nouveau sujet
+            </button>
+          )}
+        </div>
+        {!user && (
+          <p className="text-sm text-gray-500">
+            <Link to="/login" className="text-brand-gold hover:underline">Connectez-vous</Link> pour créer un sujet.
+          </p>
+        )}
       </section>
 
       {/* Grid Categories */}
@@ -133,6 +159,17 @@ export function ForumHome() {
           </div>
         </div>
       </section>
+
+      {/* Create Thread Modal */}
+      <AnimatePresence>
+        {showCreateThread && (
+          <CreateThreadModal
+            isOpen={showCreateThread}
+            onClose={() => setShowCreateThread(false)}
+            onSuccess={handleThreadCreated}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

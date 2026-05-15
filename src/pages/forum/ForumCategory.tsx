@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { MessageCircle, Plus, Search, Filter, Hash, User, Clock, ChevronRight, Bookmark, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MessageCircle, Plus, Search, Filter, Hash, User, Clock, ChevronRight, Bookmark, Loader2, AlertTriangle } from 'lucide-react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { forumService, Thread } from '@/lib/forumService';
 import { ForumThreadSkeleton } from '@/components/common/Skeleton';
+import { CreateThreadModal } from '@/components/forum/CreateThreadModal';
 
 export function ForumCategory() {
   const { categoryId } = useParams();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState('new');
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newContent, setNewContent] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const categoryName = categoryId === 'webtoons' ? 'Webtoons & BD' : 
                       categoryId === 'artists' ? 'Espace Artistes' : 
@@ -23,7 +21,7 @@ export function ForumCategory() {
 
   useEffect(() => {
     fetchThreads();
-  }, [categoryId, activeFilter]);
+  }, [categoryId]);
 
   const fetchThreads = async () => {
     try {
@@ -37,29 +35,12 @@ export function ForumCategory() {
     }
   };
 
-  const handleCreateThread = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !categoryId) return;
-    try {
-      await forumService.createThread({
-        categoryId,
-        authorId: user.uid,
-        authorName: profile?.displayName || 'Anonyme',
-        title: newTitle,
-        content: newContent
-      });
-      setNewTitle('');
-      setNewContent('');
-      setShowCreateForm(false);
-      fetchThreads();
-    } catch (err) {
-      console.error(err);
-    }
+  const handleThreadCreated = () => {
+    fetchThreads();
   };
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 space-y-12">
-      {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
         <Link to="/forum" className="hover:text-brand-gold transition-colors">Forums</Link>
         <ChevronRight className="w-3 h-3" />
@@ -72,45 +53,15 @@ export function ForumCategory() {
           <p className="text-gray-500 font-medium">Discutez, partagez et découvrez autour de ce thème.</p>
         </div>
         <button 
-          onClick={() => user ? setShowCreateForm(true) : navigate('/login')}
+          onClick={() => user ? setShowCreateModal(true) : navigate('/login')}
           className="bg-brand-gold text-brand-black text-[10px] font-black px-6 py-3 rounded-xl uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-transform w-fit"
         >
           <Plus className="w-4 h-4" /> Créer un sujet
         </button>
       </div>
 
-      {showCreateForm && (
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-8 border-brand-gold/30 space-y-6">
-           <h3 className="text-xl font-display font-black uppercase">Nouveau Sujet</h3>
-           <form onSubmit={handleCreateThread} className="space-y-4">
-              <input 
-                type="text" 
-                placeholder="Titre accrocheur..." 
-                value={newTitle}
-                onChange={e => setNewTitle(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-gold/50"
-                required
-              />
-              <textarea 
-                placeholder="Détaillez votre pensée..." 
-                rows={4}
-                value={newContent}
-                onChange={e => setNewContent(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand-gold/50"
-                required
-              />
-              <div className="flex gap-4">
-                 <button type="button" onClick={() => setShowCreateForm(false)} className="px-6 py-2 bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-400">Annuler</button>
-                 <button type="submit" className="px-6 py-2 bg-brand-gold text-brand-black rounded-xl text-[10px] font-black uppercase tracking-widest">Publier</button>
-              </div>
-           </form>
-        </motion.div>
-      )}
-
       <div className="flex flex-col lg:flex-row gap-12">
-        {/* Main Content */}
         <div className="flex-1 space-y-6">
-           {/* Thread List */}
            <div className="space-y-4">
              {loading ? (
                Array(6).fill(0).map((_, i) => <ForumThreadSkeleton key={i} />)
@@ -119,16 +70,14 @@ export function ForumCategory() {
                 <Link key={thread.id} to={`/forum/thread/${thread.id}`}>
                   <motion.div 
                     whileHover={{ x: 5, backgroundColor: 'rgba(255,255,255,0.03)' }}
-                    className={`p-6 rounded-2xl border transition-all flex gap-6 items-center bg-transparent border-white/5`}
+                    className="p-6 rounded-2xl border transition-all flex gap-6 items-center bg-transparent border-white/5"
                   >
                     <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
                        <Hash className="w-5 h-5 text-gray-600" />
                     </div>
                     
                     <div className="flex-1 space-y-2">
-                      <h3 className="font-bold text-lg leading-tight group-hover:text-brand-gold">
-                        {thread.title}
-                      </h3>
+                      <h3 className="font-bold text-lg leading-tine">{thread.title}</h3>
                       <div className="flex items-center gap-4 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
                         <span className="flex items-center gap-1.5"><User className="w-3 h-3" /> {thread.authorName}</span>
                         <span className="w-1 h-1 bg-gray-700 rounded-full" />
@@ -151,7 +100,6 @@ export function ForumCategory() {
            </div>
         </div>
 
-        {/* Sidebar */}
         <aside className="w-full lg:w-80 space-y-8">
            <div className="glass-card p-8 space-y-4">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-brand-gold">A propos</h4>
@@ -161,6 +109,17 @@ export function ForumCategory() {
            </div>
         </aside>
       </div>
+
+      <AnimatePresence>
+        {showCreateModal && (
+          <CreateThreadModal
+            isOpen={showCreateModal}
+            onClose={() => setShowCreateModal(false)}
+            categoryId={categoryId}
+            onSuccess={handleThreadCreated}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
