@@ -5,7 +5,7 @@ import { workService } from '@/lib/workService';
 import { useAuth } from '@/context/AuthContext';
 import cloudinaryService from '@/lib/cloudinaryService';
 import { Skeleton } from '@/components/common/Skeleton';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 interface ChapterImage {
   id: string;

@@ -7,7 +7,7 @@ import {
   DollarSign, Users, Star, ChevronDown
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { workService, Work } from '@/lib/workService';
 import { Skeleton } from '@/components/common/Skeleton';
 import { doc, updateDoc } from 'firebase/firestore';

@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/common/Skeleton';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ChapterItem {
   id: string;
