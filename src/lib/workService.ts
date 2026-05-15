@@ -14,7 +14,8 @@ import {
   increment,
   updateDoc,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
+  runTransaction
 } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { handleFirestoreError, OperationType } from './firestore-errors';
@@ -58,7 +59,6 @@ export interface Review {
 }
 
 export const workService = {
-  // Create a new work
   createWork: async (workData: any) => {
     const path = 'works';
     try {
@@ -66,7 +66,7 @@ export const workService = {
         ...workData,
         authorId: auth.currentUser?.uid,
         authorName: auth.currentUser?.displayName,
-        author: auth.currentUser?.displayName, // Compatibility fix
+        author: auth.currentUser?.displayName,
         createdAt: serverTimestamp(),
         views: 0,
         likes: 0,
@@ -74,10 +74,10 @@ export const workService = {
       return docRef.id;
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, path);
+      throw error;
     }
   },
 
-  // Update a work
   updateWork: async (workId: string, data: Partial<Work>): Promise<void> => {
     try {
       await updateDoc(doc(db, 'works', workId), {
@@ -90,7 +90,6 @@ export const workService = {
     }
   },
 
-  // Delete a work
   deleteWork: async (workId: string): Promise<void> => {
     try {
       await deleteDoc(doc(db, 'works', workId));
@@ -100,14 +99,12 @@ export const workService = {
     }
   },
 
-  // Get a single work
   getWork: async (id: string): Promise<Work | null> => {
     const path = `works/${id}`;
     try {
       const docSnap = await getDoc(doc(db, 'works', id));
       if (docSnap.exists()) {
         const data = docSnap.data();
-        // Fetch chapters subcollection
         const chapSnap = await getDocs(query(collection(db, 'works', id, 'chapters'), orderBy('number', 'asc')));
         const chapters = chapSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         
@@ -115,17 +112,16 @@ export const workService = {
           id: docSnap.id, 
           ...data,
           chapters,
-          author: data.authorName || data.author // Fallback
+          author: data.authorName || data.author
         } as Work;
       }
       return null;
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, path);
-      return null;
+      throw error;
     }
   },
 
-  // Get popular works
   getPopularWorks: async (limitCount: number = 10): Promise<Work[]> => {
     const path = 'works';
     try {
@@ -141,11 +137,10 @@ export const workService = {
       })) as Work[];
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, path);
-      return [];
+      throw error;
     }
   },
 
-  // Add a chapter to a work
   addChapter: async (workId: string, chapterData: any) => {
     const path = `works/${workId}/chapters`;
     try {
@@ -157,10 +152,10 @@ export const workService = {
       return docRef.id;
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, path);
+      throw error;
     }
   },
 
-  // Get a single chapter
   getChapter: async (workId: string, chapterId: string): Promise<any | null> => {
     try {
       const docSnap = await getDoc(doc(db, 'works', workId, 'chapters', chapterId));
@@ -170,11 +165,10 @@ export const workService = {
       return null;
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, `works/${workId}/chapters/${chapterId}`);
-      return null;
+      throw error;
     }
   },
 
-  // Get all chapters for a work
   getChapters: async (workId: string): Promise<any[]> => {
     try {
       const chaptersQuery = query(
@@ -185,11 +179,10 @@ export const workService = {
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, `works/${workId}/chapters`);
-      return [];
+      throw error;
     }
   },
 
-  // Update a chapter
   updateChapter: async (workId: string, chapterId: string, data: any): Promise<void> => {
     try {
       await updateDoc(doc(db, 'works', workId, 'chapters', chapterId), {
@@ -202,7 +195,6 @@ export const workService = {
     }
   },
 
-  // Delete a chapter
   deleteChapter: async (workId: string, chapterId: string): Promise<void> => {
     try {
       await deleteDoc(doc(db, 'works', workId, 'chapters', chapterId));
@@ -212,7 +204,6 @@ export const workService = {
     }
   },
 
-  // Duplicate a chapter (create copy with new number)
   duplicateChapter: async (workId: string, chapterId: string, newNumber?: number): Promise<string | null> => {
     try {
       const original = await workService.getChapter(workId, chapterId);
@@ -236,11 +227,10 @@ export const workService = {
       return docRef.id;
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, `works/${workId}/chapters`);
-      return null;
+      throw error;
     }
   },
 
-  // Get chapter history/versions
   getChapterHistory: async (workId: string, chapterId: string): Promise<any[]> => {
     try {
       const q = query(
@@ -250,12 +240,11 @@ export const workService = {
       const snapshot = await getDocs(q);
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      console.error('Error fetching chapter history:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, `works/${workId}/chapters/${chapterId}/history`);
+      throw error;
     }
   },
 
-  // Save chapter version to history
   saveChapterVersion: async (workId: string, chapterId: string, versionData: any): Promise<void> => {
     try {
       await addDoc(collection(db, 'works', workId, 'chapters', chapterId, 'history'), {
@@ -263,11 +252,11 @@ export const workService = {
         createdAt: serverTimestamp(),
       });
     } catch (error) {
-      console.error('Error saving chapter version:', error);
+      handleFirestoreError(error, OperationType.CREATE, `works/${workId}/chapters/${chapterId}/history`);
+      throw error;
     }
   },
 
-  // Get works (can filter by type or author, supports pagination)
   getWorks: async (filters: { isPro?: boolean, authorId?: string, limit?: number, lastDoc?: any } = {}): Promise<{ works: Work[], lastDoc: any }> => {
     const path = 'works';
     try {
@@ -292,11 +281,10 @@ export const workService = {
       return { works, lastDoc };
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, path);
-      return { works: [], lastDoc: null };
+      throw error;
     }
   },
 
-  // Post a message in forum
   postInForum: async (forumId: string, content: string, authorName: string, isSpoiler: boolean = false) => {
     const path = `forums/${forumId}/posts`;
     try {
@@ -311,59 +299,89 @@ export const workService = {
       return docRef.id;
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, path);
+      throw error;
     }
   },
 
-  // Unlock a premium chapter
   unlockChapter: async (workId: string, chapterId: string, price: number) => {
     if (!auth.currentUser) throw new Error("Non authentifié");
     const userId = auth.currentUser.uid;
-    const userRef = doc(db, 'users', userId);
-    const unlockRef = doc(db, 'users', userId, 'unlocks', chapterId);
     
-    try {
-      const userDoc = await getDoc(userRef);
-      const coins = userDoc.data()?.afriCoins || 0;
-      
-      if (coins < price) throw new Error("AfriCoins insuffisants");
+    if (price <= 0) throw new Error("Prix invalide");
+    if (price > 10000) throw new Error("Prix excessif");
 
-      // Transaction-like update (simplified for brevity)
-      await updateDoc(userRef, { afriCoins: increment(-price) });
-      await setDoc(unlockRef, {
-        workId,
-        chapterId,
-        unlockedAt: serverTimestamp()
+    try {
+      await runTransaction(db, async (transaction) => {
+        const userRef = doc(db, 'users', userId);
+        const userDoc = await transaction.get(userRef);
+        
+        if (!userDoc.exists()) {
+          throw new Error("Utilisateur introuvable");
+        }
+
+        const coins = userDoc.data()?.afriCoins || 0;
+        
+        if (coins < price) {
+          throw new Error("AfriCoins insuffisants");
+        }
+
+        const unlockRef = doc(db, 'users', userId, 'unlocks', chapterId);
+        const unlockDoc = await transaction.get(unlockRef);
+        
+        if (unlockDoc.exists()) {
+          throw new Error("Chapitre déjà débloqué");
+        }
+
+        transaction.update(userRef, { afriCoins: increment(-price) });
+        transaction.set(unlockRef, {
+          workId,
+          chapterId,
+          unlockedAt: serverTimestamp()
+        });
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, `users/${userId}/unlocks/${chapterId}`);
+      throw error;
     }
   },
 
-  // Purchase AfriCoins (Simulated increment)
-  purchaseCoins: async (userId: string, amount: number) => {
-    const path = `users/${userId}`;
+  purchaseCoins: async (userId: string, amount: number): Promise<void> => {
+    if (!auth.currentUser || auth.currentUser.uid !== userId) {
+      throw new Error("Non autorisé");
+    }
+    if (amount <= 0 || amount > 100000) {
+      throw new Error("Montant invalide");
+    }
+
+    const path = `users/${userId}/coin_purchases`;
     try {
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
+      const purchaseRef = doc(collection(db, path));
+      await setDoc(purchaseRef, {
+        userId,
+        amount,
+        createdAt: serverTimestamp(),
+        status: 'pending',
+      });
+
+      await updateDoc(doc(db, 'users', userId), {
         afriCoins: increment(amount)
       });
+
+      await updateDoc(purchaseRef, { status: 'completed' });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, path);
+      throw error;
     }
   },
 
-  // User Favorites
   addToFavorites: async (userId: string, workId: string) => {
     try {
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        favorites: increment(1)
-      });
       await setDoc(doc(db, 'users', userId, 'favorites', workId), {
         addedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error adding to favorites:', error);
+      handleFirestoreError(error, OperationType.CREATE, `users/${userId}/favorites/${workId}`);
+      throw error;
     }
   },
 
@@ -371,7 +389,8 @@ export const workService = {
     try {
       await deleteDoc(doc(db, 'users', userId, 'favorites', workId));
     } catch (error) {
-      console.error('Error removing from favorites:', error);
+      handleFirestoreError(error, OperationType.DELETE, `users/${userId}/favorites/${workId}`);
+      throw error;
     }
   },
 
@@ -380,12 +399,11 @@ export const workService = {
       const snap = await getDocs(collection(db, 'users', userId, 'favorites'));
       return snap.docs.map(d => d.id);
     } catch (error) {
-      console.error('Error getting favorites:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, `users/${userId}/favorites`);
+      throw error;
     }
   },
 
-  // Reading History
   addToHistory: async (userId: string, workId: string, chapterId?: string, chapterNumber?: number) => {
     try {
       await setDoc(doc(db, 'users', userId, 'reading_history', workId), {
@@ -395,7 +413,8 @@ export const workService = {
         lastReadAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error adding to history:', error);
+      handleFirestoreError(error, OperationType.CREATE, `users/${userId}/reading_history/${workId}`);
+      throw error;
     }
   },
 
@@ -408,12 +427,11 @@ export const workService = {
       const snap = await getDocs(q);
       return snap.docs.map(d => d.data()) as any[];
     } catch (error) {
-      console.error('Error getting history:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, `users/${userId}/reading_history`);
+      throw error;
     }
   },
 
-  // Comments on chapters
   addComment: async (
     workId: string, 
     chapterId: string, 
@@ -434,7 +452,8 @@ export const workService = {
         createdAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error adding comment:', error);
+      handleFirestoreError(error, OperationType.CREATE, `works/${workId}/chapters/${chapterId}/comments`);
+      throw error;
     }
   },
 
@@ -455,7 +474,8 @@ export const workService = {
         likes: increment(1)
       });
     } catch (error) {
-      console.error('Error liking comment:', error);
+      handleFirestoreError(error, OperationType.UPDATE, `works/${workId}/chapters/${chapterId}/comments/${commentId}`);
+      throw error;
     }
   },
 
@@ -465,11 +485,11 @@ export const workService = {
         likes: increment(1)
       });
     } catch (error) {
-      console.error('Error liking chapter:', error);
+      handleFirestoreError(error, OperationType.UPDATE, `works/${workId}/chapters/${chapterId}`);
+      throw error;
     }
   },
 
-  // Upload chapter images
   uploadChapterImages: async (workId: string, chapterId: string, images: File[]): Promise<string[]> => {
     const urls: string[] = [];
     const { storage } = await import('./firebase');
@@ -484,7 +504,6 @@ export const workService = {
     return urls;
   },
 
-  // Search works
   searchWorks: async (searchTerm: string): Promise<Work[]> => {
     try {
       const q = query(
@@ -496,12 +515,11 @@ export const workService = {
       const snap = await getDocs(q);
       return snap.docs.map(d => ({ id: d.id, ...d.data() })) as Work[];
     } catch (error) {
-      console.error('Error searching:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, 'works');
+      throw error;
     }
   },
 
-  // Reviews
   addReview: async (workId: string, review: Omit<Review, 'id'>) => {
     try {
       const docRef = await addDoc(collection(db, 'works', workId, 'reviews'), {
@@ -525,8 +543,8 @@ export const workService = {
       
       return docRef.id;
     } catch (error) {
-      console.error('Error adding review:', error);
-      return null;
+      handleFirestoreError(error, OperationType.CREATE, `works/${workId}/reviews`);
+      throw error;
     }
   },
 
@@ -535,13 +553,15 @@ export const workService = {
       const snap = await getDocs(query(collection(db, 'works', workId, 'reviews'), orderBy('createdAt', 'desc'), limit(50)));
       return snap.docs.map(d => ({ id: d.id, ...d.data() })) as Review[];
     } catch (error) {
-      console.error('Error getting reviews:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, `works/${workId}/reviews`);
+      throw error;
     }
   },
 
   rateWork: async (workId: string, rating: number, userId: string) => {
     try {
+      if (rating < 1 || rating > 5) throw new Error("Rating must be between 1 and 5");
+      
       const reviewsRef = collection(db, 'works', workId, 'reviews');
       const existingQ = query(reviewsRef, where('userId', '==', userId));
       const existing = await getDocs(existingQ);
@@ -561,12 +581,11 @@ export const workService = {
         createdAt: new Date(),
       });
     } catch (error) {
-      console.error('Error rating work:', error);
-      return null;
+      handleFirestoreError(error, OperationType.CREATE, `works/${workId}/reviews`);
+      throw error;
     }
   },
 
-  // AMA Sessions
   createAMASession: async (artistId: string, title: string, description: string, durationMinutes: number = 120) => {
     try {
       const endTime = new Date(Date.now() + durationMinutes * 60 * 1000);
@@ -582,8 +601,8 @@ export const workService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error creating AMA session:', error);
-      return null;
+      handleFirestoreError(error, OperationType.CREATE, 'ama_sessions');
+      throw error;
     }
   },
 
@@ -593,8 +612,8 @@ export const workService = {
       const snap = await getDocs(q);
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (error) {
-      console.error('Error getting AMA sessions:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, 'ama_sessions');
+      throw error;
     }
   },
 
@@ -602,7 +621,7 @@ export const workService = {
     try {
       const sessionRef = doc(db, 'ama_sessions', sessionId);
       const sessionSnap = await getDoc(sessionRef);
-      if (!sessionSnap.exists()) return null;
+      if (!sessionSnap.exists()) throw new Error("Session introuvable");
       
       const data = sessionSnap.data();
       const questions = data.questions || [];
@@ -611,8 +630,8 @@ export const workService = {
       await updateDoc(sessionRef, { questions });
       return true;
     } catch (error) {
-      console.error('Error adding AMA question:', error);
-      return null;
+      handleFirestoreError(error, OperationType.UPDATE, `ama_sessions/${sessionId}`);
+      throw error;
     }
   },
 
@@ -632,25 +651,24 @@ export const workService = {
       }
       return false;
     } catch (error) {
-      console.error('Error answering AMA question:', error);
-      return null;
+      handleFirestoreError(error, OperationType.UPDATE, `ama_sessions/${sessionId}`);
+      throw error;
     }
   },
 
-  // Chapter Timer
   scheduleChapter: async (workId: string, chapterData: any, publishAt: Date) => {
     try {
-      const scheduledRef = await addDoc(collection(db, 'scheduled_chapters'), {
+      const docRef = await addDoc(collection(db, 'scheduled_chapters'), {
         workId,
         ...chapterData,
         publishAt,
         status: 'scheduled',
         createdAt: serverTimestamp(),
       });
-      return scheduledRef.id;
+      return docRef.id;
     } catch (error) {
-      console.error('Error scheduling chapter:', error);
-      return null;
+      handleFirestoreError(error, OperationType.CREATE, 'scheduled_chapters');
+      throw error;
     }
   },
 
@@ -659,24 +677,22 @@ export const workService = {
       const snap = await getDocs(query(collection(db, 'scheduled_chapters'), where('workId', '==', workId)));
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (error) {
-      console.error('Error getting scheduled chapters:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, 'scheduled_chapters');
+      throw error;
     }
   },
 
-  // Early Access Config
   updateEarlyAccess: async (workId: string, chaptersAhead: number) => {
     try {
       const workRef = doc(db, 'works', workId);
       await updateDoc(workRef, { earlyAccessChapters: chaptersAhead });
       return true;
     } catch (error) {
-      console.error('Error updating early access:', error);
-      return null;
+      handleFirestoreError(error, OperationType.UPDATE, `works/${workId}`);
+      throw error;
     }
   },
 
-  // Content Exclusives
   addExclusiveContent: async (workId: string, title: string, content: string, type: 'making_of' | 'sketch' | 'notes') => {
     try {
       const docRef = await addDoc(collection(db, 'works', workId, 'exclusives'), {
@@ -687,8 +703,8 @@ export const workService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error adding exclusive content:', error);
-      return null;
+      handleFirestoreError(error, OperationType.CREATE, `works/${workId}/exclusives`);
+      throw error;
     }
   },
 
@@ -697,12 +713,11 @@ export const workService = {
       const snap = await getDocs(collection(db, 'works', workId, 'exclusives'));
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (error) {
-      console.error('Error getting exclusive content:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, `works/${workId}/exclusives`);
+      throw error;
     }
   },
 
-  // Spoiler Detection
   checkForSpoilers: async (text: string, knownSpoilerTerms: string[]): Promise<{ hasSpoiler: boolean; terms: string[] }> => {
     const foundTerms: string[] = [];
     const lowerText = text.toLowerCase();
@@ -719,7 +734,6 @@ export const workService = {
     };
   },
 
-  // Real-time Messaging (for artist-to-artist chat)
   createConversation: async (participants: string[]) => {
     try {
       const docRef = await addDoc(collection(db, 'conversations'), {
@@ -730,8 +744,8 @@ export const workService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error creating conversation:', error);
-      return null;
+      handleFirestoreError(error, OperationType.CREATE, 'conversations');
+      throw error;
     }
   },
 
@@ -750,8 +764,8 @@ export const workService = {
       
       return messageRef.id;
     } catch (error) {
-      console.error('Error sending message:', error);
-      return null;
+      handleFirestoreError(error, OperationType.CREATE, `conversations/${conversationId}/messages`);
+      throw error;
     }
   },
 
@@ -761,8 +775,8 @@ export const workService = {
       const snap = await getDocs(q);
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (error) {
-      console.error('Error getting conversations:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, 'conversations');
+      throw error;
     }
   },
 
@@ -772,36 +786,33 @@ export const workService = {
       const snap = await getDocs(q);
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (error) {
-      console.error('Error getting messages:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, `conversations/${conversationId}/messages`);
+      throw error;
     }
   },
 
-  // Work Status Management
   updateWorkStatus: async (workId: string, status: Work['status']) => {
     try {
       const workRef = doc(db, 'works', workId);
       await updateDoc(workRef, { status });
       return true;
     } catch (error) {
-      console.error('Error updating work status:', error);
-      return null;
+      handleFirestoreError(error, OperationType.UPDATE, `works/${workId}`);
+      throw error;
     }
   },
 
-  // Ads Configuration
   toggleAds: async (workId: string, enabled: boolean) => {
     try {
       const workRef = doc(db, 'works', workId);
       await updateDoc(workRef, { adsEnabled: enabled });
       return true;
     } catch (error) {
-      console.error('Error toggling ads:', error);
-      return null;
+      handleFirestoreError(error, OperationType.UPDATE, `works/${workId}`);
+      throw error;
     }
   },
 
-  // Featured Works
   setFeatured: async (workId: string, featured: boolean) => {
     try {
       const workRef = doc(db, 'works', workId);
@@ -811,8 +822,8 @@ export const workService = {
       });
       return true;
     } catch (error) {
-      console.error('Error setting featured:', error);
-      return null;
+      handleFirestoreError(error, OperationType.UPDATE, `works/${workId}`);
+      throw error;
     }
   },
 
@@ -822,12 +833,11 @@ export const workService = {
       const snap = await getDocs(q);
       return snap.docs.map(d => ({ id: d.id, ...d.data() })) as Work[];
     } catch (error) {
-      console.error('Error getting featured works:', error);
-      return [];
+      handleFirestoreError(error, OperationType.LIST, 'works');
+      throw error;
     }
   },
 
-  // Artist Verification
   requestVerification: async (artistId: string, data: { portfolio: string; description: string; documents: string[] }) => {
     try {
       const docRef = await addDoc(collection(db, 'verification_requests'), {
@@ -838,8 +848,8 @@ export const workService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error requesting verification:', error);
-      return null;
+      handleFirestoreError(error, OperationType.CREATE, 'verification_requests');
+      throw error;
     }
   },
 
@@ -850,8 +860,8 @@ export const workService = {
       if (snap.empty) return null;
       return { id: snap.docs[0].id, ...snap.docs[0].data() };
     } catch (error) {
-      console.error('Error getting verification status:', error);
-      return null;
+      handleFirestoreError(error, OperationType.LIST, 'verification_requests');
+      throw error;
     }
   }
 };

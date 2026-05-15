@@ -6,10 +6,14 @@ const cors = require('cors')({ origin: true });
 admin.initializeApp();
 
 cloudinary.config({
-  cloud_name: 'dfzrjuaap',
-  api_key: '324446924179216',
-  api_secret: 'CaSV4Q1Ik9Xb2vuK7-NbXtQLa_s'
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.warn('WARNING: Cloudinary credentials not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET as Firebase Functions config variables.');
+}
 
 // ============= UPLOAD FUNCTIONS =============
 
@@ -21,12 +25,26 @@ exports.uploadImage = functions.https.onCall(async (data, context) => {
     );
   }
 
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      'Cloudinary is not properly configured. Contact support.'
+    );
+  }
+
   const { imageData, folder, fileName } = data;
   
-  if (!imageData) {
+  if (!imageData || typeof imageData !== 'string') {
     throw new functions.https.HttpsError(
       'invalid-argument',
-      'imageData is required'
+      'imageData is required and must be a string'
+    );
+  }
+
+  if (imageData.length > 10 * 1024 * 1024) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Image data exceeds maximum size of 10MB'
     );
   }
 
@@ -70,12 +88,19 @@ exports.deleteImage = functions.https.onCall(async (data, context) => {
     );
   }
 
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      'Cloudinary is not properly configured. Contact support.'
+    );
+  }
+
   const { publicId } = data;
   
-  if (!publicId) {
+  if (!publicId || typeof publicId !== 'string') {
     throw new functions.https.HttpsError(
       'invalid-argument',
-      'publicId is required'
+      'publicId is required and must be a string'
     );
   }
 
@@ -143,6 +168,10 @@ exports.sendBulkPushNotifications = functions.https.onCall(async (data, context)
     throw new functions.https.HttpsError('invalid-argument', 'userIds array, title, and body are required');
   }
 
+  if (userIds.length > 500) {
+    throw new functions.https.HttpsError('invalid-argument', 'Maximum 500 userIds per bulk notification');
+  }
+
   try {
     const tokensSnapshot = await admin.firestore()
       .collection('fcmTokens')
@@ -192,6 +221,14 @@ exports.sendEmail = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('invalid-argument', 'to, subject, and html are required');
   }
 
+  if (typeof to !== 'string' || !to.includes('@')) {
+    throw new functions.https.HttpsError('invalid-argument', 'Invalid email address');
+  }
+
+  if (html.length > 100000) {
+    throw new functions.https.HttpsError('invalid-argument', 'Email body exceeds maximum size');
+  }
+
   // Placeholder - Intégrer SendGrid, Resend, ou Mailgun
   console.log('Email would be sent:', { to, subject });
   
@@ -211,13 +248,6 @@ exports.sendWelcomeEmail = functions.firestore.document('users/{userId}')
     if (!email) return;
 
     console.log(`Welcome email queued for ${email}`);
-    
-    // Intégrer SendGrid/Resend pour l'envoi réel
-    // await sendEmail({
-    //   to: email,
-    //   subject: 'Bienvenue sur AfriStory !',
-    //   html: `<h1>Bienvenue ${displayName}!</h1><p>Commencez à explorer les webtoons africains...</p>`
-    // });
   });
 
 exports.sendNewChapterEmail = functions.firestore.document('works/{workId}/chapters/{chapterId}')
@@ -226,8 +256,6 @@ exports.sendNewChapterEmail = functions.firestore.document('works/{workId}/chapt
     const workId = context.params.workId;
 
     console.log(`New chapter notification queued for work ${workId}`);
-    
-    // Récupérer les followers de l'auteur et leur envoyer des notifications
   });
 
 exports.sendSubscriptionExpiringEmail = functions.pubsub
@@ -246,12 +274,6 @@ exports.sendSubscriptionExpiringEmail = functions.pubsub
     for (const doc of snapshot.docs) {
       const user = doc.data();
       console.log(`Subscription expiring email queued for ${user.email}`);
-      
-      // await sendEmail({
-      //   to: user.email,
-      //   subject: 'Votre abonnement AfriStory expire bientôt',
-      //   html: `<h2>Bonjour ${user.displayName}</h2><p>Votre abonnement expire dans 3 jours...</p>`
-      // });
     }
   });
 

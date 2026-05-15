@@ -6,3 +6,12 @@ coverage/
 *.log
 .env*
 !.env.example
+
+.firebase/
+functions/node_modules/
+functions/lib/
+playwright-report/
+test-results/
+*.tsbuildinfo
+.vscode/
+.idea/
