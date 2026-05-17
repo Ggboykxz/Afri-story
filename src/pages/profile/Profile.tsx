@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { updateProfile } from 'firebase/auth';
 import { doc, updateDoc, collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
-import { workService, Work } from '@/lib/workService';
+import { workService } from "@/lib/workService";
+import { Work } from "@/lib/types";
 import { Skeleton } from '@/components/common/Skeleton';
 import { BADGES } from '@/lib/roles';
 

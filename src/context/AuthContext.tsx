@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
-import { UserRole, Badge, SubscriptionPlan, ROLE_HIERARCHY } from '../lib/roles';
+import { UserRole, ROLE_HIERARCHY } from '../lib/roles';
+import { UserProfile } from '../lib/types';
 
 interface AuthContextType {
   user: User | null;
@@ -15,41 +16,6 @@ interface AuthContextType {
   followUser: (artistId: string) => Promise<void>;
   unfollowUser: (artistId: string) => Promise<void>;
   isFollowing: (artistId: string) => boolean;
-}
-
-export interface UserProfile {
-  userId: string;
-  email: string;
-  displayName: string;
-  photoURL?: string;
-  coverURL?: string;
-  role: UserRole;
-  afriCoins: number;
-  badges: Badge[];
-  subscription?: SubscriptionPlan;
-  subscriptionExpiresAt?: Date;
-  following?: string[];
-  favorites?: string[];
-  createdAt: Date;
-  bio?: string;
-  unlockedChapters?: string[];
-  socialLinks?: {
-    instagram?: string;
-    twitter?: string;
-    website?: string;
-  };
-  statistics?: {
-    totalReads: number;
-    totalLikes: number;
-    totalComments: number;
-    readingTime: number;
-  };
-  preferences?: {
-    notifications: boolean;
-    emailNotifications: boolean;
-    darkMode: boolean;
-  };
-  profileVisibility?: 'public' | 'private' | 'friends';
 }
 
 const defaultAuthContext: AuthContextType = {
@@ -114,33 +80,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(prev => prev ? { ...prev, ...data } : null);
   };
 
+  const mapProfileData = (uid: string, email: string | null, data: any): UserProfile => {
+    return {
+      userId: uid,
+      email: email || '',
+      displayName: data.displayName || 'Voyageur',
+      photoURL: data.photoURL,
+      role: data.role || 'reader',
+      afriCoins: data.afriCoins || 0,
+      badges: data.badges || [],
+      subscription: data.subscription,
+      subscriptionExpiresAt: data.subscriptionExpiresAt,
+      following: data.following || [],
+      favorites: data.favorites || [],
+      createdAt: data.createdAt,
+      bio: data.bio,
+      socialLinks: data.socialLinks,
+      preferences: data.preferences || {
+        notifications: true,
+        emailNotifications: true,
+        darkMode: true,
+      },
+      statistics: data.statistics || {
+        totalReads: 0,
+        totalLikes: 0,
+        totalComments: 0,
+        readingTime: 0,
+      }
+    };
+  };
+
   const refreshProfile = async () => {
     if (!user) return;
     const docRef = doc(db, 'users', user.uid);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const data = docSnap.data();
-      setProfile({
-        userId: user.uid,
-        email: user.email || '',
-        displayName: data.displayName || user.displayName || 'Voyageur',
-        photoURL: data.photoURL || user.photoURL,
-        role: data.role || 'reader',
-        afriCoins: data.afriCoins || 0,
-        badges: data.badges || [],
-        subscription: data.subscription,
-        subscriptionExpiresAt: data.subscriptionExpiresAt?.toDate?.() || data.subscriptionExpiresAt,
-        following: data.following || [],
-        favorites: data.favorites || [],
-        createdAt: data.createdAt?.toDate?.() || new Date(),
-        bio: data.bio,
-        socialLinks: data.socialLinks,
-        preferences: data.preferences || {
-          notifications: true,
-          emailNotifications: true,
-          darkMode: true,
-        },
-      });
+      setProfile(mapProfileData(user.uid, user.email, docSnap.data()));
     }
   };
 
@@ -165,82 +140,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (user) {
-        const docRef = doc(db, 'users', user.uid);
-        
-        // GET initial profile
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      setUser(authUser);
+      if (authUser) {
+        const docRef = doc(db, 'users', authUser.uid);
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
-          const data = docSnap.data();
-          setProfile({
-            userId: user.uid,
-            email: user.email || '',
-            displayName: data.displayName || user.displayName || 'Voyageur',
-            photoURL: data.photoURL || user.photoURL,
-            coverURL: data.coverURL,
-            role: data.role || 'reader',
-            afriCoins: data.afriCoins || 0,
-            badges: data.badges || [],
-            subscription: data.subscription,
-            subscriptionExpiresAt: data.subscriptionExpiresAt?.toDate?.() || data.subscriptionExpiresAt,
-            following: data.following || [],
-            favorites: data.favorites || [],
-            createdAt: data.createdAt?.toDate?.() || new Date(),
-            bio: data.bio,
-            socialLinks: data.socialLinks,
-            profileVisibility: data.profileVisibility || 'public',
-            preferences: data.preferences || {
-              notifications: true,
-              emailNotifications: true,
-              darkMode: true,
-            },
-          });
+          setProfile(mapProfileData(authUser.uid, authUser.email, docSnap.data()));
 
-          // REAL-TIME SYNC - automatically updates when Firestore changes
-          const unsubRealtime = onSnapshot(doc(db, 'users', user.uid), (snap) => {
+          const unsubRealtime = onSnapshot(docRef, (snap) => {
             if (snap.exists()) {
-              const data = snap.data();
-              setProfile({
-                userId: user.uid,
-                email: user.email || '',
-                displayName: data.displayName || user.displayName || 'Voyageur',
-                photoURL: data.photoURL || user.photoURL,
-                coverURL: data.coverURL,
-                role: data.role || 'reader',
-                afriCoins: data.afriCoins || 0,
-                badges: data.badges || [],
-                subscription: data.subscription,
-                subscriptionExpiresAt: data.subscriptionExpiresAt?.toDate?.() || data.subscriptionExpiresAt,
-                following: data.following || [],
-                favorites: data.favorites || [],
-                createdAt: data.createdAt?.toDate?.() || new Date(),
-                bio: data.bio,
-                socialLinks: data.socialLinks,
-                profileVisibility: data.profileVisibility || 'public',
-                preferences: data.preferences || {
-                  notifications: true,
-                  emailNotifications: true,
-                  darkMode: true,
-                },
-              });
+              setProfile(mapProfileData(authUser.uid, authUser.email, snap.data()));
             }
           });
-
           return () => unsubRealtime();
         } else {
-          // CREATE new profile for first-time users
           const newProfile: UserProfile = {
-            userId: user.uid,
-            email: user.email || '',
-            displayName: user.displayName || user.email?.split('@')[0] || 'Voyageur',
-            photoURL: user.photoURL,
+            userId: authUser.uid,
+            email: authUser.email || '',
+            displayName: authUser.displayName || authUser.email?.split('@')[0] || 'Voyageur',
+            photoURL: authUser.photoURL,
             role: 'reader',
             afriCoins: 100,
             badges: [],
-            createdAt: new Date(),
+            createdAt: serverTimestamp(),
             following: [],
             favorites: [],
             bio: '',

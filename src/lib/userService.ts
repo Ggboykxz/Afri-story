@@ -3,64 +3,23 @@ import {
   getDoc, 
   updateDoc, 
   increment,
-  getCountFromServer,
   collection,
   addDoc,
   setDoc,
   getDocs,
   query,
   where,
-  serverTimestamp
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove,
+  runTransaction
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { UserProfile, Collection, BookClub, Contest } from './types';
 
-export interface ArtistProfile {
-  userId: string;
-  displayName: string;
-  photoURL?: string;
-  role: string;
-  bio?: string;
-  followers: string[];
-  following?: string[];
-  badges?: string[];
-  afriCoins?: number;
+export interface ArtistProfile extends UserProfile {
   isVerified?: boolean;
-}
-
-export interface Collection {
-  id: string;
-  userId: string;
-  title: string;
-  description?: string;
-  workIds: string[];
-  isPrivate: boolean;
-  createdAt: any;
-}
-
-export interface BookClub {
-  id: string;
-  name: string;
-  description: string;
-  creatorId: string;
-  workId: string;
-  memberIds: string[];
-  currentChapter: number;
-  status: 'active' | 'completed';
-  createdAt: any;
-}
-
-export interface Contest {
-  id: string;
-  title: string;
-  description: string;
-  type: 'artistic' | 'writing' | 'collab';
-  prizes: string[];
-  startDate: Date;
-  endDate: Date;
-  status: 'upcoming' | 'active' | 'completed';
-  winnerId?: string;
-  participantIds: string[];
-  createdAt: any;
+  followers: string[];
 }
 
 export const userService = {
@@ -91,14 +50,9 @@ export const userService = {
   addFollower: async (artistId: string, followerId: string) => {
     try {
       const artistDoc = doc(db, 'users', artistId);
-      const artist = await getDoc(artistDoc);
-      if (artist.exists()) {
-        const data = artist.data();
-        const followers = data.followers || [];
-        if (!followers.includes(followerId)) {
-          await updateDoc(artistDoc, { followers: [...followers, followerId] });
-        }
-      }
+      await updateDoc(artistDoc, {
+        followers: arrayUnion(followerId)
+      });
     } catch (error) {
       console.error('Error adding follower:', error);
     }
@@ -107,12 +61,9 @@ export const userService = {
   removeFollower: async (artistId: string, followerId: string) => {
     try {
       const artistDoc = doc(db, 'users', artistId);
-      const artist = await getDoc(artistDoc);
-      if (artist.exists()) {
-        const data = artist.data();
-        const followers = (data.followers || []).filter((id: string) => id !== followerId);
-        await updateDoc(artistDoc, { followers });
-      }
+      await updateDoc(artistDoc, {
+        followers: arrayRemove(followerId)
+      });
     } catch (error) {
       console.error('Error removing follower:', error);
     }
@@ -136,7 +87,7 @@ export const userService = {
         description,
         isPrivate,
         workIds: [],
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
       });
       return docRef.id;
     } catch (error) {
@@ -159,14 +110,9 @@ export const userService = {
   addToCollection: async (collectionId: string, workId: string) => {
     try {
       const colRef = doc(db, 'collections', collectionId);
-      const colSnap = await getDoc(colRef);
-      if (colSnap.exists()) {
-        const data = colSnap.data();
-        const workIds = data.workIds || [];
-        if (!workIds.includes(workId)) {
-          await updateDoc(colRef, { workIds: [...workIds, workId] });
-        }
-      }
+      await updateDoc(colRef, {
+        workIds: arrayUnion(workId)
+      });
     } catch (error) {
       console.error('Error adding to collection:', error);
     }
@@ -175,12 +121,9 @@ export const userService = {
   removeFromCollection: async (collectionId: string, workId: string) => {
     try {
       const colRef = doc(db, 'collections', collectionId);
-      const colSnap = await getDoc(colRef);
-      if (colSnap.exists()) {
-        const data = colSnap.data();
-        const workIds = (data.workIds || []).filter((id: string) => id !== workId);
-        await updateDoc(colRef, { workIds });
-      }
+      await updateDoc(colRef, {
+        workIds: arrayRemove(workId)
+      });
     } catch (error) {
       console.error('Error removing from collection:', error);
     }
@@ -209,14 +152,9 @@ export const userService = {
   joinBookClub: async (clubId: string, userId: string) => {
     try {
       const clubRef = doc(db, 'book_clubs', clubId);
-      const clubSnap = await getDoc(clubRef);
-      if (clubSnap.exists()) {
-        const data = clubSnap.data();
-        const memberIds = data.memberIds || [];
-        if (!memberIds.includes(userId)) {
-          await updateDoc(clubRef, { memberIds: [...memberIds, userId] });
-        }
-      }
+      await updateDoc(clubRef, {
+        memberIds: arrayUnion(userId)
+      });
     } catch (error) {
       console.error('Error joining book club:', error);
     }
@@ -265,14 +203,9 @@ export const userService = {
   joinContest: async (contestId: string, userId: string) => {
     try {
       const contestRef = doc(db, 'contests', contestId);
-      const contestSnap = await getDoc(contestRef);
-      if (contestSnap.exists()) {
-        const data = contestSnap.data();
-        const participantIds = data.participantIds || [];
-        if (!participantIds.includes(userId)) {
-          await updateDoc(contestRef, { participantIds: [...participantIds, userId] });
-        }
-      }
+      await updateDoc(contestRef, {
+        participantIds: arrayUnion(userId)
+      });
     } catch (error) {
       console.error('Error joining contest:', error);
     }
@@ -304,16 +237,16 @@ export const userService = {
   addCommentReaction: async (commentId: string, reaction: 'like' | 'love' | 'laugh' | 'wow' | 'sad') => {
     try {
       const reactionRef = doc(collection(db, 'comment_reactions'), commentId);
-      const reactionSnap = await getDoc(reactionRef);
-      
-      if (reactionSnap.exists()) {
-        const data = reactionSnap.data();
-        const counts = data.counts || { like: 0, love: 0, laugh: 0, wow: 0, sad: 0 };
-        counts[reaction] = (counts[reaction] || 0) + 1;
-        await updateDoc(reactionRef, { counts });
-      } else {
-        await setDoc(reactionRef, { counts: { [reaction]: 1 } });
-      }
+      await runTransaction(db, async (transaction) => {
+        const reactionSnap = await transaction.get(reactionRef);
+        if (reactionSnap.exists()) {
+          const counts = reactionSnap.data().counts || {};
+          counts[reaction] = (counts[reaction] || 0) + 1;
+          transaction.update(reactionRef, { counts });
+        } else {
+          transaction.set(reactionRef, { counts: { [reaction]: 1 } });
+        }
+      });
       return true;
     } catch (error) {
       console.error('Error adding reaction:', error);

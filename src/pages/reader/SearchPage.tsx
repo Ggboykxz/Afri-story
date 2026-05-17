@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Loader2, ArrowRight, X } from 'lucide-react';
-import { workService, Work } from '@/lib/workService';
+import { workService } from "@/lib/workService";
+import { Work } from "@/lib/types";
 import { motion } from 'motion/react';
 import { EmptyState, LoadingState } from '@/components/common/EmptyState';
 
