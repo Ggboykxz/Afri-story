@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Loader2, Image as ImageIcon, X, Upload, ShieldCheck } from 'lucide-react';
-import { workService, Work } from '@/lib/workService';
+import { workService } from "@/lib/workService";
+import { Work } from "@/lib/types";
 import { useAuth } from '@/context/AuthContext';
 import cloudinaryService from '@/lib/cloudinaryService';
 import { Skeleton } from '@/components/common/Skeleton';

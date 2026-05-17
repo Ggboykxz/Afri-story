@@ -40,31 +40,6 @@ export interface Badge {
   earnedAt?: Date;
 }
 
-export interface UserProfile {
-  userId: string;
-  email: string;
-  displayName: string;
-  photoURL?: string;
-  role: UserRole;
-  afriCoins: number;
-  badges: Badge[];
-  subscription?: SubscriptionPlan;
-  subscriptionExpiresAt?: Date;
-  createdAt: Date;
-  following?: string[];
-  favorites?: string[];
-  statistics?: {
-    totalReads: number;
-    totalLikes: number;
-    totalComments: number;
-    readingTime: number;
-  };
-  preferences?: {
-    notifications: boolean;
-    emailNotifications: boolean;
-    darkMode: boolean;
-  };
-}
 
 export interface Subscription {
   id: string;
@@ -78,17 +53,6 @@ export interface Subscription {
   currency: string;
 }
 
-export interface AfriCoinTransaction {
-  id: string;
-  userId: string;
-  amount: number;
-  type: 'purchase' | 'spent' | 'donation' | 'refund' | 'monthly_bonus';
-  description: string;
-  relatedWorkId?: string;
-  relatedChapterId?: string;
-  relatedUserId?: string;
-  createdAt: Date;
-}
 
 export interface Report {
   id: string;

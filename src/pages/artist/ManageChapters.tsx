@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Loader2, Trash2, Copy, Eye, Clock, History, X, CheckCircle } from 'lucide-react';
-import { workService, Work } from '@/lib/workService';
+import { workService } from "@/lib/workService";
+import { Work } from "@/lib/types";
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/common/Skeleton';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';

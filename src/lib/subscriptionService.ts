@@ -17,9 +17,9 @@ import { db, auth } from './firebase';
 import { 
   SubscriptionPlan, 
   Subscription, 
-  AfriCoinTransaction,
   SUBSCRIPTION_PLANS 
 } from './roles';
+import { AfriCoinTransaction } from './types';
 
 export const subscriptionService = {
   async getSubscription(userId: string): Promise<Subscription | null> {
