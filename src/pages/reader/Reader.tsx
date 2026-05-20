@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '@/context/AuthContext';
-import { workService, Work } from '@/lib/workService';
+import { workService } from "@/lib/workService";
+import { Work } from "@/lib/types";
 import { Skeleton } from '@/components/common/Skeleton';
 import { doc, updateDoc, onSnapshot, query, orderBy, limit, getDocs, where, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';

@@ -1,26 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Search, Filter, BookOpen, Clock, Zap, Award, ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Search, Filter, SlidersHorizontal, Grid, Clock, ChevronDown, Check, Star, Heart, Eye } from 'lucide-react';
+import { Layout } from '@/components/Layout/Layout';
 import { Skeleton, WorkCardSkeleton } from '@/components/common/Skeleton';
-import { Work, workService } from '@/lib/workService';
+import { workService } from '@/lib/workService';
+import { Work } from '@/lib/types';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { Link } from 'react-router-dom';
 
-export function Explore() {
+const GENRES = [
+  'Tous', 'Action', 'Romance', 'Fantasy', 'Drame', 'Comédie', 'Horreur', 'Tranche de vie', 'Sci-Fi'
+];
+
+const SORT_OPTIONS = [
+  { label: 'Plus récents', value: 'createdAt' },
+  { label: 'Plus populaires', value: 'views' },
+  { label: 'Mieux notés', value: 'ratings.average' },
+  { label: 'Plus aimés', value: 'likes' }
+];
+
+const WorkCard = ({ work }: { work: Work }) => {
+  return (
+    <Link to={`/work/${work.id}`} className="group space-y-3">
+      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-white/5">
+        <img
+          src={work.coverUrl || work.coverURL || 'https://placehold.co/400x600'}
+          alt={work.title}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+        {work.isPremium && (
+          <div className="absolute top-2 right-2 bg-brand-gold text-brand-black text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-widest shadow-lg">
+            Premium
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h3 className="font-display font-black text-sm uppercase tracking-tight line-clamp-1 group-hover:text-brand-gold transition-colors">
+          {work.title}
+        </h3>
+        <p className="text-xs text-gray-500 line-clamp-1">{work.authorName || work.author}</p>
+
+        <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-500">
+          <div className="flex items-center gap-1">
+            <Eye className="w-3 h-3" />
+            <span>{work.views || 0}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Star className="w-3 h-3 text-brand-gold fill-brand-gold" />
+            <span>{work.ratings?.average || 0}</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+export const Explore = () => {
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeGenre, setActiveGenre] = useState('Tous');
-  const [activeFormat, setActiveFormat] = useState('Tous');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  const genres = ['Tous', 'Fantaisie', 'Action', 'Sci-Fi', 'Romance', 'Mystère', 'Slice of Life', 'Historique'];
-  const formats = ['Tous', 'WEBTOON', 'BD', 'ROMAN'];
+  const [selectedGenre, setSelectedGenre] = useState('Tous');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    // REAL-TIME: Subscribe to all works
-    const q = query(collection(db, 'works'), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, 'works'), orderBy(sortBy, 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const worksData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Work[];
       setWorks(worksData);
@@ -28,291 +75,116 @@ export function Explore() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [sortBy]);
 
   const filteredWorks = works.filter(work => {
-    const matchesGenre = activeGenre === 'Tous' || work.category.includes(activeGenre);
-    const matchesFormat = activeFormat === 'Tous' || work.type === activeFormat;
-    const matchesSearch = work.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         work.author.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesGenre && matchesFormat && matchesSearch;
+    const matchesSearch = work.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (work.authorName || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesGenre = selectedGenre === 'Tous' || (work.tags && work.tags.includes(selectedGenre)) || (work.genre === selectedGenre) || (work.category === selectedGenre);
+    return matchesSearch && matchesGenre;
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-12 py-12 space-y-12">
-      {/* Header Section */}
-      <section className="space-y-6">
-        <h1 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter">
-          Explorer le <span className="gradient-text">AfriStory</span>
-        </h1>
-        <p className="text-gray-400 max-w-2xl text-lg font-medium">
-          Découvrez les meilleures histoires du continent. Des talents émergents du Draft aux icônes du Pro.
-        </p>
-      </section>
+    <div className="min-h-screen bg-brand-black pb-20">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header & Search */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+          <div>
+            <h1 className="text-4xl font-display font-black uppercase tracking-tighter mb-2">
+              Explorer
+            </h1>
+            <p className="text-gray-500">Découvrez les meilleures œuvres panafricaines</p>
+          </div>
 
-      {/* Promotional Banner */}
-      <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden group">
-          <div className="absolute inset-0 bg-linear-to-r from-brand-black via-brand-black/60 to-transparent z-10" />
-          <img src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80" alt="Draft Banner" className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-1000" />
-          <div className="relative z-20 h-full flex flex-col justify-center p-12 max-w-2xl space-y-6">
-            <div className="inline-flex items-center gap-2 bg-brand-gold/20 border border-brand-gold/30 px-3 py-1 rounded-full text-brand-gold text-[10px] font-black uppercase tracking-widest w-fit">
-              AfriStory Draft
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Rechercher une œuvre, un auteur..."
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 outline-none focus:border-brand-gold/50 transition-all text-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-            <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter leading-none">Soutenez les <span className="text-brand-gold">Talents</span> de demain</h2>
-            <p className="text-gray-300 text-sm font-medium">Les créateurs amateurs ont besoin de vos retours. Lisez, likez et commentez pour les aider à atteindre le statut Pro.</p>
-            <button className="bg-white text-brand-black px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest w-fit hover:bg-brand-gold transition-colors shadow-2xl">Explorer le Draft</button>
-          </div>
-        </div>
-      </section>
-
-      {/* Filters & Search bar */}
-      <section className="sticky top-16 z-30 py-4 -mx-6 px-6 bg-brand-black/80 backdrop-blur-md border-y border-white/5">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input 
-              type="text" 
-              placeholder="Rechercher une oeuvre, un auteur..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-brand-gold/50 transition-all text-sm"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto invisible-scrollbar">
-            {genres.slice(0, 5).map(genre => (
-              <button
-                key={genre}
-                onClick={() => setActiveGenre(genre)}
-                className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                  activeGenre === genre ? 'bg-brand-gold text-brand-black' : 'bg-white/5 text-gray-500 hover:text-white'
-                }`}
-              >
-                {genre}
-              </button>
-            ))}
             <button 
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="px-4 py-2 bg-white/5 text-gray-400 rounded-full flex items-center gap-2 hover:text-white transition-all border border-white/10"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-3 rounded-2xl border transition-all ${showFilters ? 'bg-brand-gold border-brand-gold text-brand-black' : 'bg-white/5 border-white/10 text-white'}`}
             >
-              <Filter className="w-3 h-3" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Plus</span>
+              <SlidersHorizontal className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <AnimatePresence>
-          {isFilterOpen && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden bg-brand-brown/5 mt-4 rounded-2xl border border-white/5 p-6 space-y-6"
-            >
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-brand-gold">Format</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {formats.map(f => (
-                      <button
-                        key={f}
-                        onClick={() => setActiveFormat(f)}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                          activeFormat === f ? 'bg-white text-brand-black' : 'bg-white/5 text-gray-400'
-                        }`}
-                      >
-                        {f}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-brand-gold">Tous les genres</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {genres.map(g => (
-                      <button
-                        key={g}
-                        onClick={() => setActiveGenre(g)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                          activeGenre === g ? 'bg-white text-brand-black' : 'bg-white/5 text-gray-400'
-                        }`}
-                      >
-                        {g}
-                      </button>
-                    ))}
-                  </div>
+        {/* Filters Panel */}
+        {showFilters && (
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {/* Genres */}
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                  <Filter className="w-3 h-3" /> Genres
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {GENRES.map(genre => (
+                    <button
+                      key={genre}
+                      onClick={() => setSelectedGenre(genre)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedGenre === genre ? 'bg-brand-gold text-brand-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                    >
+                      {genre}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
 
-      {/* Results Grid */}
-      <section className="min-h-[400px]">
+              {/* Sorting */}
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                  <Clock className="w-3 h-3" /> Trier par
+                </h3>
+                <div className="space-y-2">
+                  {SORT_OPTIONS.map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setSortBy(option.value)}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all ${sortBy === option.value ? 'bg-white/10 text-brand-gold' : 'text-gray-400 hover:bg-white/5'}`}
+                    >
+                      {option.label}
+                      {sortBy === option.value && <Check className="w-4 h-4" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Results */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {Array(10).fill(0).map((_, i) => <WorkCardSkeleton key={i} />)}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            {Array(12).fill(0).map((_, i) => (
+              <WorkCardSkeleton key={i} />
+            ))}
           </div>
         ) : filteredWorks.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-            {filteredWorks.map((work) => (
-              <motion.div
-                key={work.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ y: -10 }}
-                className="group cursor-pointer flex flex-col gap-3"
-              >
-                <Link to={`/work/${work.id}`} className="block">
-                  <div className="aspect-[3/4] rounded-2xl overflow-hidden glass-card relative shadow-xl">
-                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
-                      <div className="bg-brand-black/60 backdrop-blur-md px-2 py-1 rounded text-[8px] font-black border border-white/10 uppercase tracking-widest leading-none w-fit">
-                        {work.type}
-                      </div>
-                      {!work.isPro && (
-                        <div className="bg-brand-green/80 backdrop-blur-md px-2 py-1 rounded text-[8px] font-black border border-brand-green/20 uppercase tracking-widest leading-none w-fit text-white">
-                          DRAFT
-                        </div>
-                      )}
-                    </div>
-                    {work.isPro && (
-                      <div className="absolute top-3 right-3 z-10">
-                        <Award className="w-5 h-5 text-brand-gold drop-shadow-lg" />
-                      </div>
-                    )}
-                    <div className="absolute inset-x-0 bottom-0 p-4 bg-linear-to-t from-brand-black via-brand-black/40 to-transparent flex flex-col justify-end translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                      <button className="w-full py-2.5 bg-white text-brand-black text-[10px] font-black uppercase tracking-widest rounded-lg">
-                        Lire Maintenant
-                      </button>
-                    </div>
-                    {work.coverURL ? (
-                      <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                    ) : (
-                      <div className="w-full h-full bg-brand-brown/40 flex items-center justify-center">
-                        <BookOpen className="w-8 h-8 text-white/10" />
-                      </div>
-                    )}
-                  </div>
-                </Link>
-                <div className="space-y-1">
-                  <h4 className="font-display font-bold leading-tight group-hover:text-brand-gold transition-colors truncate">
-                    {work.title}
-                  </h4>
-                  <p className="text-xs text-gray-500 line-clamp-1">{work.author}</p>
-                  <div className="flex items-center gap-3 text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-                    <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-brand-gold" /> {work.views}</span>
-                    <span className="w-1 h-1 bg-gray-700 rounded-full" />
-                    <span className="text-brand-gold">{work.category}</span>
-                  </div>
-                </div>
-              </motion.div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
+            {filteredWorks.map(work => (
+              <WorkCard key={work.id} work={work} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-24 space-y-4">
-            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+          <div className="py-20 text-center">
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-8 h-8 text-gray-600" />
             </div>
-            <div className="space-y-1">
-              <h3 className="text-xl font-display font-bold">Aucun résultat</h3>
-              <p className="text-gray-500">Essayez avec d'autres filtres ou une autre recherche.</p>
-            </div>
-            <button 
-              onClick={() => { setActiveGenre('Tous'); setActiveFormat('Tous'); setSearchQuery(''); }}
-              className="text-xs font-black uppercase text-brand-gold hover:underline mt-4"
-            >
-              Réinitialiser les filtres
-            </button>
+            <h3 className="text-xl font-bold mb-2">Aucun résultat</h3>
+            <p className="text-gray-500">Essayez de modifier vos filtres ou votre recherche</p>
           </div>
         )}
-      </section>
-
-      {/* Featured Creators Section */}
-      <FeaturedArtistsSection />
+      </div>
     </div>
   );
 };
 
-const FeaturedArtistsSection = () => {
-  const [artists, setArtists] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProArtists = async () => {
-      try {
-        const { collection, query, where, getDocs, limit } = await import('firebase/firestore');
-        const { db } = await import('@/lib/firebase');
-        const q = query(
-          collection(db, 'users'),
-          where('role', 'in', ['artist_pro', 'artist_mentor']),
-          limit(10)
-        );
-        const snap = await getDocs(q);
-        setArtists(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProArtists();
-  }, []);
-
-  return (
-    <section className="pt-12 border-t border-white/5 space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-display font-bold">Artistes Pro en vedette</h2>
-        <Link to="/rankings" className="text-brand-gold text-[10px] font-black uppercase tracking-widest hover:underline">
-          Voir le classement complet
-        </Link>
-      </div>
-      {loading ? (
-        <div className="flex gap-6 overflow-x-auto pb-8">
-          {Array(6).fill(0).map((_, i) => (
-            <div key={i} className="flex-shrink-0 w-48 text-center space-y-3">
-              <div className="w-24 h-24 rounded-full bg-white/5 animate-pulse mx-auto" />
-              <div className="space-y-1">
-                <div className="h-4 w-20 bg-white/5 animate-pulse mx-auto" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : artists.length > 0 ? (
-        <div className="flex gap-6 overflow-x-auto pb-8 invisible-scrollbar">
-          {artists.map((artist) => (
-            <motion.div
-              key={artist.uid}
-              whileHover={{ scale: 1.05 }}
-              className="flex-shrink-0 w-48 text-center space-y-3"
-            >
-              <Link to={`/artist-profile/${artist.uid}`}>
-                <div className="w-24 h-24 rounded-full bg-brand-brown/40 border-2 border-brand-gold/30 mx-auto overflow-hidden">
-                  {artist.photoURL ? (
-                    <img src={artist.photoURL} alt={artist.displayName} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-2xl font-display font-black text-brand-gold">
-                      {artist.displayName?.[0] || 'A'}
-                    </div>
-                  )}
-                </div>
-              </Link>
-              <div className="space-y-1">
-                <h4 className="font-bold text-sm">{artist.displayName || 'Artiste'}</h4>
-                <div className="flex items-center justify-center gap-1 text-[8px] font-black text-brand-gold uppercase tracking-[0.2em]">
-                  <Award className="w-3 h-3" /> Certifié
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 text-gray-500 text-sm">
-          Aucun artiste certifié pour le moment
-        </div>
-      )}
-    </section>
-  );
-};
+export default Explore;

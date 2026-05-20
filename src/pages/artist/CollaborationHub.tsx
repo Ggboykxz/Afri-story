@@ -68,7 +68,7 @@ export function CollaborationHub() {
           ))}
         </div>
         
-        {['artist_pro', 'artist_mentor', 'admin'].includes(profile?.role) && (
+        {profile && ['artist_pro', 'artist_mentor', 'admin'].includes(profile.role) && (
           <button className="w-full md:w-auto bg-white text-brand-black px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-brand-gold transition-colors">
             <Plus className="w-4 h-4" /> Publier une annonce
           </button>

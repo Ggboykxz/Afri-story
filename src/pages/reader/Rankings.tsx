@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { TrendingUp, Award, Zap, Heart, Eye, Loader2, ChevronRight } from 'lucide-react';
-import { workService, Work } from '../../lib/workService';
+import { workService } from "@/lib/workService";
+import { Work } from "@/lib/types";
 import { Link } from 'react-router-dom';
 import { Skeleton } from '../../components/common/Skeleton';
 

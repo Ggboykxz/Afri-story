@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Heart, Share2, Award, User, Star, DollarSign, X, Check, Loader2, MessageCircle, Send, Flag, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { workService, Work } from '@/lib/workService';
+import { workService } from "@/lib/workService";
+import { Work } from "@/lib/types";
 import { useAuth } from '@/context/AuthContext';
 import { doc, updateDoc, arrayUnion, arrayRemove, collection, addDoc, query, where, orderBy, getDocs, serverTimestamp, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -94,7 +95,7 @@ export const WorkDetail = () => {
     try {
       const q = query(
         collection(db, 'works'),
-        where('category', '==', work.category),
+        where('category', '==', work.genre || work.category || ''),
         where('authorId', '!=', work.authorId),
       );
       const snapshot = await getDocs(q);
@@ -161,7 +162,6 @@ export const WorkDetail = () => {
         rating: newReview.rating,
         comment: newReview.comment || undefined,
         containsSpoiler: newReview.containsSpoiler,
-        createdAt: new Date(),
       });
       setNewReview({ rating: 0, comment: '', containsSpoiler: false });
       setShowReviewForm(false);

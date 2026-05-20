@@ -85,7 +85,7 @@ export function NotificationsPage() {
       message: items.length === 1 
         ? items[0].message 
         : `${items.length} nouvelles notifications`,
-      items,
+      items: items || [],
       count: items.length,
       isRead: items.every(i => i.isRead),
       createdAt: items[0].createdAt,
@@ -108,7 +108,7 @@ export function NotificationsPage() {
       type: 'grouped' as any,
       title: formatDayHeader(day),
       message: `${items.length} notification${items.length > 1 ? 's' : ''}`,
-      items,
+      items: items || [],
       count: items.length,
       isRead: items.every(i => i.isRead),
       createdAt: items[0].createdAt,
@@ -190,7 +190,7 @@ export function NotificationsPage() {
   const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
 
   const handleMarkGroupRead = async (group: GroupedNotification) => {
-    if (user) {
+    if (user && group.items) {
       for (const item of group.items) {
         if (!item.isRead) {
           await notificationService.markAsRead(item.id);
@@ -389,14 +389,14 @@ export function NotificationsPage() {
                           {group.message}
                         </p>
                         
-                        {group.items.length > 1 && group.count <= 5 && (
+                        {group.items && group.items.length > 1 && group.count <= 5 && (
                           <div className="mt-3 space-y-2">
                             {group.items.slice(0, 3).map((item) => (
                               <div key={item.id} className="text-xs text-gray-500 pl-4 border-l-2 border-white/10">
                                 • {item.message}
                               </div>
                             ))}
-                            {group.items.length > 3 && (
+                            {group.items && group.items.length > 3 && (
                               <div className="text-xs text-brand-gold font-bold">
                                 +{group.items.length - 3} autres...
                               </div>
@@ -416,7 +416,7 @@ export function NotificationsPage() {
                           </button>
                         )}
                         <button 
-                          onClick={(e) => { e.stopPropagation(); group.items.forEach(i => handleDeleteNotification(i.id)); }}
+                          onClick={(e) => { e.stopPropagation(); group.items?.forEach(i => handleDeleteNotification(i.id)); }}
                           className="p-2 bg-brand-red/10 text-brand-red rounded-lg hover:bg-brand-red hover:text-white transition-all"
                           title="Supprimer"
                         >
