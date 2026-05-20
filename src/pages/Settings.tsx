@@ -289,7 +289,7 @@ export const Settings = () => {
     { id: 'billing', title: 'Abonnements & AfriCoins', icon: CreditCard, desc: 'Historique et facturation' },
   ];
 
-  if (['artist_pro', 'artist_draft', 'artist_mentor'].includes(profile?.role)) {
+  if (profile && ['artist_pro', 'artist_draft', 'artist_mentor'].includes(profile.role)) {
     sections.splice(1, 0, { id: 'artist', title: 'Profil Artiste', icon: LayoutDashboard, desc: 'Gérez votre page de créateur' });
   }
 

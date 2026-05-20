@@ -93,12 +93,13 @@ export const EditWork = () => {
     
     setSaving(true);
     try {
-      let coverURL = work?.coverURL;
+      let coverURL: string | undefined = work?.coverURL || undefined;
       
       if (coverFile) {
         setUploadingCover(true);
         try {
-          coverURL = await cloudinaryService.uploadCover(workId, coverFile);
+          const uploadedUrl = await cloudinaryService.uploadCover(workId, coverFile);
+          coverURL = uploadedUrl || undefined;
         } catch (err) {
           console.error('Cover upload error:', err);
         }
@@ -111,7 +112,7 @@ export const EditWork = () => {
         type: formData.type,
         category: formData.category,
         status: formData.status,
-        coverURL,
+        coverURL: coverURL || undefined,
       });
       
       alert('Modifications enregistrées !');

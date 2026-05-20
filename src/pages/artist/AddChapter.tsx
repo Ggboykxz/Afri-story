@@ -126,6 +126,7 @@ export const AddChapter = () => {
         
         try {
           const url = await cloudinaryService.uploadChapterImage(img.file);
+          if (!url) throw new Error("Upload failed");
           uploadedUrls.push(url);
           setImages(prev => prev.map((im, idx) => 
             idx === i ? { ...im, uploading: false, progress: 100, url } : im

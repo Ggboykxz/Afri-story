@@ -95,7 +95,7 @@ export const WorkDetail = () => {
     try {
       const q = query(
         collection(db, 'works'),
-        where('category', '==', work.category),
+        where('category', '==', work.genre || work.category || ''),
         where('authorId', '!=', work.authorId),
       );
       const snapshot = await getDocs(q);
@@ -162,7 +162,6 @@ export const WorkDetail = () => {
         rating: newReview.rating,
         comment: newReview.comment || undefined,
         containsSpoiler: newReview.containsSpoiler,
-        createdAt: new Date(),
       });
       setNewReview({ rating: 0, comment: '', containsSpoiler: false });
       setShowReviewForm(false);

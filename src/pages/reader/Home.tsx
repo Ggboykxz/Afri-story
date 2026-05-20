@@ -122,8 +122,8 @@ export const Home = () => {
     if (!searchQuery) return works;
     return works.filter(w => 
       w.title.toLowerCase().includes(searchQuery) || 
-      w.author.toLowerCase().includes(searchQuery) ||
-      w.category.toLowerCase().includes(searchQuery)
+      (w.authorName || w.author || '').toLowerCase().includes(searchQuery) ||
+      (w.genre || w.category || '').toLowerCase().includes(searchQuery)
     );
   }, [searchQuery, works]);
 

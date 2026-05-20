@@ -29,14 +29,15 @@ export const Profile = () => {
 
   // Fetch favorite works
   useEffect(() => {
-    if (!user || !profile?.favorites?.length) {
+    const favorites = profile?.favorites;
+    if (!user || !favorites || favorites.length === 0) {
       setFavoriteWorks([]);
       return;
     }
 
     const fetchFavorites = async () => {
       const works: Work[] = [];
-      for (const id of profile.favorites) {
+      for (const id of favorites) {
         const w = await workService.getWork(id);
         if (w) works.push(w);
       }

@@ -169,11 +169,11 @@ export const Navbar = () => {
 <Link to="/profile" className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white">
                        <UserIcon className="w-4 h-4" /> Profil
                     </Link>
-                   {['admin', 'moderator', 'supervisor'].includes(profile?.role) ? (
+                   {profile && ['admin', 'moderator', 'supervisor'].includes(profile.role) ? (
                      <Link to="/admin" className="flex items-center gap-3 w-full p-3 hover:bg-brand-gold/10 rounded-lg text-xs font-black transition-all text-brand-gold">
                         <Shield className="w-4 h-4" /> Panel Admin
                      </Link>
-                   ) : ['artist_pro', 'artist_draft', 'artist_mentor'].includes(profile?.role) ? (
+                   ) : profile && ['artist_pro', 'artist_draft', 'artist_mentor'].includes(profile.role) ? (
                      <Link to="/artist" className="flex items-center gap-3 w-full p-3 hover:bg-white/5 rounded-lg text-xs font-bold transition-all text-gray-300 hover:text-white">
                         <LayoutDashboard className="w-4 h-4" /> Studio Créateur
                      </Link>
