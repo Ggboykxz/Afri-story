@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config/firebase_config.dart';
+import 'firestore_service.dart';
 
 class AuthUser {
   final String uid;
@@ -112,6 +113,7 @@ class AuthService {
         idToken: data['idToken'] as String?,
         refreshToken: data['refreshToken'] as String?,
       );
+      try { await FirestoreService.instance.ensureUser(user!.uid, user!.email, name); } catch (_) {}
       await _persist();
       return true;
     } catch (e) {

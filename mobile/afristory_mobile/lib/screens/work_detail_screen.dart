@@ -16,11 +16,36 @@ class WorkDetailScreen extends StatefulWidget {
 
 class _WorkDetailScreenState extends State<WorkDetailScreen> {
   late Future<List<Chapter>> _chapters;
+  bool isFavorite = false;
 
   @override
   void initState() {
     super.initState();
     _chapters = FirestoreService.instance.fetchChapters(widget.work.id);
+    _loadFavorite();
+  }
+
+  Future<void> _loadFavorite() async {
+    final uid = widget.state.auth.user?.uid;
+    if (uid == null) return;
+    final profile = await FirestoreService.instance.getUser(uid);
+    final favs = (profile?['favorites'] as List?)?.cast<String>() ?? <String>[];
+    if (mounted) setState(() => isFavorite = favs.contains(widget.work.id));
+  }
+
+  Future<void> _toggleFavorite() async {
+    final uid = widget.state.auth.user?.uid;
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connectez-vous pour favoriser')));
+      return;
+    }
+    await FirestoreService.instance.toggleFavorite(uid, widget.work.id, !isFavorite);
+    if (mounted) {
+      setState(() => isFavorite = !isFavorite);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isFavorite ? 'Ajouté aux favoris' : 'Retiré des favoris')),
+      );
+    }
   }
 
   @override
@@ -32,6 +57,13 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
           SliverAppBar(
             expandedHeight: 360,
             pinned: true,
+            actions: [
+              IconButton(
+                onPressed: _toggleFavorite,
+                icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border, color: Colors.white),
+                tooltip: 'Favori',
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               title: Text(w.title, style: const TextStyle(fontWeight: FontWeight.w900)),
               background: (w.coverUrl != null && w.coverUrl!.isNotEmpty)
@@ -94,7 +126,12 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ReaderScreen(state: widget.state, work: w, chapter: c),
+                          builder: (_) => ReaderScreen(
+                            state: widget.state,
+                            work: w,
+                            chapters: chapters,
+                            index: i,
+                          ),
                         ),
                       ),
                     );

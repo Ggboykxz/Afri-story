@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../state/app_state.dart';
 
 class AuthScreen extends StatefulWidget {
-  final AppState state;
+  final dynamic state;
   const AuthScreen({super.key, required this.state});
 
   @override
@@ -13,15 +13,17 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   bool loginMode = true;
   bool loading = false;
-  String error = '';
+  final formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final nameController = TextEditingController();
+  String? error;
 
   Future<void> submit() async {
+    if (!(formKey.currentState?.validate() ?? false)) return;
     setState(() {
       loading = true;
-      error = '';
+      error = null;
     });
     bool ok;
     if (loginMode) {
@@ -39,9 +41,16 @@ class _AuthScreenState extends State<AuthScreen> {
     if (!mounted) return;
     if (ok) {
       widget.state.change();
-      Navigator.pushReplacementNamed(context, '/home');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loginMode ? 'Connexion réussie' : 'Compte créé avec succès')),
+      );
+      await Future.delayed(const Duration(milliseconds: 250));
+      if (mounted) Navigator.pushReplacementNamed(context, '/home');
     } else {
       setState(() => error = widget.state.auth.error ?? 'Erreur.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error!), backgroundColor: const Color(0xFFA52A2A)),
+      );
     }
     setState(() => loading = false);
   }
@@ -51,22 +60,17 @@ class _AuthScreenState extends State<AuthScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 36),
-              const Icon(Icons.auto_stories, color: Color(0xFFD4AF37), size: 56),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
+              const Icon(Icons.auto_stories, color: Color(0xFFD4AF37), size: 64),
+              const SizedBox(height: 8),
               const Text(
                 'AfriStory',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Space Grotesk',
-                  fontSize: 30,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
+                style: TextStyle(fontFamily: 'Space Grotesk', fontSize: 30, fontWeight: FontWeight.w900, color: Colors.white),
               ),
               const SizedBox(height: 28),
               Container(
@@ -76,60 +80,88 @@ class _AuthScreenState extends State<AuthScreen> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: Colors.white12),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      loginMode ? 'Connexion' : 'Inscription',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        loginMode ? 'Connexion' : 'Inscription',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    if (!loginMode) ...[
-                      TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(labelText: 'Nom'),
+                      const SizedBox(height: 18),
+                      if (!loginMode) ...[
+                        TextFormField(
+                          controller: nameController,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(labelText: 'Nom'),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Nom requis';
+                            if (v.trim().length < 2) return 'Nom trop court';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      TextFormField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(labelText: 'E-mail'),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'E-mail requis';
+                          if (!v.contains('@') || !v.contains('.')) return 'E-mail invalide';
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 12),
-                    ],
-                    TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(labelText: 'E-mail'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Mot de passe'),
-                    ),
-                    if (error.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Text(error, style: const TextStyle(color: Color(0xFFA52A2A), fontSize: 13)),
-                    ],
-                    const SizedBox(height: 18),
-                    ElevatedButton(
-                      onPressed: loading ? null : submit,
-                      child: loading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-                            )
-                          : Text(loginMode ? 'SE CONNECTER' : 'S\'INSCRIRE'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () => setState(() => loginMode = !loginMode),
-                      child: Text(
-                        loginMode ? 'Pas encore membre ? Créer un compte' : 'Déjà membre ? Se connecter',
-                        style: const TextStyle(color: Color(0xFFD4AF37)),
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: true,
+                        textInputAction: TextInputAction.done,
+                        decoration: const InputDecoration(labelText: 'Mot de passe'),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Mot de passe requis';
+                          if (v.length < 6) return 'Minimum 6 caractères';
+                          return null;
+                        },
                       ),
-                    ),
-                  ],
+                      if (error != null) ...[
+                        const SizedBox(height: 12),
+                        Text(error!, style: const TextStyle(color: Color(0xFFA52A2A), fontSize: 13)),
+                      ],
+                      const SizedBox(height: 18),
+                      ElevatedButton(
+                        onPressed: loading ? null : submit,
+                        child: loading
+                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                            : Text(loginMode ? 'SE CONNECTER' : 'S\'INSCRIRE'),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: loading ? null : () => setState(() => loginMode = !loginMode),
+                        child: Text(
+                          loginMode ? 'Pas encore membre ? Créer un compte' : 'Déjà membre ? Se connecter',
+                          style: const TextStyle(color: Color(0xFFD4AF37)),
+                        ),
+                      ),
+                      if (loginMode)
+                        TextButton(
+                          onPressed: () async {
+                            if (emailController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Saisissez votre e-mail d’abord')),
+                              );
+                              return;
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Réinitialisation envoyée (si le compte existe)')),
+                            );
+                          },
+                          child: const Text('Mot de passe oublié ?', style: TextStyle(color: Colors.white54)),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],

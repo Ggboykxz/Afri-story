@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/work.dart';
 import '../services/firestore_service.dart';
+import '../widgets/empty_state.dart';
 import '../widgets/work_card.dart';
 import 'work_detail_screen.dart';
 
@@ -35,8 +36,19 @@ class _HomeTabState extends State<HomeTab> {
             return const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)));
           }
           final works = snapshot.data ?? [];
+          if (snapshot.hasError) {
+            return EmptyState(
+              icon: Icons.wifi_off,
+              title: 'Erreur',
+              message: snapshot.error.toString(),
+            );
+          }
           if (works.isEmpty) {
-            return const Center(child: Text('Aucune œuvre disponible'));
+            return const EmptyState(
+              icon: Icons.library_books_outlined,
+              title: 'Aucune œuvre',
+              message: 'Découvrez bientôt nos contenus.',
+            );
           }
           return RefreshIndicator(
             onRefresh: () async {
