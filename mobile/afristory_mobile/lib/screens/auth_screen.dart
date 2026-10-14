@@ -148,14 +148,21 @@ class _AuthScreenState extends State<AuthScreen> {
                       if (loginMode)
                         TextButton(
                           onPressed: () async {
-                            if (emailController.text.trim().isEmpty) {
+                            final email = emailController.text.trim();
+                            if (email.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Saisissez votre e-mail d’abord')),
                               );
                               return;
                             }
+                            final ok = await widget.state.auth.sendPasswordReset(email);
+                            if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Réinitialisation envoyée (si le compte existe)')),
+                              SnackBar(
+                                content: Text(ok
+                                    ? 'Lien de réinitialisation envoyé'
+                                    : (widget.state.auth.error ?? 'Erreur')),
+                              ),
                             );
                           },
                           child: const Text('Mot de passe oublié ?', style: TextStyle(color: Colors.white54)),

@@ -18,8 +18,8 @@ class WorkCard extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: work.coverUrl!,
               fit: BoxFit.cover,
-              placeholder: (_,  _) => Container(color: Colors.white10),
-              errorWidget: (_,  _,  __) => Container(
+              placeholder: (_, __) => Container(color: Colors.white10),
+              errorWidget: (_, __, ___) => Container(
                 color: Colors.white10,
                 child: const Icon(Icons.broken_image, color: Colors.white30),
               ),

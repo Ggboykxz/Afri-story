@@ -149,6 +149,24 @@ class AuthService {
     await prefs.remove('afristory_user');
   }
 
+  Future<bool> sendPasswordReset(String email) async {
+    error = null;
+    try {
+      final res = await http.post(
+        Uri.parse(FirebaseConfig.authUrl('accounts:sendOobCode')),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'requestType': 'PASSWORD_RESET', 'email': email}),
+      );
+      if (res.statusCode == 200) return true;
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      error = data['error']?['message'] ?? 'Erreur.';
+      return false;
+    } catch (e) {
+      error = e.toString();
+      return false;
+    }
+  }
+
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('afristory_user', jsonEncode(user!.toJson()));
