@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../models/work.dart';
@@ -15,11 +14,14 @@ class WorkCard extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (work.coverUrl != null && work.coverUrl!.isNotEmpty)
-            CachedNetworkImage(
-              imageUrl: work.coverUrl!,
+            Image.network(
+              work.coverUrl!,
               fit: BoxFit.cover,
-              placeholder: (_, __) => Container(color: Colors.white10),
-              errorWidget: (_, __, ___) => Container(
+              loadingBuilder: (context, child, progress) {
+                if (progress == null) return child;
+                return Container(color: Colors.white10);
+              },
+              errorBuilder: (context, _, __) => Container(
                 color: Colors.white10,
                 child: const Icon(Icons.broken_image, color: Colors.white30),
               ),

@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.afristory.afristory_mobile"
     compileSdk = flutter.compileSdkVersion
-    // ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -15,6 +15,9 @@ android {
     }
 
     defaultConfig {
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64", "armeabi-v7a")
+        }
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.afristory.afristory_mobile"
         // You can update the following values to match your application needs.

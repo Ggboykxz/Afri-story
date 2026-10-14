@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../models/chapter.dart';
@@ -74,16 +73,19 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         child: InteractiveViewer(
                           minScale: 1,
                           maxScale: 3,
-                          child: CachedNetworkImage(
-                            imageUrl: pages[i],
+                          child: Image.network(
+                            pages[i],
                             width: double.infinity,
                             fit: BoxFit.fitWidth,
-                            placeholder: (_, __) => Container(
-                              height: 300,
-                              color: Colors.white10,
-                              child: const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37))),
-                            ),
-                            errorWidget: (_, __, ___) => Container(
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return Container(
+                                height: 300,
+                                color: Colors.white10,
+                                child: const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37))),
+                              );
+                            },
+                            errorBuilder: (context, _, __) => Container(
                               height: 200,
                               color: Colors.white10,
                               child: const Center(child: Icon(Icons.broken_image, color: Colors.white30)),

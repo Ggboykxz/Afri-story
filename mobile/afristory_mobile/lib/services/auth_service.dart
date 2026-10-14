@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../config/firebase_config.dart';
 import 'firestore_service.dart';
 
@@ -44,18 +42,7 @@ class AuthService {
   AuthUser? user;
   String? error;
 
-  Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('afristory_user');
-    if (raw != null) {
-      user = AuthUser.fromJson(
-        jsonDecode(raw) as Map<String, dynamic>,
-      );
-      if (user?.refreshToken != null) {
-        await refreshToken();
-      }
-    }
-  }
+  Future<void> init() async {}
 
   Future<bool> signIn(String email, String password) async {
     error = null;
@@ -145,8 +132,6 @@ class AuthService {
 
   Future<void> signOut() async {
     user = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('afristory_user');
   }
 
   Future<bool> sendPasswordReset(String email) async {
@@ -167,8 +152,5 @@ class AuthService {
     }
   }
 
-  Future<void> _persist() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('afristory_user', jsonEncode(user!.toJson()));
-  }
+  Future<void> _persist() async {}
 }
