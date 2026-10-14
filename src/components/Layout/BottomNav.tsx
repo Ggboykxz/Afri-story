@@ -23,7 +23,7 @@ export function BottomNav() {
   if (isHidden) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-brand-black/95 backdrop-blur-xl border-t border-white/10 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-brand-black/95 backdrop-blur-xl border-t border-white/10 md:hidden" aria-label="Navigation mobile">
       <div className="flex items-center justify-around py-2 pb-safe">
         {navItems.map((item) => {
           if (item.auth && !user) return null;
@@ -36,6 +36,7 @@ export function BottomNav() {
             <NavLink
               key={item.to}
               to={item.to}
+              aria-current={isActive ? "page" : undefined}
               className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
                 isActive ? 'text-brand-gold' : 'text-gray-500'
               }`}

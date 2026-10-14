@@ -1,59 +1,93 @@
 import React, { Suspense } from 'react';
+import { MotionConfig } from 'motion/react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout/Layout';
 
 // Pages - Reader
-import { Home } from './pages/reader/Home';
-import { Explore } from './pages/reader/Explore';
-import { SearchPage } from './pages/reader/SearchPage';
-import { Library } from './pages/reader/Library';
-import { Reader } from './pages/reader/Reader';
-import { WorkDetail } from './pages/reader/WorkDetail';
-import { Rankings } from './pages/reader/Rankings';
+const Home = React.lazy(() => import('./pages/reader/Home').then((m) => ({ default: m.Home })));
+
+const Explore = React.lazy(() => import('./pages/reader/Explore').then((m) => ({ default: m.Explore })));
+
+const SearchPage = React.lazy(() => import('./pages/reader/SearchPage').then((m) => ({ default: m.SearchPage })));
+
+const Library = React.lazy(() => import('./pages/reader/Library').then((m) => ({ default: m.Library })));
+
+const Reader = React.lazy(() => import('./pages/reader/Reader').then((m) => ({ default: m.Reader })));
+
+const WorkDetail = React.lazy(() => import('./pages/reader/WorkDetail').then((m) => ({ default: m.WorkDetail })));
+
+const Rankings = React.lazy(() => import('./pages/reader/Rankings').then((m) => ({ default: m.Rankings })));
+
 
 // Pages - Artist
-import { ArtistDashboard } from './pages/artist/ArtistDashboard';
-import { CreateWork } from './pages/artist/CreateWork';
-import { EditWork } from './pages/artist/EditWork';
-import { AddChapter } from './pages/artist/AddChapter';
-import { EditChapter } from './pages/artist/EditChapter';
-import { ManageChapters } from './pages/artist/ManageChapters';
-import { BecomePro } from './pages/artist/BecomePro';
-import { CollaborationHub } from './pages/artist/CollaborationHub';
+const ArtistDashboard = React.lazy(() => import('./pages/artist/ArtistDashboard').then((m) => ({ default: m.ArtistDashboard })));
+
+const CreateWork = React.lazy(() => import('./pages/artist/CreateWork').then((m) => ({ default: m.CreateWork })));
+
+const EditWork = React.lazy(() => import('./pages/artist/EditWork').then((m) => ({ default: m.EditWork })));
+
+const AddChapter = React.lazy(() => import('./pages/artist/AddChapter').then((m) => ({ default: m.AddChapter })));
+
+const EditChapter = React.lazy(() => import('./pages/artist/EditChapter').then((m) => ({ default: m.EditChapter })));
+
+const ManageChapters = React.lazy(() => import('./pages/artist/ManageChapters').then((m) => ({ default: m.ManageChapters })));
+
+const BecomePro = React.lazy(() => import('./pages/artist/BecomePro').then((m) => ({ default: m.BecomePro })));
+
+const CollaborationHub = React.lazy(() => import('./pages/artist/CollaborationHub').then((m) => ({ default: m.CollaborationHub })));
+
 
 // Pages - Auth
-import { Login } from './pages/auth/Login';
-import { Signup } from './pages/auth/Signup';
+const Login = React.lazy(() => import('./pages/auth/Login').then((m) => ({ default: m.Login })));
+
+const Signup = React.lazy(() => import('./pages/auth/Signup').then((m) => ({ default: m.Signup })));
+
 
 // Pages - Forum
-import { ForumHome } from './pages/forum/ForumHome';
-import { ForumCategory } from './pages/forum/ForumCategory';
-import { ThreadDetail } from './pages/forum/ThreadDetail';
-import { Forum } from './pages/forum/Forum';
+const ForumHome = React.lazy(() => import('./pages/forum/ForumHome').then((m) => ({ default: m.ForumHome })));
+
+const ForumCategory = React.lazy(() => import('./pages/forum/ForumCategory').then((m) => ({ default: m.ForumCategory })));
+
+const ThreadDetail = React.lazy(() => import('./pages/forum/ThreadDetail').then((m) => ({ default: m.ThreadDetail })));
+
+const Forum = React.lazy(() => import('./pages/forum/Forum').then((m) => ({ default: m.Forum })));
+
 
 // Pages - Profile
-import { Profile } from './pages/profile/Profile';
-import { PublicArtistProfile } from './pages/profile/PublicArtistProfile';
+const Profile = React.lazy(() => import('./pages/profile/Profile').then((m) => ({ default: m.Profile })));
+
+const PublicArtistProfile = React.lazy(() => import('./pages/profile/PublicArtistProfile').then((m) => ({ default: m.PublicArtistProfile })));
+
 
 // Pages - Subscription & Shop
-import { SubscriptionPage } from './pages/subscription';
-import { Shop } from './pages/Shop';
+const SubscriptionPage = React.lazy(() => import('./pages/subscription').then((m) => ({ default: m.SubscriptionPage })));
+
+const Shop = React.lazy(() => import('./pages/Shop').then((m) => ({ default: m.Shop })));
+
 
 // Pages - Legal
-import { Terms } from './pages/legal/Terms';
-import { Privacy } from './pages/legal/Privacy';
-import { FAQ } from './pages/legal/FAQ';
-import { About } from './pages/legal/About';
-import { CopyrightPage } from './pages/legal/Copyright';
+const Terms = React.lazy(() => import('./pages/legal/Terms').then((m) => ({ default: m.Terms })));
+
+const Privacy = React.lazy(() => import('./pages/legal/Privacy').then((m) => ({ default: m.Privacy })));
+
+const FAQ = React.lazy(() => import('./pages/legal/FAQ').then((m) => ({ default: m.FAQ })));
+
+const About = React.lazy(() => import('./pages/legal/About').then((m) => ({ default: m.About })));
+
+const CopyrightPage = React.lazy(() => import('./pages/legal/Copyright').then((m) => ({ default: m.CopyrightPage })));
+
 
 // Pages - Error
-import { NotFound } from './pages/error/NotFound';
+const NotFound = React.lazy(() => import('./pages/error/NotFound').then((m) => ({ default: m.NotFound })));
+
 
 // Pages - Notifications
-import { NotificationsPage } from './pages/NotificationsPage';
+const NotificationsPage = React.lazy(() => import('./pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
+
 
 // Pages - Contests
-import { ContestsPage } from './pages/ContestsPage';
+const ContestsPage = React.lazy(() => import('./pages/ContestsPage').then((m) => ({ default: m.ContestsPage })));
+
 
 // Components
 import { AdCarousel } from './components/carousel/AdCarousel';
@@ -145,7 +179,8 @@ export default function App() {
               <ScrollToTop />
               <ScrollToTopButton />
               <Layout>
-                <Suspense fallback={<LoadingFallback />}>
+                <MotionConfig reducedMotion="user">
+                  <Suspense fallback={<LoadingFallback />}>
                   <Routes>
                     {/* Reader Routes */}
                     <Route path="/" element={<Home />} />
@@ -294,6 +329,7 @@ export default function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
+                </MotionConfig>
               </Layout>
             </BrowserRouter>
           </AuthProvider>
@@ -304,6 +340,8 @@ export default function App() {
 }
 
 // Import Messaging here to avoid circular dependency
-import { Messaging } from './pages/Messaging';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { Settings } from './pages/Settings';
+const Messaging = React.lazy(() => import('./pages/Messaging').then((m) => ({ default: m.Messaging })));
+
+const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
+
+const Settings = React.lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));

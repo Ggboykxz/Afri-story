@@ -135,6 +135,7 @@ export const Login = () => {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
+              role="alert"
               className={`p-4 border rounded-xl text-[10px] font-black uppercase tracking-widest text-center ${
                 resetSent ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-brand-red/10 border-brand-red/20 text-brand-red'
               }`}
@@ -150,7 +151,7 @@ export const Login = () => {
 
         <form onSubmit={handleEmailLogin} className="space-y-4">
            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">E-mail</label>
+              <label htmlFor="login-email" className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">E-mail</label>
               <div className="relative">
                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                  <input 
@@ -159,14 +160,16 @@ export const Login = () => {
                    onChange={e => setEmail(e.target.value)}
                    required
                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:border-brand-gold outline-none transition-all"
+                   id="login-email"
                    placeholder="vou@exemple.com"
+                   aria-invalid={!!error}
                  />
               </div>
            </div>
 
            <div className="space-y-2">
               <div className="flex items-center justify-between ml-1">
-                 <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Mot de passe</label>
+                 <label htmlFor="login-password" className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Mot de passe</label>
                  <button 
                   type="button"
                   onClick={handleForgotPassword}
@@ -182,8 +185,10 @@ export const Login = () => {
                    value={password}
                    onChange={e => setPassword(e.target.value)}
                    required
+                   id="login-password"
                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:border-brand-gold outline-none transition-all"
                    placeholder="••••••••"
+                   aria-invalid={!!error}
                  />
               </div>
            </div>

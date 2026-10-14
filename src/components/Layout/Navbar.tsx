@@ -13,6 +13,38 @@ export const Navbar = () => {
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const notificationRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!showNotifications) return;
+    const handleClick = (e: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowNotifications(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [showNotifications]);
+
+  React.useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   React.useEffect(() => {
     if (!user) return;
@@ -89,10 +121,12 @@ export const Navbar = () => {
               <span className="text-sm font-display font-bold text-white">{profile?.afriCoins || 0}</span>
             </div>
             
-            <div className="relative group">
+            <div className="relative group" ref={notificationRef}>
               <button 
                 onClick={() => navigate('/notifications')}
                 className="relative p-2 text-gray-400 hover:text-white transition-colors"
+                aria-label="Notifications"
+                aria-expanded={showNotifications}
                 onMouseEnter={() => setShowNotifications(true)}
               >
                 <Bell className="w-5 h-5" />
@@ -213,14 +247,14 @@ export const Navbar = () => {
           </div>
         )}
         
-        <button className="md:hidden p-2 text-gray-400" onClick={() => setMobileMenuOpen(true)}>
+        <button className="md:hidden p-2 text-gray-400" aria-label="Ouvrir le menu" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(true)}>
           <Menu className="w-6 h-6" />
         </button>
       </div>
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99999 }}>
+        <div role="dialog" aria-modal="true" aria-label="Menu mobile" style={{ position: 'fixed', inset: 0, zIndex: 99999 }}>
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

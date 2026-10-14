@@ -110,7 +110,7 @@ export const Signup = () => {
         <form onSubmit={handleEmailSignup} className="space-y-4">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">Nom d'artiste / Lecteur</label>
+                 <label htmlFor="signup-name" className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">Nom d'artiste / Lecteur</label>
                  <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input 
@@ -119,12 +119,13 @@ export const Signup = () => {
                       onChange={e => setUsername(e.target.value)}
                       required
                       className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:border-brand-gold outline-none transition-all"
+                      id="signup-name"
                       placeholder="Ex: Moussa Draw"
                     />
                  </div>
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">E-mail</label>
+                 <label htmlFor="signup-email" className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">E-mail</label>
                  <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input 
@@ -133,6 +134,7 @@ export const Signup = () => {
                       onChange={e => setEmail(e.target.value)}
                       required
                       className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:border-brand-gold outline-none transition-all"
+                      id="signup-email"
                       placeholder="vou@exemple.com"
                     />
                  </div>
@@ -140,7 +142,7 @@ export const Signup = () => {
            </div>
 
            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">Mot de passe</label>
+              <label htmlFor="signup-password" className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">Mot de passe</label>
               <div className="relative">
                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                  <input 
@@ -149,6 +151,7 @@ export const Signup = () => {
                    onChange={e => setPassword(e.target.value)}
                    required
                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm focus:border-brand-gold outline-none transition-all"
+                   id="signup-password"
                    placeholder="Minimum 6 caractères"
                  />
               </div>

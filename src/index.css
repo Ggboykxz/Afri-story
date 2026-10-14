@@ -11,19 +11,18 @@
   --color-brand-green: #2E8B57;
   --color-brand-black: #0F0F0F;
   --color-brand-offwhite: #F5F5DC;
+
+  --color-success: #2E8B57;
+  --color-warning: #D4AF37;
+  --color-danger: #A52A2A;
+  --color-info: #3B82F6;
 }
 
 @layer base {
   html {
     font-size: 16px;
   }
-  
-  @media (max-width: 640px) {
-    html {
-      font-size: 14px;
-    }
-  }
-  
+
   body {
     @apply bg-brand-black text-brand-offwhite font-sans antialiased;
     background-image: radial-gradient(circle at 50% -20%, #2a1a10 0%, #0f0f0f 60%);
@@ -47,3 +46,31 @@
   @apply bg-clip-text text-transparent bg-linear-to-r from-brand-gold via-white to-brand-red text-shadow-sm;
 }
 
+
+/* Global focus ring for keyboard users */
+@layer base {
+  :focus-visible {
+    outline: 2px solid #D4AF37;
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Mobile touch targets */
+  button,
+  a,
+  [role="button"] {
+    min-height: 40px;
+  }
+}

@@ -10,8 +10,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   return (
     <div className="min-h-screen flex flex-col">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200000] focus:bg-brand-gold focus:text-brand-black focus:font-black focus:uppercase focus:text-xs focus:tracking-widest focus:px-4 focus:py-2 focus:rounded-xl"
+      >
+        Aller au contenu principal
+      </a>
       <Navbar />
-      <main className="flex-1 pt-16 pb-20 md:pb-0">
+      <main id="main-content" tabIndex={-1} className="flex-1 pt-16 pb-20 md:pb-0 outline-none">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

@@ -48,10 +48,19 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
   const style = variantStyles[variant];
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !loading) onCancel();
+    };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [isOpen, loading, onCancel]);
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -74,8 +83,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             </div>
 
             <div className="text-center space-y-2">
-              <h3 className="text-xl font-display font-black">{title}</h3>
-              <p className="text-sm text-gray-400">{message}</p>
+              <h3 id="confirm-dialog-title" className="text-xl font-display font-black">{title}</h3>
+              <p id="confirm-dialog-message" className="text-sm text-gray-400">{message}</p>
             </div>
 
             <div className="flex gap-3">
