@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../core/design_tokens.dart';
 import '../models/work.dart';
 import '../services/firestore_service.dart';
 import '../widgets/empty_state.dart';
@@ -68,7 +69,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: query.isNotEmpty
-                    ? [BoxShadow(color: const Color(0xFFD4AF37).withValues(alpha: 0.15), blurRadius: 16)]
+                    ? [BoxShadow(color: AfriTokens.gold.withValues(alpha: 0.15), blurRadius: 16)]
                     : null,
               ),
               child: TextField(
@@ -112,7 +113,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               future: _works,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)));
+                  return const Center(child: CircularProgressIndicator(color: AfriTokens.gold));
                 }
                 if (snapshot.hasError) {
                   return EmptyState(icon: Icons.wifi_off, title: 'Erreur', message: snapshot.error.toString());
@@ -137,7 +138,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     setState(() => _works = FirestoreService.instance.fetchWorks(limit: 80));
                     await _works;
                   },
-                  color: const Color(0xFFD4AF37),
+                  color: AfriTokens.gold,
                   child: StaggeredGrid(
                     itemCount: works.length,
                     itemBuilder: (context, i) {

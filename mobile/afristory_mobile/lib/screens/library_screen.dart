@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_tokens.dart';
 import '../services/firestore_service.dart';
 import '../widgets/empty_state.dart';
 import '../screens/work_detail_screen.dart';
@@ -41,15 +42,15 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
     });
   }
 
-  Widget _grid(List<dynamic> works) {
+  Widget _grid(List<dynamic> works, String title, String message) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)));
+      return const Center(child: CircularProgressIndicator(color: AfriTokens.gold));
     }
     if (works.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.bookmark_border,
-        title: 'vide',
-        message: 'Aucun élément pour le moment.',
+        title: title,
+        message: message,
       );
     }
     return GridView.builder(
@@ -102,7 +103,7 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
       ),
       body: TabBarView(
         controller: controller,
-        children: [_grid(favs), _grid(history)],
+children: [_grid(favs, 'Aucun favori', 'Ajoutez des œuvres à vos favoris.'), _grid(history, "Pas d'historique", "Votre historique de lecture apparaîtra ici.")],
       ),
     );
   }

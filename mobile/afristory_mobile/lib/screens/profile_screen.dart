@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_tokens.dart';
 import '../services/firestore_service.dart';
 import '../state/app_state.dart';
 
@@ -41,14 +42,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Profil')),
       body: loading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)))
+          ? const Center(child: CircularProgressIndicator(color: AfriTokens.gold))
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
                 const CircleAvatar(
                   radius: 48,
                   backgroundColor: Color(0xFF3A2A1A),
-                  child: Icon(Icons.person, size: 48, color: Color(0xFFD4AF37)),
+                  child: Icon(Icons.person, size: 48, color: AfriTokens.gold),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -70,14 +71,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                    color: AfriTokens.gold.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
+                    border: Border.all(color: AfriTokens.gold.withValues(alpha: 0.4)),
                   ),
                   child: Text(
                     profile?['isGuest'] == true ? 'MODE INVITÉ' : 'COMPTE MEMBRE',
                     style: const TextStyle(
-                      color: Color(0xFFD4AF37),
+                      color: AfriTokens.gold,
                       fontSize: 9,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 1.6,
@@ -157,7 +158,7 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFFD4AF37))),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AfriTokens.gold)),
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
       ],

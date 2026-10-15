@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_tokens.dart';
 import '../models/work.dart';
 
 class WorkCard extends StatefulWidget {
@@ -26,7 +27,7 @@ class _WorkCardState extends State<WorkCard> {
         duration: const Duration(milliseconds: 130),
         curve: Curves.easeOutBack,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AfriTokens.radiusMd),
           child: Stack(
             fit: StackFit.expand,
             children: [

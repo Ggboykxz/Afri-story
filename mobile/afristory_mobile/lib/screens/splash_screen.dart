@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_tokens.dart';
 import '../state/app_state.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -41,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final gold = const Color(0xFFD4AF37);
+    final gold = AfriTokens.gold;
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F0F),
       body: Center(
@@ -96,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFFD4AF37),
+                              color: AfriTokens.gold,
                               letterSpacing: 4,
                             ),
                           ),

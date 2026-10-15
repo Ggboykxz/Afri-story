@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_tokens.dart';
 import '../models/chapter.dart';
 import '../models/work.dart';
 import '../services/firestore_service.dart';
@@ -82,7 +83,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                               return Container(
                                 height: 300,
                                 color: Colors.white10,
-                                child: const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37))),
+                                child: const Center(child: CircularProgressIndicator(color: AfriTokens.gold)),
                               );
                             },
                             errorBuilder: (context, _, __) => Container(

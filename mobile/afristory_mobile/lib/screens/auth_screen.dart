@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_tokens.dart';
 import '../state/app_state.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -49,7 +50,7 @@ class _AuthScreenState extends State<AuthScreen> {
     } else {
       setState(() => error = widget.state.auth.error ?? 'Erreur.');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error!), backgroundColor: const Color(0xFFA52A2A)),
+        SnackBar(content: Text(error!), backgroundColor: AfriTokens.red),
       );
     }
     setState(() => loading = false);
@@ -73,7 +74,7 @@ class _AuthScreenState extends State<AuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(widget.state.auth.error ?? 'Erreur invité.'),
-          backgroundColor: const Color(0xFFA52A2A),
+          backgroundColor: AfriTokens.red,
         ),
       );
     }
@@ -172,7 +173,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       if (error != null) ...[
                         const SizedBox(height: 12),
-                        Text(error!, style: const TextStyle(color: Color(0xFFA52A2A), fontSize: 13)),
+                        Text(error!, style: const TextStyle(color: AfriTokens.red, fontSize: 13)),
                       ],
                       const SizedBox(height: 18),
                       ElevatedButton(

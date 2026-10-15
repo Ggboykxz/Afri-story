@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_tokens.dart';
 import '../models/chapter.dart';
 import '../models/work.dart';
+import '../widgets/empty_state.dart';
 import '../services/firestore_service.dart';
 import 'reader_screen.dart';
 
@@ -76,21 +78,55 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AfriTokens.sp16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      if (w.genre.isNotEmpty)
+                        _Tag(label: w.genre.toUpperCase(), bg: AfriTokens.gold.withValues(alpha: 0.16), fg: AfriTokens.gold),
+                      const SizedBox(width: AfriTokens.sp6),
+                      if (w.isPremium)
+                        const _Tag(label: 'PREMIUM', bg: Color(0x33A52A2A), fg: AfriTokens.red),
+                    ],
+                  ),
+                  const SizedBox(height: AfriTokens.sp12),
+                  Text(w.authorName, style: AfriTokens.muted(color: AfriTokens.gold, size: 14).copyWith(fontWeight: FontWeight.w800)),
+                  const SizedBox(height: AfriTokens.sp8),
+                  Text(w.title, style: AfriTokens.display(size: 26)),
+                  const SizedBox(height: AfriTokens.sp12),
                   Text(
-                    w.authorName,
-                    style: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.w700),
+                    w.description.isEmpty ? 'Pas encore de description.' : w.description,
+                    style: AfriTokens.body(size: 15, height: 1.5),
                   ),
-                  const SizedBox(height: 8),
-                  Text(w.description.isEmpty ? 'Aucune description.' : w.description),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Chapitres',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                  const SizedBox(height: AfriTokens.sp20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                          label: const Text('COMMENCER'),
+                        ),
+                      ),
+                      const SizedBox(width: AfriTokens.sp10),
+                      IconButton.filledTonal(
+                        onPressed: _toggleFavorite,
+                        icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border, color: isFavorite ? AfriTokens.red : null),
+                        tooltip: isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris',
+                      ),
+                      const SizedBox(width: AfriTokens.sp8),
+                      IconButton.filledTonal(
+                        onPressed: () {},
+                        icon: const Icon(Icons.share_outlined),
+                        tooltip: 'Partager',
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: AfriTokens.sp24),
+                  Text('CHAPITRES', style: AfriTokens.label(size: 11, color: AfriTokens.onSurfaceMuted)),
+                  const SizedBox(height: AfriTokens.sp8),
                 ],
               ),
             ),
@@ -102,7 +138,7 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
                 return const SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.all(24),
-                    child: Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37))),
+                    child: Center(child: CircularProgressIndicator(color: AfriTokens.gold)),
                   ),
                 );
               }
@@ -110,8 +146,8 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
               if (chapters.isEmpty) {
                 return const SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text('Aucun chapitre'),
+                    padding: EdgeInsets.symmetric(horizontal: AfriTokens.sp16, vertical: AfriTokens.sp24),
+                    child: EmptyState(icon: Icons.menu_book_outlined, title: 'Pas de chapitre', message: 'Les chapitres arriveront bientôt.'),
                   ),
                 );
               }
@@ -121,11 +157,13 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
                     final c = chapters[i];
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: const Color(0xFFD4AF37),
-                        child: Text('${c.number}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+                        radius: 22,
+                        backgroundColor: AfriTokens.gold.withValues(alpha: 0.18),
+                        child: Text('${c.number}', style: const TextStyle(color: AfriTokens.gold, fontWeight: FontWeight.w900, fontSize: 15)),
                       ),
-                      title: Text(c.title),
-                      trailing: const Icon(Icons.chevron_right),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: AfriTokens.sp8, vertical: AfriTokens.sp4),
+                      title: Text(c.title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      trailing: const Icon(Icons.chevron_right_rounded, color: AfriTokens.onSurfaceMuted),
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -145,6 +183,29 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+
+class _Tag extends StatelessWidget {
+  final String label;
+  final Color bg;
+  final Color fg;
+  const _Tag({required this.label, required this.bg, required this.fg});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: fg, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.4),
       ),
     );
   }
