@@ -66,6 +66,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 8),
                   Text(bio, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
                 ],
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD4AF37).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4)),
+                  ),
+                  child: Text(
+                    profile?['isGuest'] == true ? 'MODE INVITÉ' : 'COMPTE MEMBRE',
+                    style: const TextStyle(
+                      color: Color(0xFFD4AF37),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.6,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -67,7 +67,10 @@ class _WorkDetailScreenState extends State<WorkDetailScreen> {
             flexibleSpace: FlexibleSpaceBar(
               title: Text(w.title, style: const TextStyle(fontWeight: FontWeight.w900)),
               background: (w.coverUrl != null && w.coverUrl!.isNotEmpty)
-                  ? Image.network(w.coverUrl!, fit: BoxFit.cover)
+                  ? Hero(
+                      tag: 'work-cover-${w.id}',
+                      child: Image.network(w.coverUrl!, fit: BoxFit.cover),
+                    )
                   : Container(color: const Color(0xFF1A1A1A)),
             ),
           ),

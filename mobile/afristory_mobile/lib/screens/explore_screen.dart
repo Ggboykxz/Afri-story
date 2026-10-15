@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/work.dart';
 import '../services/firestore_service.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/staggered_grid.dart';
 import '../widgets/work_card.dart';
 import 'work_detail_screen.dart';
 
@@ -61,12 +62,22 @@ class _ExploreScreenState extends State<ExploreScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-            child: TextField(
-              textInputAction: TextInputAction.search,
-              onChanged: _search,
-              decoration: const InputDecoration(
-                hintText: 'Rechercher une œuvre...',
-                prefixIcon: Icon(Icons.search),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: query.isNotEmpty
+                    ? [BoxShadow(color: const Color(0xFFD4AF37).withValues(alpha: 0.15), blurRadius: 16)]
+                    : null,
+              ),
+              child: TextField(
+                textInputAction: TextInputAction.search,
+                onChanged: _search,
+                decoration: const InputDecoration(
+                  hintText: 'Rechercher une œuvre...',
+                  prefixIcon: Icon(Icons.search),
+                ),
               ),
             ),
           ),
@@ -127,23 +138,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     await _works;
                   },
                   color: const Color(0xFFD4AF37),
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(12),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.62,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
+                  child: StaggeredGrid(
                     itemCount: works.length,
                     itemBuilder: (context, i) {
                       final w = works[i];
-                      return GestureDetector(
+                      return WorkCard(
+                        work: w,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => WorkDetailScreen(state: widget.state, work: w)),
                         ),
-                        child: WorkCard(work: w),
                       );
                     },
                   ),

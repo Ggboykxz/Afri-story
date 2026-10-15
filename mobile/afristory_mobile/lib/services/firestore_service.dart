@@ -109,8 +109,18 @@ class FirestoreService {
   Future<void> ensureUser(String uid, String email, String displayName) async {
     final existing = await getUser(uid);
     if (existing != null) return;
+    await _createUserDoc(uid, email, displayName);
+  }
+
+  Future<void> ensureGuestUser(String uid) async {
+    final existing = await getUser(uid);
+    if (existing != null) return;
+    await _createUserDoc(uid, '', 'Invité');
+  }
+
+  Future<void> _createUserDoc(String uid, String email, String displayName) async {
     final uri = Uri.parse('${FirebaseConfig.firestoreBase()}/users?documentId=$uid');
-    final res = await http.post(
+    await http.post(
       uri,
       headers: _headers(),
       body: jsonEncode({
@@ -127,10 +137,10 @@ class FirestoreService {
           'favorites': <String>[],
           'createdAt': DateTime.now().toUtc().toIso8601String(),
           'bio': '',
+          'isGuest': true,
         })
       }),
     );
-    // best effort
   }
 
   Future<void> updateUser(String uid, Map<String, dynamic> updates) async {

@@ -55,6 +55,50 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => loading = false);
   }
 
+  Future<void> _guest() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+    final ok = await widget.state.auth.signInAsGuest();
+    if (!mounted) return;
+    if (ok) {
+      widget.state.change();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bienvenue en mode invité !')),
+      );
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (mounted) Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(widget.state.auth.error ?? 'Erreur invité.'),
+          backgroundColor: const Color(0xFFA52A2A),
+        ),
+      );
+    }
+    setState(() => loading = false);
+  }
+
+  Future<void> _reset() async {
+    final email = emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saisissez votre e-mail d’abord')),
+      );
+      return;
+    }
+    final ok = await widget.state.auth.sendPasswordReset(email);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok
+            ? 'Lien de réinitialisation envoyé'
+            : (widget.state.auth.error ?? 'Erreur')),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,31 +191,76 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       if (loginMode)
                         TextButton(
-                          onPressed: () async {
-                            final email = emailController.text.trim();
-                            if (email.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Saisissez votre e-mail d’abord')),
-                              );
-                              return;
-                            }
-                            final ok = await widget.state.auth.sendPasswordReset(email);
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(ok
-                                    ? 'Lien de réinitialisation envoyé'
-                                    : (widget.state.auth.error ?? 'Erreur')),
-                              ),
-                            );
-                          },
+                          onPressed: loading ? null : _reset,
                           child: const Text('Mot de passe oublié ?', style: TextStyle(color: Colors.white54)),
                         ),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: 28),
+              _GuestButton(loading: loading, onPressed: _guest),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GuestButton extends StatefulWidget {
+  final bool loading;
+  final VoidCallback onPressed;
+  const _GuestButton({required this.loading, required this.onPressed});
+
+  @override
+  State<_GuestButton> createState() => _GuestButtonState();
+}
+
+class _GuestButtonState extends State<_GuestButton> {
+  double _scale = 1.0;
+
+  void _onTapDown(TapDownDetails _) => setState(() => _scale = 0.96);
+  void _onTapUp(TapUpDetails _) => setState(() => _scale = 1.0);
+  void _onTapCancel() => setState(() => _scale = 1.0);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedScale(
+      scale: _scale,
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOutBack,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTapDown: _onTapDown,
+          onTapUp: _onTapUp,
+          onTapCancel: _onTapCancel,
+          onTap: widget.loading ? null : widget.onPressed,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.5), width: 1.5),
+              color: Colors.white.withValues(alpha: 0.03),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.explore_outlined, color: Color(0xFFD4AF37), size: 20),
+                const SizedBox(width: 10),
+                Text(
+                  widget.loading ? 'CONNEXION...' : 'CONTINUER EN INVITÉ',
+                  style: const TextStyle(
+                    color: Color(0xFFD4AF37),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

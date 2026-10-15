@@ -130,6 +130,40 @@ class AuthService {
     }
   }
 
+  Future<bool> signInAsGuest() async {
+    error = null;
+    try {
+      final res = await http.post(
+        Uri.parse(FirebaseConfig.authUrl('accounts:signUp')),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'returnSecureToken': true}),
+      );
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      if (res.statusCode != 200) {
+        error = data['error']?['message'] ?? 'Connexion invité impossible.';
+        return false;
+      }
+      final uid = data['localId'] as String;
+      user = AuthUser(
+        uid: uid,
+        email: '',
+        displayName: 'Invité',
+        idToken: data['idToken'] as String?,
+        refreshToken: data['refreshToken'] as String?,
+      );
+      try {
+        await FirestoreService.instance.ensureGuestUser(uid);
+      } catch (_) {
+        // best effort - guest browsing works even if profile write fails
+      }
+      await _persist();
+      return true;
+    } catch (e) {
+      error = e.toString();
+      return false;
+    }
+  }
+
   Future<void> signOut() async {
     user = null;
   }

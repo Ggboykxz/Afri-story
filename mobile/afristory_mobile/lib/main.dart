@@ -19,6 +19,36 @@ void main() async {
   runApp(AfriStoryApp(state: state));
 }
 
+/// Transition personnalisée : fade + slide vertical + léger scale.
+Route<T> _buildRoute<T>(RouteSettings settings, Widget child) {
+  return PageRouteBuilder<T>(
+    settings: settings,
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 240),
+    pageBuilder: (_, __, ___) => child,
+    transitionsBuilder: (_, animation, __, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.035),
+            end: Offset.zero,
+          ).animate(curved),
+          child: ScaleTransition(
+            scale: Tween(begin: 0.985, end: 1.0).animate(curved),
+            child: child,
+          ),
+        ),
+      );
+    },
+  );
+}
+
 class AfriStoryApp extends StatefulWidget {
   final AppState state;
   const AfriStoryApp({super.key, required this.state});
@@ -46,13 +76,25 @@ class _AfriStoryAppState extends State<AfriStoryApp> {
             );
           },
           initialRoute: '/splash',
-          routes: {
-            '/splash': (_) => SplashScreen(state: widget.state),
-            '/auth': (_) => AuthScreen(state: widget.state),
-            '/home': (_) => HomeShell(state: widget.state),
-          },
+          onGenerateRoute: (settings) => _buildRoute(
+            settings,
+            _buildPage(settings, widget.state),
+          ),
         );
       },
     );
+  }
+
+  Widget _buildPage(RouteSettings settings, AppState state) {
+    switch (settings.name) {
+      case '/splash':
+        return SplashScreen(state: state);
+      case '/auth':
+        return AuthScreen(state: state);
+      case '/home':
+        return HomeShell(state: state);
+      default:
+        return SplashScreen(state: state);
+    }
   }
 }
