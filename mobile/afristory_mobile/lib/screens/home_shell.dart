@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/design_tokens.dart';
 import '../state/app_state.dart';
 import 'explore_screen.dart';
 import 'home_tab.dart';
@@ -26,48 +27,74 @@ class _HomeShellState extends State<HomeShell> {
       ProfileScreen(state: widget.state),
     ];
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 720;
+      builder: (context, cs) {
+        final isWide = cs.maxWidth >= 720;
         if (isWide) {
           return Scaffold(
-            body: SafeArea(
-              child: Row(
-                children: [
-                  NavigationRail(
+            body: Row(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(right: BorderSide(color: AfriTokens.divider)),
+                  ),
+                  child: NavigationRail(
                     selectedIndex: index,
                     onDestinationSelected: (i) => setState(() => index = i),
                     labelType: NavigationRailLabelType.all,
-                    backgroundColor: const Color(0xCC0F0F0F),
-                    selectedIconTheme: const IconThemeData(color: Colors.black),
-                    selectedLabelTextStyle: const TextStyle(color: Color(0xFFD4AF37), fontWeight: FontWeight.w700),
-                    indicatorColor: const Color(0xFFD4AF37),
+                    backgroundColor: AfriTokens.black.withValues(alpha: 0.9),
+                    indicatorColor: AfriTokens.gold.withValues(alpha: 0.18),
+                    selectedIconTheme: const IconThemeData(color: AfriTokens.gold, size: 22),
+                    unselectedIconTheme: IconThemeData(color: AfriTokens.onSurfaceMuted.withValues(alpha: 0.8)),
+                    selectedLabelTextStyle: const TextStyle(color: AfriTokens.gold, fontWeight: FontWeight.w800, fontSize: 12),
+                    unselectedLabelTextStyle: const TextStyle(color: AfriTokens.onSurfaceMuted, fontWeight: FontWeight.w500, fontSize: 12),
                     destinations: const [
-                      NavigationRailDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: Text('Accueil')),
-                      NavigationRailDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: Text('Explorer')),
-                      NavigationRailDestination(icon: Icon(Icons.bookmark_border), selectedIcon: Icon(Icons.bookmark), label: Text('Biblio')),
-                      NavigationRailDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: Text('Profil')),
+                      NavigationRailDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: Text('Accueil')),
+                      NavigationRailDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore_rounded), label: Text('Explorer')),
+                      NavigationRailDestination(icon: Icon(Icons.bookmark_border), selectedIcon: Icon(Icons.bookmark_rounded), label: Text('Biblio')),
+                      NavigationRailDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person_rounded), label: Text('Profil')),
                     ],
                   ),
-                  const VerticalDivider(width: 1),
-                  Expanded(child: IndexedStack(index: index, children: pages)),
-                ],
-              ),
+                ),
+                Expanded(child: IndexedStack(index: index, children: pages)),
+              ],
             ),
           );
         }
         return Scaffold(
           body: IndexedStack(index: index, children: pages),
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: index,
-            onDestinationSelected: (i) => setState(() => index = i),
-            backgroundColor: const Color(0xCC0F0F0F),
-            indicatorColor: const Color(0xFFD4AF37),
-            destinations: const [
-              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Accueil'),
-              NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: 'Explorer'),
-              NavigationDestination(icon: Icon(Icons.bookmark_border), selectedIcon: Icon(Icons.bookmark), label: 'Biblio'),
-              NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profil'),
-            ],
+          extendBody: true,
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: AfriTokens.black.withValues(alpha: 0.75),
+              border: Border(top: BorderSide(color: AfriTokens.divider)),
+            ),
+            child: SafeArea(
+              child: NavigationBar(
+                selectedIndex: index,
+                onDestinationSelected: (i) => setState(() => index = i),
+                backgroundColor: Colors.transparent,
+                indicatorColor: AfriTokens.gold.withValues(alpha: 0.18),
+                height: 62,
+                destinations: [
+                  NavigationDestination(
+                    icon: Icon(index == 0 ? Icons.home_rounded : Icons.home_outlined),
+                    label: 'Accueil',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(index == 1 ? Icons.explore_rounded : Icons.explore_outlined),
+                    label: 'Explorer',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(index == 2 ? Icons.bookmark_rounded : Icons.bookmark_border),
+                    label: 'Bibli',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(index == 3 ? Icons.person_rounded : Icons.person_outline),
+                    label: 'Profil',
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },

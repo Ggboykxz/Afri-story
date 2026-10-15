@@ -6,6 +6,7 @@ import '../services/firestore_service.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/staggered_grid.dart';
 import '../widgets/work_card.dart';
+import '../widgets/shimmer.dart';
 import 'work_detail_screen.dart';
 
 class HomeTab extends StatefulWidget {
@@ -74,7 +75,7 @@ class _HomeTabState extends State<HomeTab> {
               future: _works,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AfriTokens.gold)));
+                  return const SliverToBoxAdapter(child: WorkGridSkeleton());
                 }
                 if (snapshot.hasError) {
                   return SliverFillRemaining(child: EmptyState(icon: Icons.wifi_off, title: 'Erreur', message: snapshot.error.toString()));
