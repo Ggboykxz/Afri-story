@@ -212,7 +212,7 @@ export const WorkDetail = () => {
              {loading ? (
                 <Skeleton className="w-full h-full" />
              ) : work?.coverURL ? (
-                <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />
+                <img src={work.coverURL} alt={work.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
              ) : (
                 <div className="w-full h-full bg-brand-brown/40" />
              )}
@@ -500,7 +500,7 @@ export const WorkDetail = () => {
                   <Link key={sw.id} to={`/work/${sw.id}`} className="group">
                     <div className="aspect-[3/4] rounded-xl overflow-hidden mb-2 bg-brand-brown/30">
                       {sw.coverURL ? (
-                        <img src={sw.coverURL} alt={sw.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <img src={sw.coverURL} alt={sw.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <BookOpen className="w-8 h-8 text-white/10" />

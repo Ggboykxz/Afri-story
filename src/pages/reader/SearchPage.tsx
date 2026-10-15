@@ -89,7 +89,7 @@ export function SearchPage() {
                   <Link to={`/work/${work.id}`} className="block">
                     <div className="aspect-[3/4] rounded-xl overflow-hidden glass-card shadow-lg">
                       {work.coverURL ? (
-                        <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />
+                        <img src={work.coverURL} alt={work.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-brand-brown" />
                       )}

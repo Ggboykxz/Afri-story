@@ -201,7 +201,7 @@ export const Home = () => {
               <Link key={work.id} to={`/read/${work.id}/${work.chapterId || ''}`} className="group">
                 <div className="aspect-[3/4] rounded-2xl overflow-hidden glass-card relative shadow-xl mb-3">
                   {work.coverURL ? (
-                    <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <img src={work.coverURL} alt={work.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   ) : (
                     <div className="w-full h-full bg-brand-brown" />
                   )}
@@ -282,7 +282,7 @@ export const Home = () => {
                   <div key={work.id} className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate(`/work/${work.id}`)}>
                     <span className="text-4xl font-display font-black text-white/10 group-hover:text-brand-gold transition-colors">{i + 1}</span>
                     <div className="w-12 h-16 bg-brand-brown rounded-lg flex-shrink-0 relative overflow-hidden">
-                      {work.coverURL && <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />}
+                      {work.coverURL && <img src={work.coverURL} alt={work.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />}
                     </div>
                     <div className="flex-1">
                       <h4 className="font-bold text-sm line-clamp-1">{work.title}</h4>
@@ -491,7 +491,7 @@ const TrendingWorkCard = ({ work, index }: { work: any, index: number }) => {
       className="flex items-center gap-3 md:gap-6 group cursor-pointer glass-card p-3 md:p-4 hover:border-brand-gold/30 transition-all"
     >
       <div className="w-16 md:w-20 h-24 md:h-28 bg-brand-brown rounded-lg md:rounded-xl flex-shrink-0 relative overflow-hidden">
-         {work.coverURL && <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />}
+         {work.coverURL && <img src={work.coverURL} alt={work.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />}
          <div className="absolute top-0 right-0 bg-brand-gold text-brand-black text-[8px] md:text-[10px] font-black px-1.5 md:px-2 py-0.5">#{index}</div>
       </div>
       <div className="space-y-1 md:space-y-2">
@@ -530,7 +530,7 @@ const WorkCard = ({ work }: { work: any }) => {
           <button className="w-full py-2 bg-brand-gold text-brand-black text-xs font-black rounded-lg">LIRE MAINTENANT</button>
         </div>
         {work.coverURL ? (
-          <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+          <img src={work.coverURL} alt={work.title} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
         ) : (
           <div className="w-full h-full bg-brand-brown" />
         )}

@@ -91,7 +91,7 @@ export function Rankings() {
                   
                   <div className="w-16 h-20 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
                     {work.coverURL ? (
-                      <img src={work.coverURL} alt={work.title} className="w-full h-full object-cover" />
+                      <img src={work.coverURL} alt={work.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-brand-brown/40" />
                     )}
