@@ -67,6 +67,7 @@ class _AfriStoryAppState extends State<AfriStoryApp> {
           title: 'AfriStory',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.dark,
+          themeMode: ThemeMode.dark,
           builder: (context, child) {
             final media = MediaQuery.of(context);
             final scale = media.textScaler.scale(1.0).clamp(0.85, 1.25);
