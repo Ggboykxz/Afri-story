@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { AlertTriangle } from 'lucide-react';
 
 interface EmptyStateProps {
   icon: React.ElementType;
@@ -67,7 +68,7 @@ export function ErrorState({
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
       <div className="w-16 h-16 bg-brand-red/10 rounded-2xl flex items-center justify-center mb-6">
-        <span className="text-3xl">⚠️</span>
+        <AlertTriangle className="w-8 h-8 text-brand-red" />
       </div>
       <h3 className="text-lg font-display font-black uppercase text-brand-red">
         Erreur
