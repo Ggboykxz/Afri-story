@@ -362,7 +362,7 @@ export function NotificationsPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className={`glass-card overflow-hidden ${group.isRead ? 'opacity-70' : 'border-l-4 border-l-brand-gold'}`}
+                    className={`glass-card overflow-hidden ${group.isRead ? 'opacity-70' : 'bg-brand-gold/8'}`}
                   >
                     <div 
                       className="p-6 flex gap-6 items-start cursor-pointer hover:bg-white/5 transition-colors"

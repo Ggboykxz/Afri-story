@@ -14,14 +14,14 @@ import { db } from '@/lib/firebase';
 const GENRES = [
   { id: 'action', name: 'Action', emoji: '⚔️', color: 'from-red-500/20 to-red-900/10' },
   { id: 'romance', name: 'Romance', emoji: '💕', color: 'from-pink-500/20 to-pink-900/10' },
-  { id: 'fantasy', name: 'Fantasy', emoji: '🧙', color: 'from-purple-500/20 to-purple-900/10' },
+  { id: 'fantasy', name: 'Fantasy', emoji: '🧙', color: 'from-brand-brown/30 to-brand-brown/10' },
   { id: 'comedy', name: 'Comédie', emoji: '😂', color: 'from-yellow-500/20 to-yellow-900/10' },
   { id: 'drama', name: 'Drame', emoji: '🎭', color: 'from-blue-500/20 to-blue-900/10' },
   { id: 'horror', name: 'Horreur', emoji: '👻', color: 'from-gray-500/20 to-gray-900/10' },
   { id: 'scifi', name: 'Sci-Fi', emoji: '🚀', color: 'from-cyan-500/20 to-cyan-900/10' },
   { id: 'slice-of-life', name: 'Tranche de vie', emoji: '☀️', color: 'from-green-500/20 to-green-900/10' },
   { id: 'adventure', name: 'Aventure', emoji: '🗺️', color: 'from-amber-500/20 to-amber-900/10' },
-  { id: 'mystery', name: 'Mystère', emoji: '🔍', color: 'from-indigo-500/20 to-indigo-900/10' },
+  { id: 'mystery', name: 'Mystère', emoji: '🔍', color: 'from-brand-red/20 to-brand-red/5' },
   { id: 'sport', name: 'Sport', emoji: '⚽', color: 'from-emerald-500/20 to-emerald-900/10' },
   { id: 'historical', name: 'Historique', emoji: '📜', color: 'from-orange-500/20 to-orange-900/10' },
 ];

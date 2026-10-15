@@ -318,7 +318,7 @@ export const Messaging = () => {
                     onClick={() => setSelectedConv(conv)}
                     className={`p-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-all border-b border-white/5 relative ${
                       selectedConv?.id === conv.id ? 'bg-white/5' : ''
-                    } ${conv.isPinned ? 'border-l-4 border-l-brand-gold' : ''}`}
+                    } ${conv.isPinned ? 'bg-brand-gold/8' : ''}`}
                   >
                     <div className="relative">
                       <div className="w-12 h-12 rounded-full bg-brand-brown overflow-hidden flex items-center justify-center font-display font-bold text-lg">
